@@ -35,6 +35,9 @@ test-results/
 .DS_Store
 Thumbs.db
 
+# Generated
+backend/openapi.json
+
 # Docker / data
 *.log
 postgres-data/
