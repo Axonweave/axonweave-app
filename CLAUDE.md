@@ -30,11 +30,14 @@ Backend layering is strict: **route -> service -> repository -> model**. Schemas
 No business logic in route handlers. No SQL outside repositories.
 
 ## Commands
-_(The developer who completes task A0 must fill this section in with the real commands and commit it.)_
 - Start everything: `docker compose up`
-- Backend tests: `...`   Backend lint/format/typecheck: `...`
-- Migrations: `...`      Frontend dev/test/lint: `...`
-- Regenerate API types for frontend: `...`
+- Backend tests: `docker compose exec backend pytest` (or `cd backend && pytest` with local Python)
+- Backend lint: `cd backend && ruff check . && ruff format --check .`
+- Backend typecheck: `cd backend && mypy app`
+- Migrations: `docker compose exec backend alembic upgrade head`
+- Check migration state: `docker compose exec backend alembic heads` (must show exactly 1 head)
+- Regenerate API types for frontend: `cd backend && python scripts/export_openapi.py`
+- Frontend dev/test/lint: _(filled in by B0)_
 
 ## Non-negotiable rules
 1. **Security is enforced in the backend.** Hiding UI is never authorization. Every protected endpoint:
