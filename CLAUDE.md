@@ -37,7 +37,12 @@ No business logic in route handlers. No SQL outside repositories.
 - Migrations: `docker compose exec backend alembic upgrade head`
 - Check migration state: `docker compose exec backend alembic heads` (must show exactly 1 head)
 - Regenerate API types for frontend: `cd backend && python scripts/export_openapi.py`
-- Frontend dev/test/lint: _(filled in by B0)_
+- Frontend dev: `cd frontend && npm run dev`
+- Frontend lint: `cd frontend && npm run lint`
+- Frontend format: `cd frontend && npm run format:check`
+- Frontend unit tests: `cd frontend && npm run test`
+- Frontend e2e tests: `cd frontend && npm run test:e2e`
+- Generate API types: `cd frontend && npm run generate-types`
 
 ## Non-negotiable rules
 1. **Security is enforced in the backend.** Hiding UI is never authorization. Every protected endpoint:
