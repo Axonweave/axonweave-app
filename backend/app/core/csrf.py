@@ -8,6 +8,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from app.core.security import constant_time_compare
+from app.core.security_logging import log_csrf_failure
 
 _SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
 CSRF_COOKIE_NAME = "csrf_token"
@@ -46,6 +47,8 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # Validate Origin / Referer against allowlist
         origin = request.headers.get("origin") or request.headers.get("referer", "")
         if origin and not _origin_allowed(origin, self._frontend_url):
+            ip = (request.client.host if request.client else "unknown")
+            log_csrf_failure(ip, request.url.path)
             return JSONResponse(
                 status_code=403,
                 content={"success": False, "error": {"code": "CSRF_ORIGIN_MISMATCH", "message": "Forbidden."}},
@@ -56,12 +59,16 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         header_token = request.headers.get(CSRF_HEADER_NAME, "")
 
         if not cookie_token or not header_token:
+            ip = (request.client.host if request.client else "unknown")
+            log_csrf_failure(ip, request.url.path)
             return JSONResponse(
                 status_code=403,
                 content={"success": False, "error": {"code": "CSRF_TOKEN_MISSING", "message": "Forbidden."}},
             )
 
         if not constant_time_compare(cookie_token, header_token):
+            ip = (request.client.host if request.client else "unknown")
+            log_csrf_failure(ip, request.url.path)
             return JSONResponse(
                 status_code=403,
                 content={"success": False, "error": {"code": "CSRF_TOKEN_INVALID", "message": "Forbidden."}},
