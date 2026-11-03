@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Cookie, Depends, Request, Response
 
 from app.core.dependencies import CurrentUser, DbSession
+from app.core.email import EmailSender, get_email_sender
 from app.core.rate_limit import InProcessRateLimiter, get_client_ip, get_rate_limiter
 from app.core.security_logging import (
     log_login_failure,
@@ -10,6 +11,7 @@ from app.core.security_logging import (
     log_logout,
     log_registration,
 )
+from app.modules.auth.email_service import EmailAuthService
 from app.modules.auth.schemas import AuthResponse, LoginRequest, MeResponse, RegisterRequest
 from app.modules.auth.service import AuthService
 
@@ -28,12 +30,22 @@ async def register(
     db: DbSession,
     response: Response,
     limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    sender: Annotated[EmailSender, Depends(get_email_sender)],
 ) -> AuthResponse:
     ip = get_client_ip(request)
     await limiter.check(f"register:{ip}", *_REGISTER_LIMIT)
 
     service = AuthService(db)
     user = await service.register(data, response)
+
+    # Send verification email — fire-and-forget style (failure is logged, not raised)
+    try:
+        email_svc = EmailAuthService(db, sender)
+        await email_svc.send_verification_email(user)
+    except Exception as exc:
+        from app.core.logging import get_logger
+        get_logger(__name__).error("verification_email_failed", error=str(exc), user_id=str(user.id))
+
     log_registration(str(user.id), ip)
 
     from app.modules.auth.schemas import UserOut
