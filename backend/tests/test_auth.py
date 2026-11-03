@@ -113,7 +113,7 @@ async def test_login_wrong_password(client: AsyncClient, db_session: AsyncSessio
     assert response.status_code == 401
     body = response.json()
     # Must not reveal whether email exists
-    assert body["detail"]["code"] == "INVALID_CREDENTIALS"
+    assert body["error"]["code"] == "INVALID_CREDENTIALS"
 
 
 async def test_login_unknown_email(client: AsyncClient) -> None:
@@ -122,7 +122,7 @@ async def test_login_unknown_email(client: AsyncClient) -> None:
         "password": "AnyPassword123!",
     })
     assert response.status_code == 401
-    assert response.json()["detail"]["code"] == "INVALID_CREDENTIALS"
+    assert response.json()["error"]["code"] == "INVALID_CREDENTIALS"
 
 
 # ── /me ───────────────────────────────────────────────────────────────────────
