@@ -35,3 +35,39 @@ export interface LoginRequest {
   password: string;
   remember_me?: boolean;
 }
+
+export type WorkspaceType =
+  | "university"
+  | "personal_learning"
+  | "research"
+  | "professional_development"
+  | "custom";
+
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  workspace_type: WorkspaceType;
+  icon: string | null;
+  colour: string | null;
+  is_default: boolean;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateWorkspaceRequest {
+  name: string;
+  description?: string | null;
+  workspace_type?: WorkspaceType;
+  icon?: string | null;
+  colour?: string | null;
+}
+
+export interface UpdateWorkspaceRequest {
+  name?: string;
+  description?: string | null;
+  workspace_type?: WorkspaceType;
+  icon?: string | null;
+  colour?: string | null;
+}
