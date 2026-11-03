@@ -9,7 +9,7 @@ profile/settings, workspaces, subjects, folders, chapters. **No AI features in P
 - Full requirements: `docs/PHASE1_SPEC.md` (source of truth — read the sections named in your task).
 - Product context: `docs/Axonweave_PRD.docx` (background only).
 - Decisions for things the spec leaves open: `docs/DECISIONS.md` (follow them; do not invent alternatives).
-- Who owns what / task board: `docs/TASKS.md`.
+- Who owns what / task board: `docs/TASKS_Phase1.md`.
 - Git and parallel-work rules: `docs/WORKFLOW.md`.
 
 ## Stack (do not change without both developers agreeing)
@@ -75,7 +75,7 @@ and tick the matching acceptance criteria in spec section 22. Lint, typecheck an
 ## Working agreement with Claude Code
 - Start non-trivial tasks in **plan mode**. Present the plan; wait for approval.
 - One task per session, one branch per task. Use `/clear` between tasks.
-- Stay inside your owned area (docs/TASKS.md). If you need a change in the other developer's area or a shared file, make the smallest possible change and say so in the PR description.
+- Stay inside your owned area (docs/TASKS_Phase1.md). If you need a change in the other developer's area or a shared file, make the smallest possible change and say so in the PR description.
 - Commit small and often with Conventional Commits (`feat(auth): ...`, `fix(workspaces): ...`, `test:`, `docs:`, `chore:`).
 - Never push to `main`. Never force-push a shared branch. Never use `--no-verify`.
 - If the spec is ambiguous or contradicts DECISIONS.md, stop and ask the developer instead of guessing.
