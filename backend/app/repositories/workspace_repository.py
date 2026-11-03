@@ -14,6 +14,16 @@ class WorkspaceRepository:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
+    async def get_for_user(self, workspace_id: uuid.UUID, user_id: uuid.UUID) -> Workspace | None:
+        """Fetch one workspace — returns None (→ 404) if not owned by this user."""
+        result = await self._db.execute(
+            select(Workspace).where(
+                Workspace.id == workspace_id,
+                Workspace.user_id == user_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
     async def create(
         self,
         *,
@@ -58,16 +68,6 @@ class WorkspaceRepository:
 
         rows = await self._db.execute(q.limit(limit).offset(offset))
         return list(rows.scalars().all()), total
-
-    async def get_for_user(self, workspace_id: uuid.UUID, user_id: uuid.UUID) -> Workspace | None:
-        """Fetch one workspace — returns None (→ 404) if not owned by this user."""
-        result = await self._db.execute(
-            select(Workspace).where(
-                Workspace.id == workspace_id,
-                Workspace.user_id == user_id,
-            )
-        )
-        return result.scalar_one_or_none()
 
     async def name_exists(self, user_id: uuid.UUID, name: str, exclude_id: uuid.UUID | None = None) -> bool:
         """Case-insensitive name check among non-archived rows (D-11)."""
