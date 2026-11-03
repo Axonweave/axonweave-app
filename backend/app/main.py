@@ -10,6 +10,7 @@ from app.api.v1.router import router as api_v1_router
 from app.core.config import AppEnv, get_settings
 from app.core.csrf import CSRFMiddleware
 from app.core.logging import CorrelationIdMiddleware, configure_logging, get_logger
+from app.core.security_headers import SecurityHeadersMiddleware
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -36,7 +37,10 @@ app = FastAPI(
 )
 
 # ── Middleware (order matters: outermost applied last) ────────────────────────
+# Starlette wraps in reverse order; SecurityHeaders runs first on response,
+# CSRF+CORS+CorrelationId wrap it from the outside.
 
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 
 app.add_middleware(
