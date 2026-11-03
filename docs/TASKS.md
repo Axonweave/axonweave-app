@@ -13,26 +13,26 @@ Alembic: after any rebase run `alembic heads`; there must be exactly one head.
 
 ## Milestone 1 — Sessions and shell
 - [x] **A1** (Step 3 part 1) — **Ashik**: password hashing (Argon2id), sessions table logic, `aw_session` cookie, CSRF (D-04), `get_current_user` / `require_active_user` / `require_verified_user` dependencies, `POST /auth/register` (creates profile, preferences, default "Personal" workspace in one transaction), `login`, `logout`, `GET /auth/me`, test fixtures `create_user_and_session`. ✅ merged 2026-11-03
-- [ ] **B1** (Step 4): app shell — sidebar (D-26), header (title, breadcrumbs, workspace selector, profile menu, notification placeholder), mobile drawer, collapsible sidebar, protected-route layout, no-cache on protected pages so back button after logout does not show data. Uses `/auth/me`. → PR open: feat/b1-app-shell
+- [x] **B1** (Step 4): app shell — sidebar (D-26), header (title, breadcrumbs, workspace selector, profile menu, notification placeholder), mobile drawer, collapsible sidebar, protected-route layout, no-cache on protected pages so back button after logout does not show data. Uses `/auth/me`. ✅ merged 2026-11-03
 
 ## Milestone 2 — Parallel feature work
 **Dev A**
-- [ ] **A2** (Step 3 part 2 + security): rate limiting (D-18), CORS allowlist, security headers, security-event logging (D-25), brute-force delays, account status checks. → PR open: feat/a2-security
-- [ ] **A3**: email verification + forgot/reset password + `EmailSender` (D-17), resend-verification, revoke sessions on reset. → PR open: feat/a3-email-auth
-- [ ] **A4** (spec 5 + 6): frontend auth pages (register, login, forgot, reset, verify-email) in the `(auth)` group. → PR open: feat/a4-auth-ui
-- [ ] **A5** (spec 6 + 13.2): users API — profile get/patch, change password, change email with verification, sessions list/revoke, preferences, export (D-24), account deletion (D-23). → PR open: feat/a5-users-api
-- [ ] **A6**: frontend profile + settings (account, appearance, learning prefs, privacy). → PR open: feat/a6-profile-settings (base: feat/b1-app-shell)
+- [x] **A2** (Step 3 part 2 + security): rate limiting (D-18), CORS allowlist, security headers, security-event logging (D-25), brute-force delays, account status checks. ✅ merged 2026-11-03
+- [x] **A3**: email verification + forgot/reset password + `EmailSender` (D-17), resend-verification, revoke sessions on reset. ✅ merged 2026-11-03
+- [x] **A4** (spec 5 + 6): frontend auth pages (register, login, forgot, reset, verify-email) in the `(auth)` group. ✅ merged 2026-11-03
+- [x] **A5** (spec 6 + 13.2): users API — profile get/patch, change password, change email with verification, sessions list/revoke, preferences, export (D-24), account deletion (D-23). ✅ merged 2026-11-03
+- [x] **A6**: frontend profile + settings (account, appearance, learning prefs, privacy). ✅ merged 2026-11-03
 
 **Dev B** (B2 starts once A1 is merged)
-- [ ] **B2** (Step 5 backend): workspaces module + `activity` helper + tests. → PR open: feat/b2-workspaces-backend
-- [ ] **B3** (Step 5 frontend): workspace list/create/edit/default/archive/restore/delete UI. → PR open: feat/b3-workspace-ui (base: feat/b2-workspaces-backend)
-- [ ] **B4** (Step 6): subjects backend + UI (search, filter, sort, detail page). → PR open: feat/b4-subjects
-- [ ] **B5** (Step 7): folders + chapters backend (D-09, D-12, D-14, D-15). → PR open: feat/b5-folders-chapters
-- [ ] **B6** (Step 8): dashboard endpoints + UI, Recent activity page. → PR open: feat/b6-dashboard
+- [x] **B2** (Step 5 backend): workspaces module + `activity` helper + tests. ✅ merged 2026-11-03
+- [x] **B3** (Step 5 frontend): workspace list/create/edit/default/archive/restore/delete UI. ✅ merged 2026-11-03
+- [x] **B4** (Step 6): subjects backend + UI (search, filter, sort, detail page). ✅ merged 2026-11-03
+- [x] **B5** (Step 7): folders + chapters backend (D-09, D-12, D-14, D-15). ✅ merged 2026-11-03
+- [x] **B6** (Step 8): dashboard endpoints + UI, Recent activity page. ✅ merged 2026-11-03
 
 ## Milestone 3 — Hardening (joint)
-- [ ] **A7** (Step 9): security review — HTTPException format, CSRF/SQL-injection/session tests. → PR open: feat/a7-security-hardening
-- [ ] **B7** (Step 10): Playwright auth + journey E2E specs, setup/deployment docs. → PR open: feat/b7-e2e-docs
+- [x] **A7** (Step 9): security review — HTTPException format, CSRF/SQL-injection/session tests. ✅ merged 2026-11-03
+- [x] **B7** (Step 10): Playwright auth + journey E2E specs, setup/deployment docs. ✅ merged 2026-11-03
 
-## Merge order (recommended)
-A2 → A3 → A4 → A5 → B1 → A6 → B2 → B3 → B4 → B5 → B6 → A7 → B7
+## Phase 1 complete ✅
+All tasks merged to main on 2026-11-03. Main branch is the source of truth.
