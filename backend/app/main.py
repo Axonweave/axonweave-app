@@ -63,7 +63,7 @@ app.add_middleware(
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    # Normalise HTTPException detail into {"success": false, "error": {...}}
+    """Normalise all HTTP exceptions to {"success": false, "error": {...}}."""
     detail = exc.detail
     if isinstance(detail, dict) and "code" in detail:
         error = detail
