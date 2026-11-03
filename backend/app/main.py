@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1.router import router as api_v1_router
 from app.core.config import AppEnv, get_settings
+from app.core.csrf import CSRFMiddleware
 from app.core.logging import CorrelationIdMiddleware, configure_logging, get_logger
 
 settings = get_settings()
@@ -37,6 +38,12 @@ app = FastAPI(
 # ── Middleware (order matters: outermost applied last) ────────────────────────
 
 app.add_middleware(CorrelationIdMiddleware)
+
+app.add_middleware(
+    CSRFMiddleware,
+    frontend_url=settings.frontend_url,
+    session_cookie=settings.cookie_name,
+)
 
 app.add_middleware(
     CORSMiddleware,
