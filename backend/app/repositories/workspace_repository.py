@@ -1,5 +1,6 @@
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.workspace import Workspace
@@ -8,6 +9,18 @@ from app.models.workspace import Workspace
 class WorkspaceRepository:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
+
+    async def get_for_user(
+        self, *, workspace_id: uuid.UUID, user_id: uuid.UUID
+    ) -> Workspace | None:
+        """Fetch workspace scoped to user — returns None (→ 404) if not found or wrong user."""
+        result = await self._db.execute(
+            select(Workspace).where(
+                Workspace.id == workspace_id,
+                Workspace.user_id == user_id,
+            )
+        )
+        return result.scalar_one_or_none()
 
     async def create(
         self,
