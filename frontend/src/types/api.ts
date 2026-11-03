@@ -35,3 +35,48 @@ export interface LoginRequest {
   password: string;
   remember_me?: boolean;
 }
+
+export interface UserPreferences {
+  theme: "light" | "dark" | "system";
+  explanation_style: string | null;
+  academic_level: string | null;
+  preferred_language: string;
+}
+
+export interface SessionInfo {
+  id: string;
+  user_agent: string | null;
+  ip_address: string | null;
+  created_at: string;
+  last_used_at: string;
+  expires_at: string;
+  is_current: boolean;
+}
+
+export interface UpdateProfileRequest {
+  full_name?: string;
+  avatar_url?: string | null;
+  timezone?: string;
+  preferred_language?: string;
+}
+
+export interface UpdatePreferencesRequest {
+  theme?: "light" | "dark" | "system";
+  explanation_style?: string | null;
+  academic_level?: string | null;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface ChangeEmailRequest {
+  current_password: string;
+  new_email: string;
+}
+
+export interface DeleteAccountRequest {
+  current_password: string;
+  confirmation: string;
+}
