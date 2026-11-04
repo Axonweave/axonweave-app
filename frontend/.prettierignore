@@ -1,1 +1,3 @@
 src/types/api.generated.ts
+test-results
+playwright-report
