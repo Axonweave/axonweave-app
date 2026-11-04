@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chapter import Chapter
+from app.repositories.activity_repository import ActivityRepository
 from app.repositories.chapter_repository import ChapterRepository
 from app.repositories.folder_repository import FolderRepository
 from app.repositories.subject_repository import SubjectRepository
@@ -13,6 +14,7 @@ from app.repositories.workspace_repository import WorkspaceRepository
 class ChapterService:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
+        self._activity = ActivityRepository(db)
         self._chapters = ChapterRepository(db)
         self._folders = FolderRepository(db)
         self._subjects = SubjectRepository(db)
@@ -120,6 +122,14 @@ class ChapterService:
             display_order=display_order,
             status=chapter_status,
         )
+        await self._activity.record(
+            user_id=user_id,
+            action="created",
+            entity_type="chapter",
+            entity_id=chapter.id,
+            entity_name=chapter.title,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(chapter)
         return chapter
@@ -151,6 +161,14 @@ class ChapterService:
             folder_id_set=folder_id_set,
             display_order=display_order,
             status=chapter_status,
+        )
+        await self._activity.record(
+            user_id=user_id,
+            action="updated",
+            entity_type="chapter",
+            entity_id=chapter.id,
+            entity_name=chapter.title,
+            workspace_id=workspace_id,
         )
         await self._db.commit()
         await self._db.refresh(chapter)
@@ -187,6 +205,14 @@ class ChapterService:
                 detail={"code": "ALREADY_ARCHIVED", "message": "Chapter is already archived."},
             )
         chapter = await self._chapters.archive(chapter)
+        await self._activity.record(
+            user_id=user_id,
+            action="archived",
+            entity_type="chapter",
+            entity_id=chapter.id,
+            entity_name=chapter.title,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(chapter)
         return chapter
@@ -213,6 +239,14 @@ class ChapterService:
                 detail={"code": "NOT_ARCHIVED", "message": "Chapter is not archived."},
             )
         chapter = await self._chapters.restore(chapter)
+        await self._activity.record(
+            user_id=user_id,
+            action="restored",
+            entity_type="chapter",
+            entity_id=chapter.id,
+            entity_name=chapter.title,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(chapter)
         return chapter
@@ -228,5 +262,13 @@ class ChapterService:
         await self._require_workspace(workspace_id, user_id)
         await self._require_subject(subject_id, workspace_id)
         chapter = await self._require_chapter(chapter_id, subject_id)
+        await self._activity.record(
+            user_id=user_id,
+            action="deleted",
+            entity_type="chapter",
+            entity_id=chapter.id,
+            entity_name=chapter.title,
+            workspace_id=workspace_id,
+        )
         await self._chapters.delete(chapter)
         await self._db.commit()

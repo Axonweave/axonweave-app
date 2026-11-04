@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.subject import Subject
+from app.repositories.activity_repository import ActivityRepository
 from app.repositories.subject_repository import SubjectRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 
@@ -11,6 +12,7 @@ from app.repositories.workspace_repository import WorkspaceRepository
 class SubjectService:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
+        self._activity = ActivityRepository(db)
         self._subjects = SubjectRepository(db)
         self._workspaces = WorkspaceRepository(db)
 
@@ -91,6 +93,14 @@ class SubjectService:
             colour=colour,
             icon=icon,
         )
+        await self._activity.record(
+            user_id=user_id,
+            action="created",
+            entity_type="subject",
+            entity_id=subject.id,
+            entity_name=subject.name,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(subject)
         return subject
@@ -128,6 +138,14 @@ class SubjectService:
             colour=colour,
             icon=icon,
         )
+        await self._activity.record(
+            user_id=user_id,
+            action="updated",
+            entity_type="subject",
+            entity_id=subject.id,
+            entity_name=subject.name,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(subject)
         return subject
@@ -143,6 +161,14 @@ class SubjectService:
                 detail={"code": "ALREADY_ARCHIVED", "message": "Subject is already archived."},
             )
         subject = await self._subjects.archive(subject)
+        await self._activity.record(
+            user_id=user_id,
+            action="archived",
+            entity_type="subject",
+            entity_id=subject.id,
+            entity_name=subject.name,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(subject)
         return subject
@@ -177,6 +203,14 @@ class SubjectService:
                 },
             )
         subject = await self._subjects.restore(subject)
+        await self._activity.record(
+            user_id=user_id,
+            action="restored",
+            entity_type="subject",
+            entity_id=subject.id,
+            entity_name=subject.name,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(subject)
         return subject
@@ -186,5 +220,13 @@ class SubjectService:
     ) -> None:
         await self._require_workspace(workspace_id, user_id)
         subject = await self._require_subject(subject_id, workspace_id)
+        await self._activity.record(
+            user_id=user_id,
+            action="deleted",
+            entity_type="subject",
+            entity_id=subject.id,
+            entity_name=subject.name,
+            workspace_id=workspace_id,
+        )
         await self._subjects.delete(subject)
         await self._db.commit()

@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.folder import Folder
+from app.repositories.activity_repository import ActivityRepository
 from app.repositories.folder_repository import FolderRepository
 from app.repositories.subject_repository import SubjectRepository
 from app.repositories.workspace_repository import WorkspaceRepository
@@ -12,6 +13,7 @@ from app.repositories.workspace_repository import WorkspaceRepository
 class FolderService:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
+        self._activity = ActivityRepository(db)
         self._folders = FolderRepository(db)
         self._subjects = SubjectRepository(db)
         self._workspaces = WorkspaceRepository(db)
@@ -129,6 +131,14 @@ class FolderService:
             description=description,
             display_order=display_order,
         )
+        await self._activity.record(
+            user_id=user_id,
+            action="created",
+            entity_type="folder",
+            entity_id=folder.id,
+            entity_name=folder.name,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(folder)
         return folder
@@ -166,6 +176,14 @@ class FolderService:
         folder = await self._folders.update(
             folder, name=name, description=description, display_order=display_order
         )
+        await self._activity.record(
+            user_id=user_id,
+            action="updated",
+            entity_type="folder",
+            entity_id=folder.id,
+            entity_name=folder.name,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(folder)
         return folder
@@ -187,6 +205,14 @@ class FolderService:
                 detail={"code": "ALREADY_ARCHIVED", "message": "Folder is already archived."},
             )
         folder = await self._folders.archive(folder)
+        await self._activity.record(
+            user_id=user_id,
+            action="archived",
+            entity_type="folder",
+            entity_id=folder.id,
+            entity_name=folder.name,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(folder)
         return folder
@@ -226,6 +252,14 @@ class FolderService:
                 },
             )
         folder = await self._folders.restore(folder)
+        await self._activity.record(
+            user_id=user_id,
+            action="restored",
+            entity_type="folder",
+            entity_id=folder.id,
+            entity_name=folder.name,
+            workspace_id=workspace_id,
+        )
         await self._db.commit()
         await self._db.refresh(folder)
         return folder
@@ -251,5 +285,13 @@ class FolderService:
                     "message": "Folder has children. Use ?cascade=true to delete all inside.",
                 },
             )
+        await self._activity.record(
+            user_id=user_id,
+            action="deleted",
+            entity_type="folder",
+            entity_id=folder.id,
+            entity_name=folder.name,
+            workspace_id=workspace_id,
+        )
         await self._folders.delete(folder)
         await self._db.commit()
