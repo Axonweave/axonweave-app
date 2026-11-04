@@ -1,0 +1,2 @@
+# Dummy password string in a unit-test fixture (not a secret); removed from the file in a later commit.
+9cdb11d1ea78d96ff4e8a38700c3ed66574c651c:frontend/src/app/(app)/settings/settings-page.test.tsx:generic-api-key:147
