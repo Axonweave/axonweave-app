@@ -6,7 +6,7 @@ independent penetration test, and nothing here was run against a deployed enviro
 
 ## 1. Spec 19.2 essential cases, mapped to tests
 
-Backend tests run in the `backend` container (full suite: **231 passed**, see section 3). Test files live
+Backend tests run in the `backend` container (full suite: **234 passed**, see section 3). Test files live
 in `backend/tests/`.
 
 | # | Case | Test(s) |
@@ -54,7 +54,7 @@ in `backend/tests/`.
 
 | Check | Result |
 |-------|--------|
-| Backend tests, `pytest --cov=app` in the container | **231 passed**, **96 %** line coverage (2598 statements, 115 missed), includes the 49-case all-routes sweep |
+| Backend tests, `pytest --cov=app` in the container | **234 passed**, **96 %** line coverage (2598 statements, 114 missed), includes the 49-case all-routes sweep |
 | `ruff check` / `ruff format --check` | pass |
 | `mypy app` | pass (76 files) |
 | `alembic heads` | exactly one head (`0001`) |

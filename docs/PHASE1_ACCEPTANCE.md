@@ -92,7 +92,7 @@ because the API works.
 | Backend follows modular architecture | Met | Route -> service -> repository -> model layout under `backend/app`; by inspection and review, not machine-enforced |
 | Database migrations work | Partly | `alembic upgrade head` works and `alembic heads` shows one head (`0001`, a single initial migration). **Downgrade was not tested** |
 | API documentation is available | Met | `/docs` and `/openapi.json` return 200 locally (development only by design) |
-| Tests pass | Met | Local run: backend 234 tests (231 in the last full run plus 3 added after, which pass in their files), ruff and mypy clean; Vitest 93; Playwright 56 (CI-like config). **Not observed in CI** |
+| Tests pass | Met | Local run: backend 234 tests (one full run, 96 % coverage), ruff and mypy clean; Vitest 93; Playwright 56 (CI-like config). **Not observed in CI** |
 | Setup documentation is complete | Partly | `README.md`, `docs/SETUP.md`, `docs/DEPLOYMENT.md`, `docs/WORKFLOW.md` rewritten against the real repo. They were not followed from a clean clone, `.env.example` lacks `TRUST_PROXY_HEADERS`, and there is no production deployment recipe (`docs/DEPLOYMENT.md` lists what is missing) |
 
 ## Known problems that affect acceptance
