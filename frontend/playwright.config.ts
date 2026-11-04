@@ -15,9 +15,13 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "Mobile Chrome", use: { ...devices["Pixel 5"] } },
   ],
-  webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-  },
+  // In CI the full stack (backend, database, Mailpit, frontend) is started with docker compose
+  // beforehand, so Playwright must not start its own dev server.
+  webServer: process.env.PW_EXTERNAL_STACK
+    ? undefined
+    : {
+        command: "npm run dev",
+        url: "http://localhost:3000",
+        reuseExistingServer: true,
+      },
 });
