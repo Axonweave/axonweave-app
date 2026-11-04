@@ -138,13 +138,13 @@ describe("Security: change email", () => {
     await openTab("Security");
     await userEvent.type(
       screen.getByLabelText("Current password", { selector: "#email-password" }),
-      "pw-123456789",
+      "an example passphrase",
     );
     await userEvent.type(screen.getByLabelText("New email address"), "new@example.com");
     await userEvent.click(screen.getByRole("button", { name: "Request email change" }));
     await waitFor(() =>
       expect(api.changeEmail).toHaveBeenCalledWith({
-        current_password: "pw-123456789",
+        current_password: "an example passphrase",
         new_email: "new@example.com",
       }),
     );
