@@ -192,3 +192,24 @@ class TestCsrf:
         )
         assert resp.headers.get("access-control-allow-origin") != "https://evil.example"
         assert resp.headers.get("access-control-allow-origin") != "*"
+
+
+class TestRateLimitIpSpoofing:
+    """Spec 19.2 case 12: rate limits are enforced, and cannot be dodged by spoofing headers."""
+
+    async def test_spoofed_forwarded_for_does_not_bypass_register_limit(self, client: AsyncClient):
+        statuses = []
+        for i in range(15):
+            resp = await client.post(
+                "/api/v1/auth/register",
+                json={
+                    "full_name": "Spoof",
+                    "email": f"spoof{i}@example.com",
+                    "password": "ValidPassword123!",
+                    "confirm_password": "ValidPassword123!",
+                    "terms_accepted": True,
+                },
+                headers={"X-Forwarded-For": f"203.0.113.{i}"},
+            )
+            statuses.append(resp.status_code)
+        assert 429 in statuses

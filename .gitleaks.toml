@@ -1,0 +1,11 @@
+title = "Axonweave gitleaks config"
+
+[extend]
+useDefault = true
+
+# The CI workflow sets a throwaway APP_SECRET_KEY for APP_ENV=testing against an ephemeral
+# service-container database. It is not a real secret and is not used outside CI.
+[[allowlists]]
+description = "CI-only throwaway test key"
+paths = ['''^\.github/workflows/ci\.yml$''']
+regexes = ['''ci_test_secret_key_at_least_32_characters_long''']

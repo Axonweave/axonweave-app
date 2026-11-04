@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     cookie_samesite: CookieSameSite = CookieSameSite.lax
     cookie_name: str = "aw_session"
 
+    # Only enable behind a reverse proxy that overwrites X-Forwarded-For (rate limiting / audit IP)
+    trust_proxy_headers: bool = False
+
     # Email
     email_provider: str = "console"
     smtp_host: str = "localhost"
