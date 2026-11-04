@@ -42,7 +42,8 @@ in `backend/tests/`.
    owner-scoped queries (`export_repository.py`) and the email verification flow.
 7. **Account deletion from the UI sent the wrong request body** (so the feature could not work);
    the settings page now sends `password` and the `delete my account` confirmation the API expects.
-   Covered by a unit test; not yet by an end-to-end test.
+   Covered by a unit test and by `e2e/settings.spec.ts`, which deletes an account through the UI and
+   checks that login and `/auth/me` then fail.
 8. **Registration redirect:** the register page pushed to `/dashboard`, but registration opens no
    session, so users were silently bounced to the login page with no message. It now tells the user
    to check their email.
@@ -59,7 +60,7 @@ in `backend/tests/`.
 | `alembic heads` | exactly one head (`0001`) |
 | Frontend Vitest | 93 passed (10 files) |
 | Frontend `tsc --noEmit`, `npm run lint` | pass |
-| Playwright journey + auth + dashboard-pages | chromium and Mobile Chrome: journey+auth 16/16 each; dashboard-pages 9/9 on chromium |
+| Playwright, whole suite (auth, journey, settings, dashboard-pages) on chromium and Mobile Chrome | **56 passed**, run against the Docker stack with `TRUST_PROXY_HEADERS=true` as CI configures it. With it `false` (the local default) the 10-registrations-per-15-minutes limit is hit by a full two-project run and registration specs fail with "Too many requests" |
 | `gitleaks detect` (full git history, 36 commits at the time) | no leaks. One finding (a dummy test password in an old commit) is ignored by exact fingerprint in `.gitleaksignore`; a CI-only throwaway key is allowlisted in `.gitleaks.toml` |
 | `npm audit --omit=dev --audit-level=high` | exit 0; 6 low/moderate advisories, none high or critical |
 | `pip-audit -r requirements.txt --no-deps` (what CI runs) | "No known vulnerabilities found", **but see finding A: this check cannot see transitive dependencies** |
@@ -101,9 +102,13 @@ instances. Acceptable for the single-server Phase 1 target; wrong for anything s
 session, so the maintainer must add `TRUST_PROXY_HEADERS=false` (default, safe) by hand. CI sets
 it to `true` for the e2e job only.
 
-**G. Repository visibility.** If the code is meant to be private, confirm the GitHub repository is
+**G. Email cannot be sent through a real provider.** `SmtpEmailSender` uses plain SMTP with no
+STARTTLS or authentication. Not a vulnerability, but verification and reset emails cannot be
+delivered in production until this is fixed (see `docs/DEPLOYMENT.md`).
+
+**H. Repository visibility.** If the code is meant to be private, confirm the GitHub repository is
 private. The repository history was scanned for secrets and none were found, but the dev default
 passwords in `docker-compose.yml` are public if the repo is.
 
-**H. Not tested:** account-deletion and change-email flows end to end in a browser; behaviour behind
+**I. Not tested:** the change-email flow end to end in a browser; forgot/reset password pages in a browser; behaviour behind
 a real reverse proxy; load or abuse beyond the per-endpoint limits; dependency licences.

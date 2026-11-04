@@ -1,75 +1,75 @@
-# Axonweave — Deployment Guide
+# Axonweave: deployment notes
 
-> Phase 1 targets a single-server deployment. Kubernetes / multi-instance is out of scope.
+> **Phase 1 has not been deployed anywhere.** This file records what the application needs and
+> what is still missing; it is not a tested runbook. Target: a single server (Kubernetes and
+> multiple instances are out of scope, and the in-process rate limiter requires one instance, D-18).
 
-## Environment variables (production)
+## What does not exist yet
 
-Set these in your hosting platform's secret management (never in `.env` committed to git):
+- **No production Compose file or production images.** `docker-compose.yml` is a development setup
+  (bind mounts, `uvicorn --reload`, dev database passwords, Mailpit). `backend/Dockerfile` is a dev
+  image that includes test and lint tools. A production image should install `requirements.txt`
+  only, run without `--reload` and as a non-root user.
+- **No TLS / reverse proxy configuration.** HTTPS must be terminated in front of the app.
+- **No production email.** The SMTP sender (`backend/app/core/email.py`) speaks plain SMTP with no
+  STARTTLS and no authentication, so it works with Mailpit but not with typical hosted providers
+  (port 587 or 465 with credentials). A provider-capable sender must be added before real users can
+  receive verification or reset emails.
+- **No scheduled backups, monitoring or log shipping.** See `docs/BACKUP_RESTORE.md` for the
+  manual backup/restore procedure that was tested.
+- **Dependency upgrades pending:** see finding A in `docs/SECURITY_REVIEW.md` (Starlette).
 
-| Variable | Description |
-|----------|-------------|
-| `APP_ENV` | `production` |
-| `APP_SECRET_KEY` | 32+ char random string (rotate if compromised) |
-| `DATABASE_URL` | `postgresql+psycopg://axonweave_app:<pw>@host:5432/axonweave` |
-| `DATABASE_MIGRATION_URL` | `postgresql+psycopg://axonweave_owner:<pw>@host:5432/axonweave` |
-| `FRONTEND_URL` | Public frontend URL (e.g. `https://app.axonweave.com`) |
-| `BACKEND_URL` | Public backend URL (e.g. `https://api.axonweave.com`) |
-| `COOKIE_SECURE` | `true` |
-| `COOKIE_SAMESITE` | `lax` |
-| `EMAIL_PROVIDER` | `smtp` |
-| `SMTP_HOST` | Your SMTP server |
-| `SMTP_PORT` | `587` (TLS) or `465` (SSL) |
-| `SMTP_USERNAME` | SMTP username |
-| `SMTP_PASSWORD` | SMTP password |
-| `SMTP_FROM_ADDRESS` | `noreply@yourdomain.com` |
+## Configuration the backend reads (environment variables)
+
+Set these through the host's secret management, never in a committed file.
+
+| Variable | Notes |
+|----------|-------|
+| `APP_ENV` | `production` turns on the start-up guards below |
+| `APP_SECRET_KEY` | at least 32 characters, random; must not be a placeholder |
+| `DATABASE_URL` | restricted application role (`axonweave_app`), `postgresql+psycopg://...` |
+| `DATABASE_MIGRATION_URL` | owner role (`axonweave_owner`), used for migrations only |
+| `FRONTEND_URL`, `BACKEND_URL` | public URLs; `FRONTEND_URL` must be `https` in production. Also used for the CORS allowlist and email links |
+| `COOKIE_SECURE` | must be `true` in production |
+| `COOKIE_SAMESITE` | `lax` (default) |
+| `EMAIL_PROVIDER` | `console` (default), `smtp` or in-memory for tests; see the email limitation above |
+| `SMTP_HOST`, `SMTP_PORT` | used by the `smtp` provider |
+| `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME` | sender identity |
+| `TRUST_PROXY_HEADERS` | default `false`. Set `true` only if every request reaches the app through a proxy you control that overwrites `X-Forwarded-For`; otherwise clients can spoof their IP and weaken rate limits |
+
+The frontend needs `NEXT_PUBLIC_BACKEND_URL` **at build time** (it is compiled into the bundle).
+
+With `APP_ENV=production` the backend refuses to start if cookies are not secure, the secret is
+a placeholder or the frontend URL is not https (tests in `backend/tests/test_closeout_users_config.py`).
+It does not check the database passwords.
 
 ## Pre-deploy checklist
 
-- [ ] `APP_SECRET_KEY` is a fresh, random 32+ char string
-- [ ] `COOKIE_SECURE=true`
-- [ ] `APP_ENV=production`
-- [ ] Run `alembic upgrade head` against the production DB
-- [ ] `alembic heads` shows exactly one head
-- [ ] All tests pass on the target commit
-- [ ] `pip-audit` and `npm audit` show no high/critical CVEs
+- [ ] Fresh random `APP_SECRET_KEY`; fresh database passwords (not the Compose defaults)
+- [ ] `APP_ENV=production`, `COOKIE_SECURE=true`, https URLs
+- [ ] Database roles exist (`infrastructure/docker/init-db.sql` shows the grants); consider removing
+      write access to `alembic_version` from the app role (finding B in the security review)
+- [ ] `alembic upgrade head` run with the owner role; `alembic heads` shows one head
+- [ ] CI green on the commit; local backend, frontend and Playwright runs pass
+- [ ] `pip-audit` of the **installed** environment and `npm audit` reviewed (CI's `pip-audit
+      --no-deps` does not see transitive dependencies)
+- [ ] A backup was taken and a restore rehearsed on the target server
 
-## Deploy steps
-
-```bash
-# 1. Pull latest code on the server
-git pull origin main
-
-# 2. Build and start with Docker Compose
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-
-# 3. Run migrations
-docker compose exec backend alembic upgrade head
-
-# 4. Verify health
-curl https://api.axonweave.com/health
-```
-
-## Database backup
+## Migrations
 
 ```bash
-# Backup
-docker compose exec postgres pg_dump -U axonweave_owner axonweave | gzip > backup_$(date +%Y%m%d).sql.gz
-
-# Restore
-gunzip -c backup_20260101.sql.gz | docker compose exec -T postgres psql -U axonweave_owner axonweave
+docker compose exec backend alembic upgrade head   # uses DATABASE_MIGRATION_URL
+docker compose exec backend alembic heads          # exactly one head
 ```
 
 ## Rollback
 
-1. Identify the previous working commit: `git log --oneline`
-2. Roll back the code: `git checkout <commit>`
-3. If a migration was applied, downgrade: `alembic downgrade -1`
-4. Rebuild and restart: `docker compose up -d --build`
+1. Take a backup first (`docs/BACKUP_RESTORE.md`).
+2. Deploy the previous commit.
+3. If a migration must be undone: `alembic downgrade -1`. Downgrades were not rehearsed against
+   real data; restoring the backup is the dependable path.
 
-## Security notes
+## Backup and restore
 
-- Never run the app as root inside Docker
-- Use HTTPS only in production (`COOKIE_SECURE=true` enforces this)
-- Rotate `APP_SECRET_KEY` if it is ever exposed — this invalidates all sessions
-- Database owner role (`axonweave_owner`) is used only for migrations; app runs as `axonweave_app`
-- Rate limiting is in-process in Phase 1; a single-server deployment is required (see D-18)
+Use `docs/BACKUP_RESTORE.md` (custom-format `pg_dump`, `pg_restore`, verification steps). The old
+plain-SQL `gzip | psql` instructions that used to be here were never run and have been removed.

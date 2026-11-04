@@ -1,5 +1,5 @@
 ## What and why
-<!-- One short paragraph. Link the task id from docs/TASKS.md, e.g. B3. -->
+<!-- One short paragraph. Link the task id from docs/TASKS_Phase1.md, e.g. B3. -->
 
 ## Spec / acceptance criteria covered
 <!-- Spec sections and the section-22 checkboxes this PR satisfies. -->
