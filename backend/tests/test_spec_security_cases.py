@@ -5,6 +5,7 @@ Maps to docs/SECURITY_REVIEW.md:
   case 3  -> TestCrossUserMutations.test_user_cannot_delete_other_users_chapter
   case 7  -> TestResetTokens.test_unknown_reset_token_rejected
   case 8  -> TestResetTokens.test_reset_token_cannot_be_reused
+  case 4  -> TestEveryProtectedEndpointRequiresAuth (all routes in the OpenAPI schema)
   case 11 -> TestCsrf.*
 """
 
@@ -213,3 +214,56 @@ class TestRateLimitIpSpoofing:
             )
             statuses.append(resp.status_code)
         assert 429 in statuses
+
+
+# Endpoints that are intentionally reachable without a session. Anything else under /api/v1
+# must answer 401 to an unauthenticated caller. Adding a public route means adding it here on
+# purpose, which is the point of this test.
+PUBLIC_ENDPOINTS = {
+    ("POST", "/api/v1/auth/register"),
+    ("POST", "/api/v1/auth/login"),
+    ("POST", "/api/v1/auth/verify-email"),
+    ("POST", "/api/v1/auth/forgot-password"),
+    ("POST", "/api/v1/auth/reset-password"),
+    # Logout is idempotent: with no session there is nothing to revoke, and no data is returned.
+    ("POST", "/api/v1/auth/logout"),
+}
+_NIL_UUID = "00000000-0000-0000-0000-000000000000"
+
+
+def _protected_operations() -> list[tuple[str, str]]:
+    from app.main import app
+
+    ops = []
+    for path, item in app.openapi()["paths"].items():
+        if not path.startswith("/api/v1/"):
+            continue
+        for method in item:
+            if (
+                method.upper() in {"GET", "POST", "PUT", "PATCH", "DELETE"}
+                and (
+                    method.upper(),
+                    path,
+                )
+                not in PUBLIC_ENDPOINTS
+            ):
+                ops.append((method.upper(), path))
+    return sorted(ops)
+
+
+class TestEveryProtectedEndpointRequiresAuth:
+    """Spec 19.2 case 4, swept over every route in the OpenAPI schema, not a sample."""
+
+    def test_sweep_is_not_empty(self):
+        assert len(_protected_operations()) >= 40
+
+    @pytest.mark.parametrize(("method", "path"), _protected_operations())
+    async def test_unauthenticated_request_is_rejected(
+        self, client: AsyncClient, method: str, path: str
+    ):
+        import re
+
+        url = re.sub(r"\{[^}]+\}", _NIL_UUID, path)
+        resp = await client.request(method, url, json={} if method != "GET" else None)
+        assert resp.status_code == 401, f"{method} {path} answered {resp.status_code}"
+        assert resp.json()["error"]["code"]
