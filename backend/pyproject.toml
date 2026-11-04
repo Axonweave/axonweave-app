@@ -50,3 +50,5 @@ filterwarnings = [
 [tool.coverage.run]
 source = ["app"]
 omit = ["app/ai/*", "alembic/*"]
+# SQLAlchemy async runs service code inside greenlets; without this, coverage under-reports.
+concurrency = ["greenlet", "thread"]

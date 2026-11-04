@@ -58,12 +58,22 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _production_guards(self) -> "Settings":
-        if self.app_env == AppEnv.production:
-            if not self.cookie_secure:
-                raise ValueError("COOKIE_SECURE must be true in production")
-            if self.app_secret_key.startswith("replace_with"):
-                raise ValueError("APP_SECRET_KEY must not be the default placeholder in production")
+        """Refuse to start in production with insecure or placeholder configuration."""
+        if self.app_env != AppEnv.production:
+            return self
+        if not self.cookie_secure:
+            raise ValueError("COOKIE_SECURE must be true in production")
+        if self.app_secret_key.lower().startswith(_PLACEHOLDER_PREFIXES):
+            raise ValueError("APP_SECRET_KEY must not be a default placeholder in production")
+        if not self.frontend_url.startswith("https://"):
+            raise ValueError("FRONTEND_URL must use https in production")
+        for name in ("database_url", "database_migration_url"):
+            if any(p in str(getattr(self, name)).lower() for p in _PLACEHOLDER_PREFIXES):
+                raise ValueError(f"{name.upper()} must not contain a placeholder password")
         return self
+
+
+_PLACEHOLDER_PREFIXES = ("replace_with", "replace_me", "change_me", "changeme")
 
 
 @lru_cache

@@ -1,5 +1,6 @@
 import contextvars
 import logging
+import re
 import sys
 import uuid
 from collections.abc import Awaitable, Callable
@@ -70,13 +71,18 @@ def get_logger(name: str) -> structlog.stdlib.BoundLogger:
     return cast(structlog.stdlib.BoundLogger, structlog.get_logger(name))
 
 
+_SAFE_CID = re.compile(r"[A-Za-z0-9._-]{1,64}")
+
+
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self,
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
-        cid = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
+        supplied = request.headers.get("X-Correlation-ID", "")
+        # Only accept short, safe IDs from clients; anything else could forge or pollute logs.
+        cid = supplied if _SAFE_CID.fullmatch(supplied) else str(uuid.uuid4())
         token = correlation_id_var.set(cid)
         try:
             response = await call_next(request)
