@@ -256,3 +256,43 @@ class TestArchived:
         body = (await _get(client, bob, "/dashboard/archived")).json()
         assert body["total"] == 0
         assert body["data"] == []
+
+
+class TestWorkspaceLifecycleResponses:
+    """Archive, restore and set-default must return the updated workspace (regression: a 500
+    occurred because the server-updated updated_at was lazily loaded while serialising)."""
+
+    async def test_archive_restore_and_set_default(self, client: AsyncClient, alice: Actor):
+        base = {"cookies": alice.cookies, "headers": alice.headers}
+        ws = (await client.post("/api/v1/workspaces", json={"name": "Cycle"}, **base)).json()[
+            "data"
+        ]
+
+        archived = await client.post(f"/api/v1/workspaces/{ws['id']}/archive", **base)
+        assert archived.status_code == 200
+        assert archived.json()["data"]["archived_at"] is not None
+
+        restored = await client.post(f"/api/v1/workspaces/{ws['id']}/restore", **base)
+        assert restored.status_code == 200
+        assert restored.json()["data"]["archived_at"] is None
+
+        default = await client.post(f"/api/v1/workspaces/{ws['id']}/set-default", **base)
+        assert default.status_code == 200
+        assert default.json()["data"]["is_default"] is True
+
+    async def test_other_user_cannot_archive_or_restore(
+        self, client: AsyncClient, alice: Actor, bob: Actor
+    ):
+        ws = (
+            await client.post(
+                "/api/v1/workspaces",
+                json={"name": "Mine"},
+                cookies=alice.cookies,
+                headers=alice.headers,
+            )
+        ).json()["data"]
+        for action in ("archive", "restore"):
+            resp = await client.post(
+                f"/api/v1/workspaces/{ws['id']}/{action}", cookies=bob.cookies, headers=bob.headers
+            )
+            assert resp.status_code == 404

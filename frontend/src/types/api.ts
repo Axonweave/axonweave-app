@@ -116,3 +116,12 @@ export interface UpdateWorkspaceRequest {
   icon?: string | null;
   colour?: string | null;
 }
+
+// ---- Dashboard (derived from the generated OpenAPI types; never hand-copied) ----
+import type { components } from "./api.generated";
+
+export type ActivityItem = components["schemas"]["ActivityItem"];
+export type DashboardStats = components["schemas"]["DashboardStats"];
+export type WorkspaceOverviewItem = components["schemas"]["WorkspaceOverviewItem"];
+export type RecentSubjectItem = components["schemas"]["RecentSubjectItem"];
+export type ArchivedItem = components["schemas"]["ArchivedItem"];

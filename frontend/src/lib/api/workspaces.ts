@@ -1,14 +1,9 @@
 import { api } from "./client";
 import type { CreateWorkspaceRequest, UpdateWorkspaceRequest, Workspace } from "@/types/api";
 
-interface WorkspaceListData {
-  data: Workspace[];
-  total: number;
-}
-
 export const workspacesApi = {
   list: (includeArchived = false) =>
-    api.get<WorkspaceListData>(
+    api.get<Workspace[]>(
       `/workspaces${includeArchived ? "?include_archived=true" : ""}`,
     ),
 

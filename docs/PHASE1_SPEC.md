@@ -1855,10 +1855,10 @@ Phase 1 is complete only when the following conditions are satisfied.
 
 ## Dashboard
 
-- [ ] Dashboard displays real user information.
+- [x] Dashboard displays real user information.
 - [ ] Sidebar navigation works.
 - [ ] Responsive layouts work.
-- [ ] Loading and error states are implemented.
+- [x] Loading and error states are implemented.
 
 ## Profile and settings
 

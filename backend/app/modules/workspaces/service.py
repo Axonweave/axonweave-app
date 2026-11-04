@@ -103,6 +103,7 @@ class WorkspacesService:
     async def set_default(self, workspace_id: uuid.UUID, user: User) -> Workspace:
         ws = await self.get_workspace(workspace_id, user)
         await self._repo.set_default(ws, user.id)
+        await self._db.refresh(ws)
         return ws
 
     async def archive_workspace(self, workspace_id: uuid.UUID, user: User) -> Workspace:
@@ -124,6 +125,7 @@ class WorkspacesService:
             entity_name=ws.name,
             workspace_id=ws.id,
         )
+        await self._db.refresh(ws)
         return ws
 
     async def restore_workspace(self, workspace_id: uuid.UUID, user: User) -> Workspace:
@@ -156,6 +158,7 @@ class WorkspacesService:
             entity_name=ws.name,
             workspace_id=ws.id,
         )
+        await self._db.refresh(ws)
         return ws
 
     async def delete_workspace(self, workspace_id: uuid.UUID, user: User) -> None:

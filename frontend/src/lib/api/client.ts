@@ -56,6 +56,10 @@ async function request<T>(
     credentials: "include", // always send session cookie
   });
 
+  if (response.status === 204) {
+    return { success: true, data: null as T };
+  }
+
   let body: unknown;
   try {
     body = await response.json();

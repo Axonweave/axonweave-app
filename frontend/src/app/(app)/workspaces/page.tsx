@@ -3,8 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Archive, ArchiveRestore, Edit2, MoreHorizontal, Plus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -12,103 +10,13 @@ import { ErrorDisplay } from "@/components/ui/error-display";
 import { useToast } from "@/hooks/use-toast";
 import { workspacesApi } from "@/lib/api/workspaces";
 import { ApiRequestError } from "@/lib/api/client";
+import {
+  DEFAULT_FORM,
+  PRESET_COLOURS,
+  WorkspaceFormFields,
+  type WorkspaceFormData,
+} from "@/features/workspaces/workspace-form";
 import type { CreateWorkspaceRequest, UpdateWorkspaceRequest, Workspace, WorkspaceType } from "@/types/api";
-
-const WS_TYPES: Array<{ value: WorkspaceType; label: string }> = [
-  { value: "personal_learning", label: "Personal learning" },
-  { value: "university", label: "University" },
-  { value: "research", label: "Research" },
-  { value: "professional_development", label: "Professional development" },
-  { value: "custom", label: "Custom" },
-];
-
-const PRESET_COLOURS = [
-  "#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b",
-  "#10b981", "#ef4444", "#6366f1", "#14b8a6",
-];
-
-function ColourPicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {PRESET_COLOURS.map((c) => (
-        <button
-          key={c}
-          type="button"
-          onClick={() => onChange(c)}
-          className={`h-7 w-7 rounded-full border-2 transition-transform ${
-            value === c ? "scale-110 border-foreground" : "border-transparent"
-          }`}
-          style={{ backgroundColor: c }}
-          aria-label={c}
-        />
-      ))}
-    </div>
-  );
-}
-
-interface WorkspaceFormData {
-  name: string;
-  description: string;
-  workspace_type: WorkspaceType;
-  colour: string;
-}
-
-function WorkspaceFormFields({
-  data,
-  onChange,
-}: {
-  data: WorkspaceFormData;
-  onChange: (d: WorkspaceFormData) => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="ws-name">Name *</Label>
-        <Input
-          id="ws-name"
-          value={data.name}
-          onChange={(e) => onChange({ ...data, name: e.target.value })}
-          maxLength={255}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="ws-desc">Description</Label>
-        <Input
-          id="ws-desc"
-          value={data.description}
-          onChange={(e) => onChange({ ...data, description: e.target.value })}
-          maxLength={2000}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="ws-type">Type</Label>
-        <select
-          id="ws-type"
-          value={data.workspace_type}
-          onChange={(e) => onChange({ ...data, workspace_type: e.target.value as WorkspaceType })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          {WS_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="space-y-2">
-        <Label>Colour</Label>
-        <ColourPicker value={data.colour} onChange={(c) => onChange({ ...data, colour: c })} />
-      </div>
-    </div>
-  );
-}
 
 function WorkspaceCard({
   ws,
@@ -231,13 +139,6 @@ function WorkspaceCard({
   );
 }
 
-const DEFAULT_FORM: WorkspaceFormData = {
-  name: "",
-  description: "",
-  workspace_type: "personal_learning",
-  colour: PRESET_COLOURS[0],
-};
-
 export default function WorkspacesPage() {
   const { toast } = useToast();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -257,7 +158,7 @@ export default function WorkspacesPage() {
   const load = useCallback(async () => {
     try {
       const r = await workspacesApi.list(showArchived);
-      setWorkspaces(r.data.data);
+      setWorkspaces(r.data);
       setError(null);
     } catch {
       setError("Could not load workspaces.");
