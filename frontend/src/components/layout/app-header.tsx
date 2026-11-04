@@ -71,14 +71,8 @@ export function AppHeader({ onMenuClick, breadcrumbs }: AppHeaderProps) {
 
       {/* Profile menu */}
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="h-8 w-8 rounded-full bg-accent p-0 text-xs font-semibold"
-            aria-label="Open profile menu"
-          >
-            {initials}
-          </Button>
+        <DropdownMenuTrigger render={<Button variant="ghost" className="h-8 w-8 rounded-full bg-accent p-0 text-xs font-semibold" aria-label="Open profile menu" />}>
+          {initials}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <div className="px-2 py-1.5">
@@ -86,17 +80,13 @@ export function AppHeader({ onMenuClick, breadcrumbs }: AppHeaderProps) {
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <a href="/settings/profile">
-              <UserIcon className="mr-2 h-4 w-4" />
-              Profile
-            </a>
+          <DropdownMenuItem render={<a href="/settings/profile" />}>
+            <UserIcon className="mr-2 h-4 w-4" />
+            Profile
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <a href="/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </a>
+          <DropdownMenuItem render={<a href="/settings" />}>
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">

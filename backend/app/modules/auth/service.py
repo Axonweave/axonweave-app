@@ -95,8 +95,11 @@ class AuthService:
             description="Your default personal workspace.",
         )
 
+        # Re-fetch with eager-loaded relationships so UserOut serialisation works
+        loaded_user = await self._users.get_by_id(user.id)
+        assert loaded_user is not None
         logger.info("user_registered", user_id=str(user.id))
-        return user
+        return loaded_user
 
     async def login(self, data: LoginRequest, request: Request, response: Response) -> User:
         """Authenticate, create session, set cookies. Generic error if credentials wrong."""

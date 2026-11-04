@@ -18,7 +18,7 @@ export const registerSchema = z
     password,
     confirm_password: z.string(),
     terms_accepted: z.literal(true, {
-      errorMap: () => ({ message: "You must accept the terms to create an account" }),
+      error: () => ({ message: "You must accept the terms to create an account" }),
     }),
   })
   .refine((d) => d.password === d.confirm_password, {

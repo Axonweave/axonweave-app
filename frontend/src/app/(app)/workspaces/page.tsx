@@ -5,7 +5,7 @@ import { Archive, ArchiveRestore, Edit2, MoreHorizontal, Plus, Star, Trash2 } fr
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorDisplay } from "@/components/ui/error-display";
@@ -397,7 +397,7 @@ export default function WorkspacesPage() {
         <EmptyState
           title={showArchived ? "No archived workspaces" : "No workspaces yet"}
           description="Create your first workspace to get started."
-          action={{ label: "Create workspace", onClick: openCreate }}
+          action={<Button onClick={openCreate}>Create workspace</Button>}
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -416,31 +416,33 @@ export default function WorkspacesPage() {
       )}
 
       {/* Create / Edit modal */}
-      <Dialog open={formOpen} onClose={() => setFormOpen(false)}>
-        <form onSubmit={handleSubmit} className="space-y-4 p-6">
-          <h2 className="text-lg font-semibold">
-            {editingWs ? "Edit workspace" : "Create workspace"}
-          </h2>
-          <WorkspaceFormFields data={formData} onChange={setFormData} />
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={submitting || !formData.name.trim()}>
-              {submitting ? "Saving…" : editingWs ? "Save changes" : "Create"}
-            </Button>
-          </div>
-        </form>
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent showCloseButton={false}>
+          <form onSubmit={handleSubmit} className="space-y-4 p-6">
+            <h2 className="text-lg font-semibold">
+              {editingWs ? "Edit workspace" : "Create workspace"}
+            </h2>
+            <WorkspaceFormFields data={formData} onChange={setFormData} />
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={submitting || !formData.name.trim()}>
+                {submitting ? "Saving…" : editingWs ? "Save changes" : "Create"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
       </Dialog>
 
       {/* Delete confirm */}
       <ConfirmDialog
         open={!!deleteTarget}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
         title="Delete workspace?"
         description={`This will permanently delete "${deleteTarget?.name}" and all its contents. This cannot be undone.`}
         confirmLabel="Delete"
         onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
         destructive
       />
     </div>

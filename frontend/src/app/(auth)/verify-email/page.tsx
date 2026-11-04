@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiRequestError } from "@/lib/api/client";
@@ -8,7 +8,7 @@ import { LoadingSpinner } from "@/components/ui/loading";
 
 type State = "loading" | "success" | "error" | "no_token";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [state, setState] = useState<State>(token ? "loading" : "no_token");
@@ -72,5 +72,13 @@ export default function VerifyEmailPage() {
         Back to sign in
       </Link>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

@@ -1,16 +1,17 @@
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
 
 // Content-Security-Policy (D-31)
 const cspDirectives = [
   "default-src 'self'",
-  // Scripts: self + Next.js inline scripts needed for hydration
-  isDev ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'" : "script-src 'self'",
+  // Scripts: unsafe-inline needed for Next.js hydration scripts; unsafe-eval for dev HMR
+  isDev ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'" : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'", // inline styles needed for Tailwind
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self' ${backendUrl}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -29,6 +30,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
