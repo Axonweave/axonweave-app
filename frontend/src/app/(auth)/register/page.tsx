@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -12,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function RegisterPage() {
-  const router = useRouter();
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -25,7 +24,7 @@ export default function RegisterPage() {
     setServerError(null);
     try {
       await api.post("/auth/register", data);
-      router.push("/dashboard");
+      setRegisteredEmail(data.email);
     } catch (err) {
       if (err instanceof ApiRequestError) {
         setServerError(err.message);
@@ -35,11 +34,25 @@ export default function RegisterPage() {
     }
   };
 
+  if (registeredEmail) {
+    return (
+      <div className="border-border bg-background space-y-4 rounded-xl border p-6 text-center shadow-sm">
+        <h1 className="text-xl font-semibold">Check your email</h1>
+        <p className="text-muted-foreground text-sm">
+          We sent a link to {registeredEmail}. Please verify your email address, then sign in.
+        </p>
+        <Link href="/login" className="text-primary block text-sm underline underline-offset-4">
+          Go to sign in
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 rounded-xl border border-border bg-background p-6 shadow-sm">
+    <div className="border-border bg-background space-y-6 rounded-xl border p-6 shadow-sm">
       <div className="space-y-1">
         <h1 className="text-xl font-semibold">Create your account</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Already have an account?{" "}
           <Link href="/login" className="text-primary underline underline-offset-4">
             Sign in
@@ -49,7 +62,7 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {serverError && (
-          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <div className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-sm">
             {serverError}
           </div>
         )}
@@ -64,7 +77,9 @@ export default function RegisterPage() {
             {...register("full_name")}
             aria-invalid={!!errors.full_name}
           />
-          {errors.full_name && <p className="text-xs text-destructive">{errors.full_name.message}</p>}
+          {errors.full_name && (
+            <p className="text-destructive text-xs">{errors.full_name.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -77,7 +92,7 @@ export default function RegisterPage() {
             {...register("email")}
             aria-invalid={!!errors.email}
           />
-          {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+          {errors.email && <p className="text-destructive text-xs">{errors.email.message}</p>}
         </div>
 
         <div className="space-y-1.5">
@@ -89,8 +104,8 @@ export default function RegisterPage() {
             {...register("password")}
             aria-invalid={!!errors.password}
           />
-          {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
-          <p className="text-xs text-muted-foreground">Minimum 12 characters</p>
+          {errors.password && <p className="text-destructive text-xs">{errors.password.message}</p>}
+          <p className="text-muted-foreground text-xs">Minimum 12 characters</p>
         </div>
 
         <div className="space-y-1.5">
@@ -103,7 +118,7 @@ export default function RegisterPage() {
             aria-invalid={!!errors.confirm_password}
           />
           {errors.confirm_password && (
-            <p className="text-xs text-destructive">{errors.confirm_password.message}</p>
+            <p className="text-destructive text-xs">{errors.confirm_password.message}</p>
           )}
         </div>
 
@@ -112,10 +127,10 @@ export default function RegisterPage() {
             <input
               id="terms_accepted"
               type="checkbox"
-              className="mt-0.5 h-4 w-4 rounded border-border"
+              className="border-border mt-0.5 h-4 w-4 rounded"
               {...register("terms_accepted")}
             />
-            <Label htmlFor="terms_accepted" className="text-sm font-normal leading-relaxed">
+            <Label htmlFor="terms_accepted" className="text-sm leading-relaxed font-normal">
               I agree to the{" "}
               <a href="/terms" className="text-primary underline underline-offset-4">
                 Terms of Service
@@ -127,7 +142,7 @@ export default function RegisterPage() {
             </Label>
           </div>
           {errors.terms_accepted && (
-            <p className="text-xs text-destructive">{errors.terms_accepted.message}</p>
+            <p className="text-destructive text-xs">{errors.terms_accepted.message}</p>
           )}
         </div>
 

@@ -141,6 +141,9 @@ describe("RegisterPage", () => {
         terms_accepted: true,
       }),
     );
+    expect(await screen.findByRole("heading", { name: "Check your email" })).toBeInTheDocument();
+    expect(screen.getByText(/ada@example.com/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Go to sign in" })).toHaveAttribute("href", "/login");
   });
 
   it("shows the server error, for example a duplicate email", async () => {
