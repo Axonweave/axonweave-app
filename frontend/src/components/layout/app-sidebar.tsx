@@ -126,6 +126,7 @@ function NavSection({
             <Link
               href={item.disabled ? "#" : item.href}
               aria-disabled={item.disabled}
+              aria-current={active ? "page" : undefined}
               tabIndex={item.disabled ? -1 : undefined}
               className={cn(
                 "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",

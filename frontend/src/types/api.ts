@@ -77,7 +77,7 @@ export interface ChangeEmailRequest {
 }
 
 export interface DeleteAccountRequest {
-  current_password: string;
+  password: string;
   confirmation: string;
 }
 

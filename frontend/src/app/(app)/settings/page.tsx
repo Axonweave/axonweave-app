@@ -16,8 +16,10 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
-      className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
         active
           ? "bg-accent text-accent-foreground"
           : "text-muted-foreground hover:text-foreground"
@@ -360,6 +362,9 @@ function SessionsTab() {
   );
 }
 
+// The API requires this exact phrase (case-insensitive) next to the password (D-23).
+const DELETE_PHRASE = "delete my account";
+
 function AccountTab() {
   const { user, refresh } = useAuthContext();
   const { toast } = useToast();
@@ -387,13 +392,13 @@ function AccountTab() {
   }
 
   async function handleDeleteConfirm() {
-    if (deleteForm.confirmation !== "DELETE") {
-      toast({ title: 'Type DELETE to confirm', variant: "destructive" });
+    if (deleteForm.confirmation.trim().toLowerCase() !== DELETE_PHRASE) {
+      toast({ title: `Type "${DELETE_PHRASE}" to confirm`, variant: "destructive" });
       return;
     }
     setDeleting(true);
     try {
-      await profileApi.deleteAccount({ current_password: deleteForm.password, confirmation: "DELETE" });
+      await profileApi.deleteAccount({ password: deleteForm.password, confirmation: DELETE_PHRASE });
       await refresh();
     } catch (err) {
       const msg = err instanceof ApiRequestError ? err.message : "Could not delete account.";
@@ -456,12 +461,12 @@ function AccountTab() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="delete-confirm">Type DELETE to confirm</Label>
+            <Label htmlFor="delete-confirm">Type &quot;{DELETE_PHRASE}&quot; to confirm</Label>
             <Input
               id="delete-confirm"
               value={deleteForm.confirmation}
               onChange={(e) => setDeleteForm((f) => ({ ...f, confirmation: e.target.value }))}
-              placeholder="DELETE"
+              placeholder={DELETE_PHRASE}
             />
           </div>
           <div className="flex gap-2">
@@ -470,7 +475,11 @@ function AccountTab() {
             </Button>
             <Button
               variant="destructive"
-              disabled={deleting || deleteForm.confirmation !== "DELETE"}
+              disabled={
+                deleting ||
+                !deleteForm.password ||
+                deleteForm.confirmation.trim().toLowerCase() !== DELETE_PHRASE
+              }
               onClick={handleDeleteConfirm}
             >
               {deleting ? "Deleting…" : "Delete my account"}
@@ -501,7 +510,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 border-b border-border pb-0">
+      <div role="tablist" aria-label="Settings sections" className="flex flex-wrap gap-1 border-b border-border pb-0">
         {tabs.map((t) => (
           <TabButton key={t.id} active={tab === t.id} onClick={() => setTab(t.id)}>
             {t.label}
@@ -510,7 +519,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Tab content */}
-      <div className="rounded-lg border border-border bg-card p-6">
+      <div role="tabpanel" className="rounded-lg border border-border bg-card p-6">
         {tab === "appearance" && <AppearanceTab />}
         {tab === "learning" && <LearningTab />}
         {tab === "security" && <SecurityTab />}
