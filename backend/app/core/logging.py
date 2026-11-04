@@ -3,7 +3,7 @@ import logging
 import sys
 import uuid
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from fastapi import Request, Response
@@ -67,7 +67,7 @@ def configure_logging(json_logs: bool = False) -> None:
 
 
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:
-    return structlog.get_logger(name)  # type: ignore[return-value]
+    return cast(structlog.stdlib.BoundLogger, structlog.get_logger(name))
 
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):

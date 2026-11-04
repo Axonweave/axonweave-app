@@ -296,3 +296,23 @@ class TestWorkspaceLifecycleResponses:
                 f"/api/v1/workspaces/{ws['id']}/{action}", cookies=bob.cookies, headers=bob.headers
             )
             assert resp.status_code == 404
+
+
+class TestSetDefaultOrdering:
+    async def test_set_default_repeatedly_never_violates_unique_index(
+        self, client: AsyncClient, alice: Actor
+    ):
+        base = {"cookies": alice.cookies, "headers": alice.headers}
+        ids = []
+        for name in ("D1", "D2", "D3"):
+            ids.append(
+                (await client.post("/api/v1/workspaces", json={"name": name}, **base)).json()[
+                    "data"
+                ]["id"]
+            )
+        for _ in range(5):
+            for ws_id in ids:
+                resp = await client.post(f"/api/v1/workspaces/{ws_id}/set-default", **base)
+                assert resp.status_code == 200
+        listing = (await client.get("/api/v1/workspaces", **base)).json()["data"]
+        assert [w["is_default"] for w in listing].count(True) == 1
