@@ -7,8 +7,10 @@ from fastapi import APIRouter, Cookie, Depends, Request, Response
 from fastapi.responses import JSONResponse
 
 from app.core.dependencies import ActiveUser, DbSession, VerifiedUser
+from app.core.email import EmailSender, get_email_sender
 from app.core.rate_limit import InProcessRateLimiter, get_client_ip, get_rate_limiter
 from app.core.security import hash_token
+from app.modules.auth.email_service import EmailAuthService
 from app.modules.users.schemas import (
     ChangeEmailRequest,
     ChangePasswordRequest,
@@ -133,14 +135,14 @@ async def change_email(
     current_user: VerifiedUser,
     db: DbSession,
     limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    sender: Annotated[EmailSender, Depends(get_email_sender)],
 ) -> dict[str, object]:
     ip = get_client_ip(request)
     await limiter.check(f"change_email:{ip}", *_CHANGE_LIMIT)
 
     service = UsersService(db)
-    await service.request_email_change(current_user, data, ip)
-    # Token creation + email sending is a follow-on step handled by A3's EmailAuthService
-    # For now we confirm the request was accepted
+    new_email = await service.request_email_change(current_user, data, ip)
+    await EmailAuthService(db, sender).send_email_change_email(current_user, new_email)
     return {
         "success": True,
         "data": {"message": "A verification email has been sent to your new address."},
