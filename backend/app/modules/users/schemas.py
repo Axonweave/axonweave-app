@@ -6,8 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, field_validator
 
-
 # ── Responses ────────────────────────────────────────────────────────────────
+
 
 class UserProfileOut(BaseModel):
     full_name: str
@@ -57,6 +57,7 @@ class SessionListResponse(BaseModel):
 
 
 # ── Requests ─────────────────────────────────────────────────────────────────
+
 
 class UpdateProfileRequest(BaseModel):
     full_name: str | None = None

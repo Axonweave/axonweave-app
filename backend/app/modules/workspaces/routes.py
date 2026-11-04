@@ -29,7 +29,9 @@ async def list_workspaces(
     workspaces, total = await service.list_workspaces(
         current_user, include_archived=include_archived, limit=limit, offset=offset
     )
-    return WorkspaceListResponse(data=[WorkspaceOut.model_validate(w) for w in workspaces], total=total)
+    return WorkspaceListResponse(
+        data=[WorkspaceOut.model_validate(w) for w in workspaces], total=total
+    )
 
 
 @router.post("", response_model=WorkspaceResponse, status_code=201)

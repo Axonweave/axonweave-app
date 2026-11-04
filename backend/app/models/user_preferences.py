@@ -33,8 +33,6 @@ class UserPreferences(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     explanation_style: Mapped[str | None] = mapped_column(String(64), nullable=True)
     academic_level: Mapped[str | None] = mapped_column(String(64), nullable=True)
     study_preferences: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
-    preferred_language: Mapped[str] = mapped_column(
-        String(10), nullable=False, default="en"
-    )
+    preferred_language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")
 
     user: Mapped["User"] = relationship("User", back_populates="preferences")

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,7 +21,7 @@ class Workspace(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Index(
             "ix_workspaces_user_name_unique",
             "user_id",
-            func.lower("name"),
+            text("lower(name)"),
             unique=True,
             postgresql_where="archived_at IS NULL",
         ),
@@ -42,7 +42,9 @@ class Workspace(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    workspace_type: Mapped[str] = mapped_column(String(64), nullable=False, default="personal_learning")
+    workspace_type: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="personal_learning"
+    )
     icon: Mapped[str | None] = mapped_column(String(64), nullable=True)
     # D-01: colour field added
     colour: Mapped[str | None] = mapped_column(String(16), nullable=True)

@@ -2,7 +2,6 @@ import uuid
 from typing import Literal
 
 from fastapi import APIRouter, Query
-from fastapi.responses import JSONResponse
 
 from app.core.dependencies import ActiveUser, DbSession
 from app.modules.chapters.schemas import (

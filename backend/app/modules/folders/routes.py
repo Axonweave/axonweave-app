@@ -15,7 +15,9 @@ from app.modules.folders.service import FolderService
 router = APIRouter(tags=["folders"])
 
 
-@router.get("/workspaces/{workspace_id}/subjects/{subject_id}/folders", response_model=FolderListResponse)
+@router.get(
+    "/workspaces/{workspace_id}/subjects/{subject_id}/folders", response_model=FolderListResponse
+)
 async def list_folders(
     workspace_id: uuid.UUID,
     subject_id: uuid.UUID,

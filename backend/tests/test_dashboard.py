@@ -67,7 +67,14 @@ class TestDashboardStats:
         user_b = await _make_user(db_session, email="dash-b@example.com")
         token_b, csrf_b = await _make_session(db_session, user_b)
         # Give B an extra workspace
-        db_session.add(Workspace(user_id=user_b.id, name="B Extra", workspace_type="personal_learning", is_default=False))
+        db_session.add(
+            Workspace(
+                user_id=user_b.id,
+                name="B Extra",
+                workspace_type="personal_learning",
+                is_default=False,
+            )
+        )
         await db_session.commit()
 
         resp_a = await client.get(

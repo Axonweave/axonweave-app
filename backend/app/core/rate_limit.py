@@ -60,6 +60,10 @@ class InProcessRateLimiter:
 
             window.hits.append(now)
 
+    def reset(self) -> None:
+        """Clear all rate-limit counters. For use in tests only."""
+        self._store.clear()
+
 
 # Module-level singleton — injected into routes via FastAPI Depends
 _limiter = InProcessRateLimiter()

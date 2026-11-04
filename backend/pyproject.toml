@@ -21,8 +21,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S", "B"]
+"tests/**" = ["S", "B", "F841"]
 "alembic/**" = ["E501"]
+"app/core/email_templates.py" = ["E501"]
+"app/**/*routes.py" = ["B008"]  # FastAPI Depends/Query in defaults is intentional
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
@@ -40,6 +42,7 @@ ignore_errors = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]

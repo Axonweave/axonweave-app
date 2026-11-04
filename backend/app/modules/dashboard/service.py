@@ -24,33 +24,41 @@ class DashboardService:
     async def get_stats(self, *, user_id: uuid.UUID) -> DashboardStats:
         """All counts are scoped to user via workspace ownership chain."""
         # Workspace count (all, including archived)
-        ws_count = (await self._db.execute(
-            select(func.count(Workspace.id)).where(Workspace.user_id == user_id)
-        )).scalar_one()
+        ws_count = (
+            await self._db.execute(
+                select(func.count(Workspace.id)).where(Workspace.user_id == user_id)
+            )
+        ).scalar_one()
 
         # Subject count: join to workspace to scope by user
-        subj_count = (await self._db.execute(
-            select(func.count(Subject.id))
-            .join(Workspace, Subject.workspace_id == Workspace.id)
-            .where(Workspace.user_id == user_id)
-        )).scalar_one()
+        subj_count = (
+            await self._db.execute(
+                select(func.count(Subject.id))
+                .join(Workspace, Subject.workspace_id == Workspace.id)
+                .where(Workspace.user_id == user_id)
+            )
+        ).scalar_one()
 
         # Folder count: join subject → workspace to scope by user
-        folder_count = (await self._db.execute(
-            select(func.count(Folder.id))
-            .join(Subject, Folder.subject_id == Subject.id)
-            .join(Workspace, Subject.workspace_id == Workspace.id)
-            .where(Workspace.user_id == user_id)
-        )).scalar_one()
+        folder_count = (
+            await self._db.execute(
+                select(func.count(Folder.id))
+                .join(Subject, Folder.subject_id == Subject.id)
+                .join(Workspace, Subject.workspace_id == Workspace.id)
+                .where(Workspace.user_id == user_id)
+            )
+        ).scalar_one()
 
         # Chapter counts by status: join subject → workspace
-        status_rows = (await self._db.execute(
-            select(Chapter.status, func.count(Chapter.id))
-            .join(Subject, Chapter.subject_id == Subject.id)
-            .join(Workspace, Subject.workspace_id == Workspace.id)
-            .where(Workspace.user_id == user_id)
-            .group_by(Chapter.status)
-        )).all()
+        status_rows = (
+            await self._db.execute(
+                select(Chapter.status, func.count(Chapter.id))
+                .join(Subject, Chapter.subject_id == Subject.id)
+                .join(Workspace, Subject.workspace_id == Workspace.id)
+                .where(Workspace.user_id == user_id)
+                .group_by(Chapter.status)
+            )
+        ).all()
 
         chapter_status: dict[str, int] = {"not_started": 0, "in_progress": 0, "completed": 0}
         total_chapters = 0
@@ -80,9 +88,13 @@ class DashboardService:
 
         total = (await self._db.execute(count_stmt)).scalar_one()
         rows = (
-            await self._db.execute(
-                base.order_by(ActivityLog.created_at.desc()).limit(limit).offset(offset)
+            (
+                await self._db.execute(
+                    base.order_by(ActivityLog.created_at.desc()).limit(limit).offset(offset)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
         return [ActivityItem.model_validate(r) for r in rows], total

@@ -1,8 +1,7 @@
 """Workspace repository — all DB operations for workspaces (scoped to owner)."""
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -69,7 +68,9 @@ class WorkspaceRepository:
         rows = await self._db.execute(q.limit(limit).offset(offset))
         return list(rows.scalars().all()), total
 
-    async def name_exists(self, user_id: uuid.UUID, name: str, exclude_id: uuid.UUID | None = None) -> bool:
+    async def name_exists(
+        self, user_id: uuid.UUID, name: str, exclude_id: uuid.UUID | None = None
+    ) -> bool:
         """Case-insensitive name check among non-archived rows (D-11)."""
         q = select(Workspace.id).where(
             Workspace.user_id == user_id,
@@ -95,7 +96,7 @@ class WorkspaceRepository:
         await self._db.flush()
 
     async def archive(self, workspace: Workspace) -> None:
-        workspace.archived_at = datetime.now(timezone.utc)
+        workspace.archived_at = datetime.now(UTC)
         await self._db.flush()
 
     async def restore(self, workspace: Workspace) -> None:

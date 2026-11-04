@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -49,7 +49,7 @@ class SubjectRepository:
     async def get_for_workspace(
         self, *, subject_id: uuid.UUID, workspace_id: uuid.UUID
     ) -> Subject | None:
-        """Fetch subject scoped to workspace — returns None (→ 404) if not found or wrong workspace."""
+        """Fetch subject scoped to workspace — returns None (→ 404) if not found or wrong owner."""
         result = await self._db.execute(
             select(Subject).where(
                 Subject.id == subject_id,
@@ -117,7 +117,7 @@ class SubjectRepository:
         return subject
 
     async def archive(self, subject: Subject) -> Subject:
-        subject.archived_at = datetime.now(timezone.utc)
+        subject.archived_at = datetime.now(UTC)
         await self._db.flush()
         return subject
 

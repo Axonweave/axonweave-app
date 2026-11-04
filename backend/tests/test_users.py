@@ -4,7 +4,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.conftest import _make_user, _make_session
+from tests.conftest import _make_session, _make_user
 
 
 async def _auth_headers(raw_token: str, csrf: str) -> dict[str, str]:

@@ -1,7 +1,7 @@
 """Workspaces service (B2)."""
 
 import uuid
-from datetime import timezone, datetime
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,14 +30,20 @@ class WorkspacesService:
     async def get_workspace(self, workspace_id: uuid.UUID, user: User) -> Workspace:
         ws = await self._repo.get_for_user(workspace_id, user.id)
         if ws is None:
-            raise HTTPException(status_code=404, detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."})
+            raise HTTPException(
+                status_code=404,
+                detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."},
+            )
         return ws
 
     async def create_workspace(self, user: User, data: CreateWorkspaceRequest) -> Workspace:
         if await self._repo.name_exists(user.id, data.name):
             raise HTTPException(
                 status_code=409,
-                detail={"code": "WORKSPACE_NAME_CONFLICT", "message": "A workspace with this name already exists."},
+                detail={
+                    "code": "WORKSPACE_NAME_CONFLICT",
+                    "message": "A workspace with this name already exists.",
+                },
             )
         ws = await self._repo.create(
             user_id=user.id,
@@ -58,7 +64,10 @@ class WorkspacesService:
             if await self._repo.name_exists(user.id, data.name, exclude_id=ws.id):
                 raise HTTPException(
                     status_code=409,
-                    detail={"code": "WORKSPACE_NAME_CONFLICT", "message": "A workspace with this name already exists."},
+                    detail={
+                        "code": "WORKSPACE_NAME_CONFLICT",
+                        "message": "A workspace with this name already exists.",
+                    },
                 )
             ws.name = data.name
         if data.description is not None:
@@ -69,7 +78,7 @@ class WorkspacesService:
             ws.icon = data.icon
         if data.colour is not None:
             ws.colour = data.colour
-        ws.updated_at = datetime.now(timezone.utc)
+        ws.updated_at = datetime.now(UTC)
         await self._db.flush()
         return ws
 
@@ -83,7 +92,10 @@ class WorkspacesService:
         if ws.is_default:
             raise HTTPException(
                 status_code=409,
-                detail={"code": "CANNOT_ARCHIVE_DEFAULT", "message": "Cannot archive the default workspace. Set another as default first."},
+                detail={
+                    "code": "CANNOT_ARCHIVE_DEFAULT",
+                    "message": "Cannot archive the default workspace. Set another default first.",
+                },
             )
         await self._repo.archive(ws)
         return ws
@@ -91,7 +103,10 @@ class WorkspacesService:
     async def restore_workspace(self, workspace_id: uuid.UUID, user: User) -> Workspace:
         ws = await self._repo.get_for_user(workspace_id, user.id)
         if ws is None:
-            raise HTTPException(status_code=404, detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."})
+            raise HTTPException(
+                status_code=404,
+                detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."},
+            )
         if ws.archived_at is None:
             raise HTTPException(
                 status_code=409,
@@ -101,7 +116,10 @@ class WorkspacesService:
         if await self._repo.name_exists(user.id, ws.name):
             raise HTTPException(
                 status_code=409,
-                detail={"code": "WORKSPACE_NAME_CONFLICT", "message": "A workspace with this name already exists. Rename before restoring."},
+                detail={
+                    "code": "WORKSPACE_NAME_CONFLICT",
+                    "message": "A workspace with this name already exists. Rename it first.",
+                },
             )
         await self._repo.restore(ws)
         return ws
@@ -111,7 +129,10 @@ class WorkspacesService:
         if ws.is_default:
             raise HTTPException(
                 status_code=409,
-                detail={"code": "CANNOT_DELETE_DEFAULT", "message": "Cannot delete the default workspace. Set another as default first."},
+                detail={
+                    "code": "CANNOT_DELETE_DEFAULT",
+                    "message": "Cannot delete the default workspace. Set another as default first.",
+                },
             )
         await self._repo.delete(ws)
         logger.info("workspace_deleted", user_id=str(user.id), workspace_id=str(workspace_id))

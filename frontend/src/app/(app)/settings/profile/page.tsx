@@ -38,7 +38,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user?.profile) {
-      setFullName(user.profile.full_name ?? "");
+      setFullName(user.profile.full_name ?? ""); // eslint-disable-line react-hooks/set-state-in-effect
       setTimezone(user.profile.timezone ?? "UTC");
       setLanguage(user.profile.preferred_language ?? "en");
     }

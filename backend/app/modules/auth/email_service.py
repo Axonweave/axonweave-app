@@ -1,6 +1,6 @@
 """Email-verification and password-reset service (A3)."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 settings = get_settings()
 
 _RESET_TOKEN_TTL = timedelta(minutes=30)  # D-20
-_VERIFY_TOKEN_TTL = timedelta(hours=24)   # D-20
+_VERIFY_TOKEN_TTL = timedelta(hours=24)  # D-20
 
 
 class EmailAuthService:
@@ -46,7 +46,7 @@ class EmailAuthService:
         """Generate a verify_email token and send the link."""
         raw = generate_token()
         token_hash = hash_token(raw)
-        expires_at = datetime.now(timezone.utc) + _VERIFY_TOKEN_TTL
+        expires_at = datetime.now(UTC) + _VERIFY_TOKEN_TTL
 
         await self._verify_tokens.create(
             user_id=user.id,
@@ -68,14 +68,19 @@ class EmailAuthService:
         if token is None:
             raise HTTPException(
                 status_code=400,
-                detail={"code": "INVALID_TOKEN", "message": "Verification link is invalid or has expired."},
+                detail={
+                    "code": "INVALID_TOKEN",
+                    "message": "Verification link is invalid or has expired.",
+                },
             )
 
         user = await self._users.get_by_id(token.user_id)
         if user is None:
-            raise HTTPException(status_code=400, detail={"code": "INVALID_TOKEN", "message": "Invalid token."})
+            raise HTTPException(
+                status_code=400, detail={"code": "INVALID_TOKEN", "message": "Invalid token."}
+            )
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         user.email_verified_at = now
         user.is_verified = True
         user.status = "active"
@@ -106,7 +111,7 @@ class EmailAuthService:
 
         raw = generate_token()
         token_hash = hash_token(raw)
-        expires_at = datetime.now(timezone.utc) + _RESET_TOKEN_TTL
+        expires_at = datetime.now(UTC) + _RESET_TOKEN_TTL
 
         await self._reset_tokens.create(
             user_id=user.id,
@@ -126,12 +131,17 @@ class EmailAuthService:
         if token is None:
             raise HTTPException(
                 status_code=400,
-                detail={"code": "INVALID_TOKEN", "message": "Reset link is invalid or has expired."},
+                detail={
+                    "code": "INVALID_TOKEN",
+                    "message": "Reset link is invalid or has expired.",
+                },
             )
 
         user = await self._users.get_by_id(token.user_id)
         if user is None:
-            raise HTTPException(status_code=400, detail={"code": "INVALID_TOKEN", "message": "Invalid token."})
+            raise HTTPException(
+                status_code=400, detail={"code": "INVALID_TOKEN", "message": "Invalid token."}
+            )
 
         user.password_hash = hash_password(new_password)
         await self._reset_tokens.mark_used(token)

@@ -21,26 +21,40 @@ class ChapterService:
     async def _require_workspace(self, workspace_id: uuid.UUID, user_id: uuid.UUID):  # type: ignore[return]
         ws = await self._workspaces.get_for_user(workspace_id=workspace_id, user_id=user_id)
         if ws is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."},
+            )
         return ws
 
     async def _require_subject(self, subject_id: uuid.UUID, workspace_id: uuid.UUID):  # type: ignore[return]
-        subj = await self._subjects.get_for_workspace(subject_id=subject_id, workspace_id=workspace_id)
+        subj = await self._subjects.get_for_workspace(
+            subject_id=subject_id, workspace_id=workspace_id
+        )
         if subj is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."},
+            )
         return subj
 
     async def _require_chapter(self, chapter_id: uuid.UUID, subject_id: uuid.UUID) -> Chapter:
         chapter = await self._chapters.get_for_subject(chapter_id=chapter_id, subject_id=subject_id)
         if chapter is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "CHAPTER_NOT_FOUND", "message": "Chapter not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "CHAPTER_NOT_FOUND", "message": "Chapter not found."},
+            )
         return chapter
 
     async def _validate_folder(self, folder_id: uuid.UUID | None, subject_id: uuid.UUID) -> None:
         if folder_id is not None:
             folder = await self._folders.get_for_subject(folder_id=folder_id, subject_id=subject_id)
             if folder is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "FOLDER_NOT_FOUND", "message": "Folder not found."})
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail={"code": "FOLDER_NOT_FOUND", "message": "Folder not found."},
+                )
 
     async def list_chapters(
         self,
@@ -168,7 +182,10 @@ class ChapterService:
         await self._require_subject(subject_id, workspace_id)
         chapter = await self._require_chapter(chapter_id, subject_id)
         if chapter.archived_at is not None:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"code": "ALREADY_ARCHIVED", "message": "Chapter is already archived."})
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "ALREADY_ARCHIVED", "message": "Chapter is already archived."},
+            )
         chapter = await self._chapters.archive(chapter)
         await self._db.commit()
         await self._db.refresh(chapter)
@@ -186,9 +203,15 @@ class ChapterService:
         await self._require_subject(subject_id, workspace_id)
         chapter = await self._chapters.get_for_subject(chapter_id=chapter_id, subject_id=subject_id)
         if chapter is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "CHAPTER_NOT_FOUND", "message": "Chapter not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "CHAPTER_NOT_FOUND", "message": "Chapter not found."},
+            )
         if chapter.archived_at is None:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"code": "NOT_ARCHIVED", "message": "Chapter is not archived."})
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "NOT_ARCHIVED", "message": "Chapter is not archived."},
+            )
         chapter = await self._chapters.restore(chapter)
         await self._db.commit()
         await self._db.refresh(chapter)

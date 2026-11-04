@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -132,7 +132,7 @@ class FolderRepository:
         return folder
 
     async def archive(self, folder: Folder) -> Folder:
-        folder.archived_at = datetime.now(timezone.utc)
+        folder.archived_at = datetime.now(UTC)
         await self._db.flush()
         return folder
 

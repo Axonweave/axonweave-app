@@ -11,14 +11,15 @@ from argon2.exceptions import VerifyMismatchError
 # Argon2id parameters benchmarked on a 2-core / 2 GB dev container.
 # See docs/argon2-parameters.md for benchmark notes.
 _ph = PasswordHasher(
-    time_cost=2,       # iterations
-    memory_cost=65536, # 64 MB
+    time_cost=2,  # iterations
+    memory_cost=65536,  # 64 MB
     parallelism=2,
     hash_len=32,
     salt_len=16,
 )
 
 # ── Password hashing ──────────────────────────────────────────────────────────
+
 
 def hash_password(plain: str) -> str:
     return _ph.hash(plain)
@@ -37,6 +38,7 @@ def needs_rehash(hashed: str) -> bool:
 
 # ── Token generation and hashing (D-20) ──────────────────────────────────────
 
+
 def generate_token() -> str:
     """Generate a 32-byte URL-safe random token (raw value — never stored)."""
     return secrets.token_urlsafe(32)
@@ -52,6 +54,7 @@ def constant_time_compare(a: str, b: str) -> bool:
 
 
 # ── Common passwords list (D-21) ─────────────────────────────────────────────
+
 
 def _load_common_passwords() -> frozenset[str]:
     path = Path(__file__).parent / "common_passwords.txt"

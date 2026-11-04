@@ -266,6 +266,7 @@ export default function WorkspacesPage() {
     }
   }, [showArchived]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   function openCreate() {

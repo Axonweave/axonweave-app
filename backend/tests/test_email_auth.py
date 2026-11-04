@@ -1,24 +1,23 @@
 """Tests for A3: email verification and password reset flows."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.email import InMemoryEmailSender
 from app.core.security import generate_token, hash_token
 from app.models.email_verification_token import EmailVerificationToken
 from app.models.password_reset_token import PasswordResetToken
-from tests.conftest import _make_user, _make_session
-
-from datetime import datetime, timedelta, timezone
-
+from tests.conftest import _make_user
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 async def _create_verify_token(db: AsyncSession, user_id, *, expired: bool = False) -> str:
     raw = generate_token()
     token_hash = hash_token(raw)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     ttl = timedelta(hours=-1) if expired else timedelta(hours=24)
     token = EmailVerificationToken(
         user_id=user_id,
@@ -35,7 +34,7 @@ async def _create_verify_token(db: AsyncSession, user_id, *, expired: bool = Fal
 async def _create_reset_token(db: AsyncSession, user_id, *, expired: bool = False) -> str:
     raw = generate_token()
     token_hash = hash_token(raw)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     ttl = timedelta(minutes=-1) if expired else timedelta(minutes=30)
     token = PasswordResetToken(
         user_id=user_id,
@@ -49,6 +48,7 @@ async def _create_reset_token(db: AsyncSession, user_id, *, expired: bool = Fals
 
 
 # ── Email verification ────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_verify_email_success(client: AsyncClient, db_session: AsyncSession):
@@ -88,6 +88,7 @@ async def test_verify_email_invalid_token(client: AsyncClient):
 
 
 # ── Password reset ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_forgot_password_always_returns_200(client: AsyncClient):

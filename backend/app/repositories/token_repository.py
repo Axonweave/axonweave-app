@@ -1,7 +1,7 @@
 """Repository for password-reset and email-verification tokens."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +20,7 @@ class PasswordResetTokenRepository:
         token_hash: str,
         expires_at: datetime,
     ) -> PasswordResetToken:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         token = PasswordResetToken(
             user_id=user_id,
             token_hash=token_hash,
@@ -32,7 +32,7 @@ class PasswordResetTokenRepository:
         return token
 
     async def get_valid_by_hash(self, token_hash: str) -> PasswordResetToken | None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         result = await self._db.execute(
             select(PasswordResetToken).where(
                 PasswordResetToken.token_hash == token_hash,
@@ -43,11 +43,9 @@ class PasswordResetTokenRepository:
         return result.scalar_one_or_none()
 
     async def mark_used(self, token: PasswordResetToken) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         await self._db.execute(
-            update(PasswordResetToken)
-            .where(PasswordResetToken.id == token.id)
-            .values(used_at=now)
+            update(PasswordResetToken).where(PasswordResetToken.id == token.id).values(used_at=now)
         )
 
 
@@ -63,7 +61,7 @@ class EmailVerificationTokenRepository:
         purpose: str,
         new_email: str | None = None,
     ) -> EmailVerificationToken:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         token = EmailVerificationToken(
             user_id=user_id,
             token_hash=token_hash,
@@ -79,7 +77,7 @@ class EmailVerificationTokenRepository:
     async def get_valid_by_hash(
         self, token_hash: str, purpose: str
     ) -> EmailVerificationToken | None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         result = await self._db.execute(
             select(EmailVerificationToken).where(
                 EmailVerificationToken.token_hash == token_hash,
@@ -91,7 +89,7 @@ class EmailVerificationTokenRepository:
         return result.scalar_one_or_none()
 
     async def mark_used(self, token: EmailVerificationToken) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         await self._db.execute(
             update(EmailVerificationToken)
             .where(EmailVerificationToken.id == token.id)

@@ -5,12 +5,12 @@ Revises:
 Create Date: 2026-11-02 00:00:00.000000
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "0001"
 down_revision: str | None = None
@@ -30,8 +30,12 @@ def upgrade() -> None:
         sa.Column("status", sa.String(32), nullable=False, server_default="pending_verification"),
         sa.Column("terms_accepted_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("terms_version", sa.String(32), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_users"),
         sa.CheckConstraint(
             "status IN ('pending_verification','active','suspended','deactivated','deletion_requested')",
@@ -55,10 +59,16 @@ def upgrade() -> None:
         sa.Column("avatar_url", sa.Text, nullable=True),
         sa.Column("preferred_language", sa.String(10), nullable=False, server_default="en"),
         sa.Column("timezone", sa.String(64), nullable=False, server_default="UTC"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_user_profiles"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_profiles_user_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_user_profiles_user_id", ondelete="CASCADE"
+        ),
         sa.UniqueConstraint("user_id", name="uq_user_profiles_user_id"),
     )
     op.create_index("ix_user_profiles_id", "user_profiles", ["id"])
@@ -74,12 +84,20 @@ def upgrade() -> None:
         sa.Column("academic_level", sa.String(64), nullable=True),
         sa.Column("study_preferences", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("preferred_language", sa.String(10), nullable=False, server_default="en"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_user_preferences"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_preferences_user_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_user_preferences_user_id", ondelete="CASCADE"
+        ),
         sa.UniqueConstraint("user_id", name="uq_user_preferences_user_id"),
-        sa.CheckConstraint("theme IN ('light', 'dark', 'system')", name="ck_user_preferences_theme"),
+        sa.CheckConstraint(
+            "theme IN ('light', 'dark', 'system')", name="ck_user_preferences_theme"
+        ),
     )
     op.create_index("ix_user_preferences_id", "user_preferences", ["id"])
     op.create_index("ix_user_preferences_user_id", "user_preferences", ["user_id"])
@@ -98,7 +116,9 @@ def upgrade() -> None:
         sa.Column("revoked_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("remember_me", sa.Boolean, nullable=False, server_default="false"),
         sa.PrimaryKeyConstraint("id", name="pk_sessions"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_sessions_user_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_sessions_user_id", ondelete="CASCADE"
+        ),
         sa.UniqueConstraint("session_token_hash", name="uq_sessions_session_token_hash"),
     )
     op.create_index("ix_sessions_id", "sessions", ["id"])
@@ -115,7 +135,9 @@ def upgrade() -> None:
         sa.Column("used_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id", name="pk_password_reset_tokens"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_password_reset_tokens_user_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_password_reset_tokens_user_id", ondelete="CASCADE"
+        ),
         sa.UniqueConstraint("token_hash", name="uq_password_reset_tokens_token_hash"),
     )
     op.create_index("ix_password_reset_tokens_id", "password_reset_tokens", ["id"])
@@ -134,13 +156,25 @@ def upgrade() -> None:
         sa.Column("used_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id", name="pk_email_verification_tokens"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_email_verification_tokens_user_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["users.id"],
+            name="fk_email_verification_tokens_user_id",
+            ondelete="CASCADE",
+        ),
         sa.UniqueConstraint("token_hash", name="uq_email_verification_tokens_token_hash"),
-        sa.CheckConstraint("purpose IN ('verify_email', 'change_email')", name="ck_email_verification_tokens_purpose"),
+        sa.CheckConstraint(
+            "purpose IN ('verify_email', 'change_email')",
+            name="ck_email_verification_tokens_purpose",
+        ),
     )
     op.create_index("ix_email_verification_tokens_id", "email_verification_tokens", ["id"])
-    op.create_index("ix_email_verification_tokens_user_id", "email_verification_tokens", ["user_id"])
-    op.create_index("ix_email_verification_tokens_token_hash", "email_verification_tokens", ["token_hash"])
+    op.create_index(
+        "ix_email_verification_tokens_user_id", "email_verification_tokens", ["user_id"]
+    )
+    op.create_index(
+        "ix_email_verification_tokens_token_hash", "email_verification_tokens", ["token_hash"]
+    )
 
     # ── workspaces ────────────────────────────────────────────────────────────
     op.create_table(
@@ -149,15 +183,23 @@ def upgrade() -> None:
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("description", sa.Text, nullable=True),
-        sa.Column("workspace_type", sa.String(64), nullable=False, server_default="personal_learning"),
+        sa.Column(
+            "workspace_type", sa.String(64), nullable=False, server_default="personal_learning"
+        ),
         sa.Column("icon", sa.String(64), nullable=True),
         sa.Column("colour", sa.String(16), nullable=True),  # D-01
         sa.Column("is_default", sa.Boolean, nullable=False, server_default="false"),
         sa.Column("archived_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_workspaces"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_workspaces_user_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_workspaces_user_id", ondelete="CASCADE"
+        ),
     )
     op.create_index("ix_workspaces_id", "workspaces", ["id"])
     op.create_index("ix_workspaces_user_id", "workspaces", ["user_id"])
@@ -188,10 +230,16 @@ def upgrade() -> None:
         sa.Column("colour", sa.String(16), nullable=True),
         sa.Column("icon", sa.String(64), nullable=True),
         sa.Column("archived_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_subjects"),
-        sa.ForeignKeyConstraint(["workspace_id"], ["workspaces.id"], name="fk_subjects_workspace_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["workspace_id"], ["workspaces.id"], name="fk_subjects_workspace_id", ondelete="CASCADE"
+        ),
     )
     op.create_index("ix_subjects_id", "subjects", ["id"])
     op.create_index("ix_subjects_workspace_id", "subjects", ["workspace_id"])
@@ -214,11 +262,22 @@ def upgrade() -> None:
         sa.Column("description", sa.Text, nullable=True),
         sa.Column("display_order", sa.Integer, nullable=False, server_default="0"),
         sa.Column("archived_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_folders"),
-        sa.ForeignKeyConstraint(["subject_id"], ["subjects.id"], name="fk_folders_subject_id", ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["parent_folder_id"], ["folders.id"], name="fk_folders_parent_folder_id", ondelete="RESTRICT"),
+        sa.ForeignKeyConstraint(
+            ["subject_id"], ["subjects.id"], name="fk_folders_subject_id", ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["parent_folder_id"],
+            ["folders.id"],
+            name="fk_folders_parent_folder_id",
+            ondelete="RESTRICT",
+        ),
         # D-09: composite unique needed for the chapter composite FK
         sa.UniqueConstraint("id", "subject_id", name="uq_folders_id_subject_id"),
     )
@@ -252,10 +311,16 @@ def upgrade() -> None:
         sa.Column("display_order", sa.Integer, nullable=False, server_default="0"),
         sa.Column("status", sa.String(32), nullable=False, server_default="not_started"),
         sa.Column("archived_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_chapters"),
-        sa.ForeignKeyConstraint(["subject_id"], ["subjects.id"], name="fk_chapters_subject_id", ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["subject_id"], ["subjects.id"], name="fk_chapters_subject_id", ondelete="CASCADE"
+        ),
         # D-09: composite FK ensures folder belongs to same subject
         sa.ForeignKeyConstraint(
             ["folder_id", "subject_id"],
@@ -284,8 +349,15 @@ def upgrade() -> None:
         sa.Column("entity_name", sa.String(255), nullable=True),  # D-08
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id", name="pk_activity_logs"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_activity_logs_user_id", ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["workspace_id"], ["workspaces.id"], name="fk_activity_logs_workspace_id", ondelete="SET NULL"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_activity_logs_user_id", ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["workspace_id"],
+            ["workspaces.id"],
+            name="fk_activity_logs_workspace_id",
+            ondelete="SET NULL",
+        ),
     )
     op.create_index("ix_activity_logs_id", "activity_logs", ["id"])
     op.create_index("ix_activity_logs_user_id", "activity_logs", ["user_id"])

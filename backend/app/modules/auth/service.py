@@ -1,6 +1,6 @@
 """Auth service — register, login, logout, get_me."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,8 +13,8 @@ from app.core.security import (
     hash_token,
     verify_password,
 )
-from app.modules.auth.schemas import TERMS_VERSION, LoginRequest, RegisterRequest
 from app.models.user import User
+from app.modules.auth.schemas import TERMS_VERSION, LoginRequest, RegisterRequest
 from app.repositories.session_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.workspace_repository import WorkspaceRepository
@@ -32,9 +32,11 @@ def _idle_delta(remember_me: bool) -> timedelta:
     return timedelta(days=_SESSION_REMEMBER_IDLE_DAYS if remember_me else _SESSION_IDLE_DAYS)
 
 
-def _set_session_cookies(response: Response, raw_token: str, csrf_token: str, expires_at: datetime) -> None:
+def _set_session_cookies(
+    response: Response, raw_token: str, csrf_token: str, expires_at: datetime
+) -> None:
     """Set the aw_session (HTTP-only) and csrf_token (readable by JS) cookies."""
-    max_age = int((expires_at - datetime.now(timezone.utc)).total_seconds())
+    max_age = int((expires_at - datetime.now(UTC)).total_seconds())
     response.set_cookie(
         key=settings.cookie_name,
         value=raw_token,
@@ -71,12 +73,16 @@ class AuthService:
         """Create user + profile + preferences + default workspace in one transaction (D-13)."""
         if await self._users.email_exists(data.email):
             from fastapi import HTTPException
+
             raise HTTPException(
                 status_code=409,
-                detail={"code": "EMAIL_ALREADY_REGISTERED", "message": "An account with this email already exists."},
+                detail={
+                    "code": "EMAIL_ALREADY_REGISTERED",
+                    "message": "An account with this email already exists.",
+                },
             )
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         pw_hash = hash_password(data.password)
 
         user = await self._users.create(
@@ -126,7 +132,7 @@ class AuthService:
                 detail={"code": "ACCOUNT_INACTIVE", "message": "This account is not active."},
             )
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expires_at = now + _idle_delta(data.remember_me)
         # Clamp to absolute max (D-19)
         absolute_max = now + timedelta(days=_SESSION_ABSOLUTE_MAX_DAYS)
@@ -173,7 +179,7 @@ class AuthService:
             return None
 
         # Slide expiry (D-19)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         new_expires = now + _idle_delta(session.remember_me)
         absolute_max = session.created_at + timedelta(days=_SESSION_ABSOLUTE_MAX_DAYS)
         if new_expires > absolute_max:

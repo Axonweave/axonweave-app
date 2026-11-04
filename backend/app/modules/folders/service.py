@@ -19,19 +19,30 @@ class FolderService:
     async def _require_workspace(self, workspace_id: uuid.UUID, user_id: uuid.UUID):  # type: ignore[return]
         ws = await self._workspaces.get_for_user(workspace_id=workspace_id, user_id=user_id)
         if ws is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."},
+            )
         return ws
 
     async def _require_subject(self, subject_id: uuid.UUID, workspace_id: uuid.UUID):  # type: ignore[return]
-        subj = await self._subjects.get_for_workspace(subject_id=subject_id, workspace_id=workspace_id)
+        subj = await self._subjects.get_for_workspace(
+            subject_id=subject_id, workspace_id=workspace_id
+        )
         if subj is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."},
+            )
         return subj
 
     async def _require_folder(self, folder_id: uuid.UUID, subject_id: uuid.UUID) -> Folder:
         folder = await self._folders.get_for_subject(folder_id=folder_id, subject_id=subject_id)
         if folder is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "FOLDER_NOT_FOUND", "message": "Folder not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "FOLDER_NOT_FOUND", "message": "Folder not found."},
+            )
         return folder
 
     async def list_folders(
@@ -79,23 +90,36 @@ class FolderService:
 
         # Validate parent belongs to same subject
         if parent_folder_id is not None:
-            parent = await self._folders.get_for_subject(folder_id=parent_folder_id, subject_id=subject_id)
+            parent = await self._folders.get_for_subject(
+                folder_id=parent_folder_id, subject_id=subject_id
+            )
             if parent is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "FOLDER_NOT_FOUND", "message": "Parent folder not found."})
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail={"code": "FOLDER_NOT_FOUND", "message": "Parent folder not found."},
+                )
 
         # D-14: check depth
         parent_depth = await self._folders.get_depth(parent_folder_id)
         if parent_depth >= self._folders.max_depth:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail={"code": "FOLDER_DEPTH_EXCEEDED", "message": f"Maximum folder depth of {self._folders.max_depth} levels exceeded."},
+                detail={
+                    "code": "FOLDER_DEPTH_EXCEEDED",
+                    "message": f"Maximum folder depth of {self._folders.max_depth} exceeded.",
+                },
             )
 
         # D-11: name uniqueness per parent
-        if await self._folders.name_exists(subject_id=subject_id, name=name, parent_folder_id=parent_folder_id):
+        if await self._folders.name_exists(
+            subject_id=subject_id, name=name, parent_folder_id=parent_folder_id
+        ):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail={"code": "FOLDER_NAME_CONFLICT", "message": "A folder with this name already exists at this level."},
+                detail={
+                    "code": "FOLDER_NAME_CONFLICT",
+                    "message": "A folder with this name already exists at this level.",
+                },
             )
 
         folder = await self._folders.create(
@@ -133,10 +157,15 @@ class FolderService:
             ):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail={"code": "FOLDER_NAME_CONFLICT", "message": "A folder with this name already exists at this level."},
+                    detail={
+                        "code": "FOLDER_NAME_CONFLICT",
+                        "message": "A folder with this name already exists at this level.",
+                    },
                 )
 
-        folder = await self._folders.update(folder, name=name, description=description, display_order=display_order)
+        folder = await self._folders.update(
+            folder, name=name, description=description, display_order=display_order
+        )
         await self._db.commit()
         await self._db.refresh(folder)
         return folder
@@ -153,7 +182,10 @@ class FolderService:
         await self._require_subject(subject_id, workspace_id)
         folder = await self._require_folder(folder_id, subject_id)
         if folder.archived_at is not None:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"code": "ALREADY_ARCHIVED", "message": "Folder is already archived."})
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "ALREADY_ARCHIVED", "message": "Folder is already archived."},
+            )
         folder = await self._folders.archive(folder)
         await self._db.commit()
         await self._db.refresh(folder)
@@ -171,11 +203,28 @@ class FolderService:
         await self._require_subject(subject_id, workspace_id)
         folder = await self._folders.get_for_subject(folder_id=folder_id, subject_id=subject_id)
         if folder is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "FOLDER_NOT_FOUND", "message": "Folder not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "FOLDER_NOT_FOUND", "message": "Folder not found."},
+            )
         if folder.archived_at is None:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"code": "NOT_ARCHIVED", "message": "Folder is not archived."})
-        if await self._folders.name_exists(subject_id=subject_id, name=folder.name, parent_folder_id=folder.parent_folder_id, exclude_id=folder_id):
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail={"code": "FOLDER_NAME_CONFLICT", "message": "A folder with this name already exists. Rename it before restoring."})
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"code": "NOT_ARCHIVED", "message": "Folder is not archived."},
+            )
+        if await self._folders.name_exists(
+            subject_id=subject_id,
+            name=folder.name,
+            parent_folder_id=folder.parent_folder_id,
+            exclude_id=folder_id,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "FOLDER_NAME_CONFLICT",
+                    "message": "A folder with this name already exists. Rename before restoring.",
+                },
+            )
         folder = await self._folders.restore(folder)
         await self._db.commit()
         await self._db.refresh(folder)
@@ -197,7 +246,10 @@ class FolderService:
         if not cascade and await self._folders.has_children(folder_id):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail={"code": "FOLDER_NOT_EMPTY", "message": "Folder contains items. Use ?cascade=true to delete everything inside."},
+                detail={
+                    "code": "FOLDER_NOT_EMPTY",
+                    "message": "Folder has children. Use ?cascade=true to delete all inside.",
+                },
             )
         await self._folders.delete(folder)
         await self._db.commit()

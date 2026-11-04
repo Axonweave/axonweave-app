@@ -8,7 +8,8 @@ services:
       POSTGRES_PASSWORD: ${DB_OWNER_PASSWORD:-axonweave_owner_dev_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./infrastructure/docker/init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+      - ./infrastructure/docker/init-test-db.sh:/docker-entrypoint-initdb.d/02-init-test-db.sh:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -39,6 +40,7 @@ services:
       APP_SECRET_KEY: ${APP_SECRET_KEY:-change_me_in_production_use_32_plus_chars}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://axonweave_app:axonweave_app_dev_password@postgres:5432/axonweave}
       DATABASE_MIGRATION_URL: ${DATABASE_MIGRATION_URL:-postgresql+psycopg://axonweave_owner:axonweave_owner_dev_password@postgres:5432/axonweave}
+      DATABASE_TEST_URL: ${DATABASE_TEST_URL:-postgresql+psycopg://axonweave_owner:axonweave_owner_dev_password@postgres:5432/axonweave_test}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}

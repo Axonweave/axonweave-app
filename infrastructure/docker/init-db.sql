@@ -1,4 +1,4 @@
--- Creates restricted application role for the app (no DDL privileges).
+-- Creates restricted application role and test database.
 -- The owner/migration role is created via POSTGRES_USER in docker-compose.
 
 -- Create application role if it doesn't exist
@@ -10,7 +10,7 @@ BEGIN
 END
 $$;
 
--- Grant connect and usage
+-- Grant connect and usage on main DB
 GRANT CONNECT ON DATABASE axonweave TO axonweave_app;
 GRANT USAGE ON SCHEMA public TO axonweave_app;
 

@@ -1,14 +1,16 @@
 import os
 from collections.abc import AsyncGenerator
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from app.core.rate_limit import get_rate_limiter
 from app.core.security import generate_token, hash_password, hash_token
 from app.database.base import Base
+from app.database.connection import get_db
 from app.main import app
 from app.models.session_model import Session
 from app.models.user import User
@@ -43,6 +45,16 @@ async def create_test_tables() -> AsyncGenerator[None, None]:
         await conn.run_sync(Base.metadata.drop_all)
 
 
+@pytest_asyncio.fixture(autouse=True)
+async def clean_db(create_test_tables: None) -> AsyncGenerator[None, None]:
+    """Truncate all tables and reset rate limiter before each test for clean isolation."""
+    get_rate_limiter().reset()
+    table_names = ", ".join(t.name for t in reversed(Base.metadata.sorted_tables))
+    async with _test_engine.begin() as conn:
+        await conn.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE"))
+    yield
+
+
 @pytest_asyncio.fixture
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     async with _TestSessionLocal() as session:
@@ -52,11 +64,24 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
 @pytest_asyncio.fixture
 async def client() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(
-        transport=ASGITransport(app=app),  # type: ignore[arg-type]
-        base_url="http://test",
-    ) as ac:
-        yield ac
+    async def _get_test_db() -> AsyncGenerator[AsyncSession, None]:
+        async with _TestSessionLocal() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
+
+    app.dependency_overrides[get_db] = _get_test_db
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app),  # type: ignore[arg-type]
+            base_url="http://test",
+        ) as ac:
+            yield ac
+    finally:
+        app.dependency_overrides.clear()
 
 
 async def _make_user(db: AsyncSession, *, email: str, full_name: str = "Test User") -> User:
@@ -66,8 +91,8 @@ async def _make_user(db: AsyncSession, *, email: str, full_name: str = "Test Use
         password_hash=hash_password("TestPassword123!"),
         status="active",
         is_verified=True,
-        email_verified_at=datetime.now(timezone.utc),
-        terms_accepted_at=datetime.now(timezone.utc),
+        email_verified_at=datetime.now(UTC),
+        terms_accepted_at=datetime.now(UTC),
         terms_version="1.0",
     )
     db.add(user)
@@ -75,7 +100,11 @@ async def _make_user(db: AsyncSession, *, email: str, full_name: str = "Test Use
 
     db.add(UserProfile(user_id=user.id, full_name=full_name))
     db.add(UserPreferences(user_id=user.id))
-    db.add(Workspace(user_id=user.id, name="Personal", workspace_type="personal_learning", is_default=True))
+    db.add(
+        Workspace(
+            user_id=user.id, name="Personal", workspace_type="personal_learning", is_default=True
+        )
+    )
     await db.flush()
     return user
 
@@ -87,7 +116,7 @@ async def _make_session(db: AsyncSession, user: User) -> tuple[str, str]:
     """
     raw_token = generate_token()
     csrf_token = generate_token()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     session = Session(
         user_id=user.id,
         session_token_hash=hash_token(raw_token),

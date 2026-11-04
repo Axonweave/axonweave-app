@@ -25,9 +25,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  useEffect(() => {
-    refresh().finally(() => setLoading(false));
-  }, []);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { refresh().finally(() => setLoading(false)); }, []);
 
   return <AuthContext.Provider value={{ user, loading, refresh }}>{children}</AuthContext.Provider>;
 }

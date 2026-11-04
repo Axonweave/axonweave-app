@@ -44,11 +44,15 @@ async def register(
         await email_svc.send_verification_email(user)
     except Exception as exc:
         from app.core.logging import get_logger
-        get_logger(__name__).error("verification_email_failed", error=str(exc), user_id=str(user.id))
+
+        get_logger(__name__).error(
+            "verification_email_failed", error=str(exc), user_id=str(user.id)
+        )
 
     log_registration(str(user.id), ip)
 
     from app.modules.auth.schemas import UserOut
+
     return AuthResponse(data=UserOut.model_validate(user))
 
 
@@ -74,6 +78,7 @@ async def login(
 
     log_login_success(str(user.id), ip)
     from app.modules.auth.schemas import UserOut
+
     return AuthResponse(data=UserOut.model_validate(user))
 
 
@@ -100,4 +105,5 @@ async def logout(
 @router.get("/me", response_model=MeResponse)
 async def me(current_user: CurrentUser) -> MeResponse:
     from app.modules.auth.schemas import UserOut
+
     return MeResponse(data=UserOut.model_validate(current_user))

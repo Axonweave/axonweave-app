@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,7 +21,7 @@ class Subject(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Index(
             "ix_subjects_workspace_name_unique",
             "workspace_id",
-            func.lower("name"),
+            text("lower(name)"),
             unique=True,
             postgresql_where="archived_at IS NULL",
         ),

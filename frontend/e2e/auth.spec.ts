@@ -7,7 +7,7 @@
 
 import { expect, test } from "@playwright/test";
 
-const MAILPIT_API = process.env.MAILPIT_API ?? "http://localhost:8025/api";
+// MAILPIT_API = process.env.MAILPIT_API ?? "http://localhost:8025/api"  — wired up in future email tests
 const UNIQUE = Date.now().toString(36);
 
 test.describe("Registration", () => {

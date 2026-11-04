@@ -61,6 +61,7 @@ app.add_middleware(
 
 # ── Exception handlers ────────────────────────────────────────────────────────
 
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """Normalise all HTTP exceptions to {"success": false, "error": {...}}."""
@@ -80,6 +81,12 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 async def validation_exception_handler(
     request: Request, exc: RequestValidationError
 ) -> JSONResponse:
+    errors = exc.errors()
+    # Pydantic v2 ctx["error"] can be an Exception instance — not JSON-serialisable
+    for err in errors:
+        ctx = err.get("ctx")
+        if isinstance(ctx, dict) and isinstance(ctx.get("error"), Exception):
+            ctx["error"] = str(ctx["error"])
     return JSONResponse(
         status_code=422,
         content={
@@ -87,7 +94,7 @@ async def validation_exception_handler(
             "error": {
                 "code": "VALIDATION_ERROR",
                 "message": "Request validation failed.",
-                "details": exc.errors(),
+                "details": errors,
             },
         },
     )
@@ -109,6 +116,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
+
 
 @app.get("/health", tags=["system"])
 async def health() -> dict[str, str]:

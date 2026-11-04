@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -117,9 +117,7 @@ class ChapterRepository:
         await self._db.flush()
         return chapter
 
-    async def bulk_reorder(
-        self, *, subject_id: uuid.UUID, chapter_ids: list[uuid.UUID]
-    ) -> None:
+    async def bulk_reorder(self, *, subject_id: uuid.UUID, chapter_ids: list[uuid.UUID]) -> None:
         """Set display_order 0..N-1 for the given ids in order (D-15)."""
         for idx, cid in enumerate(chapter_ids):
             result = await self._db.execute(
@@ -134,7 +132,7 @@ class ChapterRepository:
         await self._db.flush()
 
     async def archive(self, chapter: Chapter) -> Chapter:
-        chapter.archived_at = datetime.now(timezone.utc)
+        chapter.archived_at = datetime.now(UTC)
         await self._db.flush()
         return chapter
 

@@ -31,6 +31,7 @@ _CHANGE_LIMIT = (5, 300)  # 5 per 5 min per IP (re-auth operations)
 
 # ── Profile ───────────────────────────────────────────────────────────────────
 
+
 @router.get("/me/profile", response_model=ProfileResponse)
 async def get_profile(current_user: ActiveUser) -> ProfileResponse:
     return ProfileResponse(data=UserProfileOut.model_validate(current_user.profile))
@@ -48,6 +49,7 @@ async def update_profile(
 
 
 # ── Preferences ───────────────────────────────────────────────────────────────
+
 
 @router.get("/me/preferences", response_model=PreferencesResponse)
 async def get_preferences(current_user: ActiveUser) -> PreferencesResponse:
@@ -67,6 +69,7 @@ async def update_preferences(
 
 # ── Sessions ──────────────────────────────────────────────────────────────────
 
+
 @router.get("/me/sessions", response_model=SessionListResponse)
 async def list_sessions(
     current_user: ActiveUser,
@@ -79,7 +82,7 @@ async def list_sessions(
     out = []
     for s in sessions:
         session_out = SessionOut.model_validate(s)
-        session_out.is_current = (current_hash is not None and s.session_token_hash == current_hash)
+        session_out.is_current = current_hash is not None and s.session_token_hash == current_hash
         out.append(session_out)
     return SessionListResponse(data=out)
 
@@ -98,6 +101,7 @@ async def revoke_session(
 
 # ── Password change ───────────────────────────────────────────────────────────
 
+
 @router.post("/me/change-password", status_code=200)
 async def change_password(
     data: ChangePasswordRequest,
@@ -113,10 +117,14 @@ async def change_password(
     current_hash = hash_token(aw_session) if aw_session else None
     service = UsersService(db)
     await service.change_password(current_user, data, current_hash, ip)
-    return {"success": True, "data": {"message": "Password updated. Other sessions have been signed out."}}
+    return {
+        "success": True,
+        "data": {"message": "Password updated. Other sessions have been signed out."},
+    }
 
 
 # ── Email change ──────────────────────────────────────────────────────────────
+
 
 @router.post("/me/change-email", status_code=200)
 async def change_email(
@@ -133,10 +141,14 @@ async def change_email(
     await service.request_email_change(current_user, data, ip)
     # Token creation + email sending is a follow-on step handled by A3's EmailAuthService
     # For now we confirm the request was accepted
-    return {"success": True, "data": {"message": "A verification email has been sent to your new address."}}
+    return {
+        "success": True,
+        "data": {"message": "A verification email has been sent to your new address."},
+    }
 
 
 # ── Data export ───────────────────────────────────────────────────────────────
+
 
 @router.get("/me/export")
 async def export_data(
@@ -157,6 +169,7 @@ async def export_data(
 
 
 # ── Account deletion ──────────────────────────────────────────────────────────
+
 
 @router.delete("/me", status_code=200)
 async def delete_account(

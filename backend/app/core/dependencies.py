@@ -52,7 +52,10 @@ async def require_verified_user(
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"code": "EMAIL_NOT_VERIFIED", "message": "Email verification required for this action."},
+            detail={
+                "code": "EMAIL_NOT_VERIFIED",
+                "message": "Email verification required for this action.",
+            },
         )
     return user
 

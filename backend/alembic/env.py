@@ -7,9 +7,10 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+import app.models  # noqa: F401 — registers all ORM models
+
 # Import Base and all models so metadata is populated
 from app.database.base import Base
-import app.models  # noqa: F401 — registers all ORM models
 
 config = context.config
 

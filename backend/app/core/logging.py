@@ -14,9 +14,7 @@ correlation_id_var: contextvars.ContextVar[str] = contextvars.ContextVar(
 )
 
 
-def _add_correlation_id(
-    logger: Any, method: str, event_dict: dict[str, Any]
-) -> dict[str, Any]:
+def _add_correlation_id(logger: Any, method: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     cid = correlation_id_var.get("")
     if cid:
         event_dict["correlation_id"] = cid

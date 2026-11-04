@@ -23,11 +23,7 @@ class UserProfile(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
-    preferred_language: Mapped[str] = mapped_column(
-        String(10), nullable=False, default="en"
-    )
-    timezone: Mapped[str] = mapped_column(
-        String(64), nullable=False, default="UTC"
-    )
+    preferred_language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")
+    timezone: Mapped[str] = mapped_column(String(64), nullable=False, default="UTC")
 
     user: Mapped["User"] = relationship("User", back_populates="profile")

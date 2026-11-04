@@ -1,6 +1,5 @@
 """Auth endpoint tests — register, login, logout, /me, cross-user access."""
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,14 +8,18 @@ from tests.conftest import _make_session, _make_user
 
 # ── Registration ──────────────────────────────────────────────────────────────
 
+
 async def test_register_success(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/auth/register", json={
-        "full_name": "Alice Smith",
-        "email": "alice@example.com",
-        "password": "SecurePass123!!",
-        "confirm_password": "SecurePass123!!",
-        "terms_accepted": True,
-    })
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "Alice Smith",
+            "email": "alice@example.com",
+            "password": "SecurePass123!!",
+            "confirm_password": "SecurePass123!!",
+            "terms_accepted": True,
+        },
+    )
     assert response.status_code == 201
     body = response.json()
     assert body["success"] is True
@@ -39,60 +42,76 @@ async def test_register_duplicate_email(client: AsyncClient) -> None:
 
 
 async def test_register_password_mismatch(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/auth/register", json={
-        "full_name": "Carol",
-        "email": "carol@example.com",
-        "password": "SecurePass123!!",
-        "confirm_password": "DifferentPass123!!",
-        "terms_accepted": True,
-    })
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "Carol",
+            "email": "carol@example.com",
+            "password": "SecurePass123!!",
+            "confirm_password": "DifferentPass123!!",
+            "terms_accepted": True,
+        },
+    )
     assert response.status_code == 422
 
 
 async def test_register_short_password(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/auth/register", json={
-        "full_name": "Dave",
-        "email": "dave@example.com",
-        "password": "short",
-        "confirm_password": "short",
-        "terms_accepted": True,
-    })
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "Dave",
+            "email": "dave@example.com",
+            "password": "short",
+            "confirm_password": "short",
+            "terms_accepted": True,
+        },
+    )
     assert response.status_code == 422
 
 
 async def test_register_common_password(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/auth/register", json={
-        "full_name": "Eve",
-        "email": "eve@example.com",
-        "password": "password123",
-        "confirm_password": "password123",
-        "terms_accepted": True,
-    })
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "Eve",
+            "email": "eve@example.com",
+            "password": "password123",
+            "confirm_password": "password123",
+            "terms_accepted": True,
+        },
+    )
     assert response.status_code == 422
 
 
 async def test_register_terms_not_accepted(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/auth/register", json={
-        "full_name": "Frank",
-        "email": "frank@example.com",
-        "password": "SecurePass123!!",
-        "confirm_password": "SecurePass123!!",
-        "terms_accepted": False,
-    })
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "Frank",
+            "email": "frank@example.com",
+            "password": "SecurePass123!!",
+            "confirm_password": "SecurePass123!!",
+            "terms_accepted": False,
+        },
+    )
     assert response.status_code == 422
 
 
 # ── Login ─────────────────────────────────────────────────────────────────────
 
+
 async def test_login_success(client: AsyncClient, db_session: AsyncSession) -> None:
     user = await _make_user(db_session, email="login_test@example.com")
     await db_session.commit()
 
-    response = await client.post("/api/v1/auth/login", json={
-        "email": "login_test@example.com",
-        "password": "TestPassword123!",
-        "remember_me": False,
-    })
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "login_test@example.com",
+            "password": "TestPassword123!",
+            "remember_me": False,
+        },
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is True
@@ -106,10 +125,13 @@ async def test_login_wrong_password(client: AsyncClient, db_session: AsyncSessio
     await _make_user(db_session, email="wrongpw@example.com")
     await db_session.commit()
 
-    response = await client.post("/api/v1/auth/login", json={
-        "email": "wrongpw@example.com",
-        "password": "WrongPassword999!",
-    })
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "wrongpw@example.com",
+            "password": "WrongPassword999!",
+        },
+    )
     assert response.status_code == 401
     body = response.json()
     # Must not reveal whether email exists
@@ -117,15 +139,19 @@ async def test_login_wrong_password(client: AsyncClient, db_session: AsyncSessio
 
 
 async def test_login_unknown_email(client: AsyncClient) -> None:
-    response = await client.post("/api/v1/auth/login", json={
-        "email": "nobody@example.com",
-        "password": "AnyPassword123!",
-    })
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "nobody@example.com",
+            "password": "AnyPassword123!",
+        },
+    )
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "INVALID_CREDENTIALS"
 
 
 # ── /me ───────────────────────────────────────────────────────────────────────
+
 
 async def test_me_authenticated(
     client: AsyncClient,
@@ -158,6 +184,7 @@ async def test_me_invalid_session(client: AsyncClient) -> None:
 
 # ── Logout ────────────────────────────────────────────────────────────────────
 
+
 async def test_logout_clears_cookies(
     client: AsyncClient,
     create_user_and_session: tuple[User, str, str],
@@ -181,10 +208,13 @@ async def test_session_invalidated_after_logout(
     await db_session.commit()
 
     # Login
-    login_resp = await client.post("/api/v1/auth/login", json={
-        "email": "logout_test@example.com",
-        "password": "TestPassword123!",
-    })
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "logout_test@example.com",
+            "password": "TestPassword123!",
+        },
+    )
     assert login_resp.status_code == 200
     session_cookie = login_resp.cookies["aw_session"]
     csrf = login_resp.cookies["csrf_token"]
@@ -202,6 +232,7 @@ async def test_session_invalidated_after_logout(
 
 
 # ── Cross-user access ─────────────────────────────────────────────────────────
+
 
 async def test_user_a_cannot_use_user_b_session(
     client: AsyncClient,

@@ -30,5 +30,6 @@ export const profileApi = {
 
   exportData: () => api.get<User>("/users/me/export"),
 
-  deleteAccount: (data: DeleteAccountRequest) => api.delete<null>("/users/me"),
+  deleteAccount: (data: DeleteAccountRequest) =>
+    api.delete<null>("/users/me", { body: JSON.stringify(data) }),
 };

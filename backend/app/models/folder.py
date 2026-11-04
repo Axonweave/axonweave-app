@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,14 +23,14 @@ class Folder(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Index(
             "ix_folders_parent_name_unique",
             "parent_folder_id",
-            func.lower("name"),
+            text("lower(name)"),
             unique=True,
             postgresql_where="archived_at IS NULL AND parent_folder_id IS NOT NULL",
         ),
         Index(
             "ix_folders_root_name_unique",
             "subject_id",
-            func.lower("name"),
+            text("lower(name)"),
             unique=True,
             postgresql_where="archived_at IS NULL AND parent_folder_id IS NULL",
         ),

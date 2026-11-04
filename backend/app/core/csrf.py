@@ -47,11 +47,14 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         # Validate Origin / Referer against allowlist
         origin = request.headers.get("origin") or request.headers.get("referer", "")
         if origin and not _origin_allowed(origin, self._frontend_url):
-            ip = (request.client.host if request.client else "unknown")
+            ip = request.client.host if request.client else "unknown"
             log_csrf_failure(ip, request.url.path)
             return JSONResponse(
                 status_code=403,
-                content={"success": False, "error": {"code": "CSRF_ORIGIN_MISMATCH", "message": "Forbidden."}},
+                content={
+                    "success": False,
+                    "error": {"code": "CSRF_ORIGIN_MISMATCH", "message": "Forbidden."},
+                },
             )
 
         # Double-submit token check
@@ -59,19 +62,25 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         header_token = request.headers.get(CSRF_HEADER_NAME, "")
 
         if not cookie_token or not header_token:
-            ip = (request.client.host if request.client else "unknown")
+            ip = request.client.host if request.client else "unknown"
             log_csrf_failure(ip, request.url.path)
             return JSONResponse(
                 status_code=403,
-                content={"success": False, "error": {"code": "CSRF_TOKEN_MISSING", "message": "Forbidden."}},
+                content={
+                    "success": False,
+                    "error": {"code": "CSRF_TOKEN_MISSING", "message": "Forbidden."},
+                },
             )
 
         if not constant_time_compare(cookie_token, header_token):
-            ip = (request.client.host if request.client else "unknown")
+            ip = request.client.host if request.client else "unknown"
             log_csrf_failure(ip, request.url.path)
             return JSONResponse(
                 status_code=403,
-                content={"success": False, "error": {"code": "CSRF_TOKEN_INVALID", "message": "Forbidden."}},
+                content={
+                    "success": False,
+                    "error": {"code": "CSRF_TOKEN_INVALID", "message": "Forbidden."},
+                },
             )
 
         return await call_next(request)

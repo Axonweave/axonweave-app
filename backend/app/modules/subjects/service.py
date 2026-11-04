@@ -18,14 +18,22 @@ class SubjectService:
         """Return workspace or 404 — ownership is enforced here."""
         ws = await self._workspaces.get_for_user(workspace_id=workspace_id, user_id=user_id)
         if ws is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "WORKSPACE_NOT_FOUND", "message": "Workspace not found."},
+            )
         return ws
 
     async def _require_subject(self, subject_id: uuid.UUID, workspace_id: uuid.UUID) -> Subject:
         """Return subject scoped to workspace or 404."""
-        subject = await self._subjects.get_for_workspace(subject_id=subject_id, workspace_id=workspace_id)
+        subject = await self._subjects.get_for_workspace(
+            subject_id=subject_id, workspace_id=workspace_id
+        )
         if subject is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."},
+            )
         return subject
 
     async def list_subjects(
@@ -71,7 +79,10 @@ class SubjectService:
         if await self._subjects.name_exists(workspace_id=workspace_id, name=name):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail={"code": "SUBJECT_NAME_CONFLICT", "message": "A subject with this name already exists in this workspace."},
+                detail={
+                    "code": "SUBJECT_NAME_CONFLICT",
+                    "message": "A subject with this name already exists in this workspace.",
+                },
             )
         subject = await self._subjects.create(
             workspace_id=workspace_id,
@@ -99,10 +110,15 @@ class SubjectService:
         subject = await self._require_subject(subject_id, workspace_id)
 
         if name is not None and name != subject.name:
-            if await self._subjects.name_exists(workspace_id=workspace_id, name=name, exclude_id=subject_id):
+            if await self._subjects.name_exists(
+                workspace_id=workspace_id, name=name, exclude_id=subject_id
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail={"code": "SUBJECT_NAME_CONFLICT", "message": "A subject with this name already exists in this workspace."},
+                    detail={
+                        "code": "SUBJECT_NAME_CONFLICT",
+                        "message": "A subject with this name already exists in this workspace.",
+                    },
                 )
 
         subject = await self._subjects.update(
@@ -136,19 +152,29 @@ class SubjectService:
     ) -> Subject:
         await self._require_workspace(workspace_id, user_id)
         # Allow lookup of archived subjects for restore
-        subject = await self._subjects.get_for_workspace(subject_id=subject_id, workspace_id=workspace_id)
+        subject = await self._subjects.get_for_workspace(
+            subject_id=subject_id, workspace_id=workspace_id
+        )
         if subject is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."})
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "SUBJECT_NOT_FOUND", "message": "Subject not found."},
+            )
         if subject.archived_at is None:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail={"code": "NOT_ARCHIVED", "message": "Subject is not archived."},
             )
         # Check name conflict on restore (D-11)
-        if await self._subjects.name_exists(workspace_id=workspace_id, name=subject.name, exclude_id=subject_id):
+        if await self._subjects.name_exists(
+            workspace_id=workspace_id, name=subject.name, exclude_id=subject_id
+        ):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail={"code": "SUBJECT_NAME_CONFLICT", "message": "A subject with this name already exists. Rename it before restoring."},
+                detail={
+                    "code": "SUBJECT_NAME_CONFLICT",
+                    "message": "A subject with this name already exists. Rename before restoring.",
+                },
             )
         subject = await self._subjects.restore(subject)
         await self._db.commit()

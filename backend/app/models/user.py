@@ -1,9 +1,7 @@
-import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Index, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Index, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -30,7 +28,7 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __table_args__ = (
         _STATUS_CHECK,
         # Unique normalised email
-        Index("ix_users_email_lower", func.lower("email"), unique=True),
+        Index("ix_users_email_lower", text("lower(email)"), unique=True),
     )
 
     email: Mapped[str] = mapped_column(String(320), nullable=False)
@@ -41,9 +39,7 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         DateTime(timezone=True), nullable=True
     )
     # D-07: account status
-    status: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="pending_verification"
-    )
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending_verification")
     # D-03: terms consent
     terms_accepted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

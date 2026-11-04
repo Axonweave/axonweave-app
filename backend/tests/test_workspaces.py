@@ -4,7 +4,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.conftest import _make_user, _make_session
+from tests.conftest import _make_session, _make_user
 
 
 @pytest.mark.asyncio
@@ -63,6 +63,7 @@ async def test_get_workspace_not_found(client: AsyncClient, db_session: AsyncSes
     await db_session.commit()
 
     import uuid
+
     resp = await client.get(
         f"/api/v1/workspaces/{uuid.uuid4()}",
         cookies={"aw_session": raw, "csrf_token": csrf},
@@ -81,10 +82,10 @@ async def test_cross_user_workspace_access_denied(client: AsyncClient, db_sessio
 
     # Get user_a's workspace id
     from sqlalchemy import select
+
     from app.models.workspace import Workspace
-    result = await db_session.execute(
-        select(Workspace).where(Workspace.user_id == user_a.id)
-    )
+
+    result = await db_session.execute(select(Workspace).where(Workspace.user_id == user_a.id))
     ws_a = result.scalar_one()
 
     resp = await client.get(
