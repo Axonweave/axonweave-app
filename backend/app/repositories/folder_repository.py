@@ -110,6 +110,27 @@ class FolderRepository:
                 return height
             height += 1
 
+    async def delete_chapters_in_subtree(self, folder_id: uuid.UUID) -> int:
+        """Delete every chapter in folder_id and in all folders below it (D-12 cascade).
+
+        chapters.folder_id is ON DELETE SET NULL, so deleting only the folders would leave the
+        chapters behind at the top level of the subject instead of deleting them.
+        """
+        from sqlalchemy import delete
+
+        from app.models.chapter import Chapter
+
+        folder_ids = [folder_id]
+        frontier = [folder_id]
+        while frontier:
+            result = await self._db.execute(
+                select(Folder.id).where(Folder.parent_folder_id.in_(frontier))
+            )
+            frontier = list(result.scalars().all())
+            folder_ids.extend(frontier)
+        deleted = await self._db.execute(delete(Chapter).where(Chapter.folder_id.in_(folder_ids)))
+        return int(deleted.rowcount or 0)
+
     async def has_children(self, folder_id: uuid.UUID) -> bool:
         """Check if folder has any child folders or chapters (D-12)."""
         from app.models.chapter import Chapter

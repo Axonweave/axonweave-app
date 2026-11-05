@@ -98,6 +98,15 @@ async function rowAction(page: Page, rowName: string, item: string | RegExp) {
   await page.getByRole("menuitem", { name: item }).click();
 }
 
+/** Options are indented ("↳ Unit 1"), so match on the text they contain. */
+async function pickMoveTarget(page: Page, name: string) {
+  const value = await page
+    .locator("#move-target option", { hasText: name })
+    .first()
+    .getAttribute("value");
+  await page.locator("#move-target").selectOption(value!);
+}
+
 test.describe.configure({ mode: "serial" });
 
 test.describe("Subjects, folders and chapters", () => {
@@ -160,6 +169,9 @@ test.describe("Subjects, folders and chapters", () => {
   test("the sidebar highlights Subjects, not My Workspace, on a subject page", async () => {
     await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}`);
     await expect(page.getByRole("heading", { name: SUBJECT })).toBeVisible();
+    // On a phone the sidebar lives in a drawer behind the menu button.
+    const menu = page.getByRole("button", { name: "Open menu" });
+    if (await menu.isVisible()) await menu.click();
     const nav = page.getByRole("navigation").filter({ hasText: "Overview" }).first();
     await expect(nav.getByRole("link", { name: "Subjects" })).toHaveAttribute(
       "aria-current",
@@ -169,7 +181,9 @@ test.describe("Subjects, folders and chapters", () => {
       "aria-current",
       "page",
     );
-    await expect(page.getByText("Coming soon").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /AI summaries and progress/ })).toContainText(
+      "Coming soon",
+    );
   });
 
   test("create folders and chapters", async () => {
@@ -212,7 +226,7 @@ test.describe("Subjects, folders and chapters", () => {
 
   test("move a chapter into a folder", async () => {
     await rowAction(page, "chapter Derivatives", /move to folder/i);
-    await page.locator("#move-target").selectOption({ label: "Unit 1" });
+    await pickMoveTarget(page, "Unit 1");
     await page.getByRole("button", { name: /^move$/i }).click();
     await expect
       .poll(async () => {
@@ -234,7 +248,7 @@ test.describe("Subjects, folders and chapters", () => {
     await rowAction(page, "folder Unit 2", /^move/i);
     const options = await page.locator("#move-target option").allTextContents();
     expect(options.some((o) => o.includes("Unit 2"))).toBe(false);
-    await page.locator("#move-target").selectOption({ label: "Unit 1" });
+    await pickMoveTarget(page, "Unit 1");
     await page.getByRole("button", { name: /^move$/i }).click();
     await expect
       .poll(async () => {
@@ -279,6 +293,9 @@ test.describe("Subjects, folders and chapters", () => {
     await expect(page.getByText("Unit 1", { exact: true })).toHaveCount(0, { timeout: 10000 });
     const folders = await apiGet<Array<{ name: string }>>(page, `${base}/folders?all_levels=true`);
     expect(folders).toHaveLength(0);
+    // D-12: the chapter that was inside Unit 1 is deleted too, not left loose.
+    const chapters = await apiGet<Array<{ title: string }>>(page, `${base}/chapters`);
+    expect(chapters.map((c) => c.title)).toEqual(["Limits"]);
   });
 
   test("a second user cannot see the first user's items", async ({ browser }) => {
@@ -302,7 +319,7 @@ test.describe("Subjects, folders and chapters", () => {
     await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}`);
     await rowAction(page, `subject ${SUBJECT}`, "Delete subject");
     await expect(page.getByText(/permanently deletes the subject/i)).toBeVisible();
-    await expect(page.getByText(/folders? and .*chapters?/)).toBeVisible();
+    await expect(page.getByRole("dialog").locator("strong")).toHaveText("0 folders and 1 chapter");
     const confirm = page.getByRole("button", { name: "Delete subject" });
     await expect(confirm).toBeDisabled();
     await page.locator("#confirm-text").fill(SUBJECT);

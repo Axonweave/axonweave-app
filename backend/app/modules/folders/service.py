@@ -344,5 +344,7 @@ class FolderService:
             entity_name=folder.name,
             workspace_id=workspace_id,
         )
+        if cascade:
+            await self._folders.delete_chapters_in_subtree(folder_id)
         await self._folders.delete(folder)
         await self._db.commit()
