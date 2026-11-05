@@ -56,7 +56,7 @@ Ticked = done and verified in a local run. GitHub Actions has not been observed 
 - [x] Backend dev image now includes test and lint tools, so the documented `docker compose exec backend pytest` works.
 
 Not done (open):
-- [ ] **Subjects / folders / chapters UI** (`feat/ui-subjects-folders-chapters`; plan exists, decisions on folder move and subject counts unanswered).
+- [x] **Subjects / folders / chapters UI** (`feat/ui-subjects-folders-chapters`, not yet merged or pushed). Built and covered by `frontend/e2e/academic.spec.ts`. Also fixed in the backend: folder move, flat `all_levels` listing, chapters append on create, cascade delete removes chapters.
 - [x] Upgrade FastAPI/Starlette (seven advisories) and make CI audit the installed environment: done on branch `fix/security-deps` (not merged).
 - [ ] SMTP sender with STARTTLS and authentication; production images/compose file; TLS; scheduled backups.
 - [ ] Restrict the app database role's access to `alembic_version`.
