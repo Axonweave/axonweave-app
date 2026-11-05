@@ -100,7 +100,8 @@ function Body({
 export function MoveDialog({ open, onOpenChange, ...rest }: MoveDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Body onOpenChange={onOpenChange} {...rest} />
+      {/* Mounted only while open so every opening starts with fresh state. */}
+      {open && <Body onOpenChange={onOpenChange} {...rest} />}
     </Dialog>
   );
 }

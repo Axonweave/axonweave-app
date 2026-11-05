@@ -85,7 +85,8 @@ function Body({
 export function DestructiveDialog({ open, onOpenChange, ...rest }: DestructiveDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Body onOpenChange={onOpenChange} {...rest} />
+      {/* Mounted only while open so every opening starts with fresh state. */}
+      {open && <Body onOpenChange={onOpenChange} {...rest} />}
     </Dialog>
   );
 }

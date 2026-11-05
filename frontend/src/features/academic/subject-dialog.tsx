@@ -122,7 +122,8 @@ function Form({ onOpenChange, workspaceId, subject, onSaved }: Omit<SubjectDialo
 export function SubjectDialog({ open, onOpenChange, ...rest }: SubjectDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Form onOpenChange={onOpenChange} {...rest} />
+      {/* Mounted only while open so every opening starts with fresh state. */}
+      {open && <Form onOpenChange={onOpenChange} {...rest} />}
     </Dialog>
   );
 }

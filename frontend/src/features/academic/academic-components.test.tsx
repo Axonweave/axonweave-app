@@ -225,6 +225,29 @@ describe("ChapterDialog", () => {
   });
 });
 
+describe("dialog state across openings", () => {
+  it("starts clean when reopened after a successful save", async () => {
+    api.chapterCreate.mockResolvedValue(chapter("c", "One", null, 0));
+    const props = {
+      onOpenChange: vi.fn(),
+      workspaceId: "w1",
+      subjectId: "s1",
+      folders: [] as Folder[],
+      onSaved: vi.fn(),
+    };
+    const { rerender } = render(<ChapterDialog open {...props} />);
+    await userEvent.type(screen.getByLabelText("Title *", { exact: true }), "One");
+    await userEvent.click(screen.getByRole("button", { name: "Create chapter" }));
+    await waitFor(() => expect(props.onSaved).toHaveBeenCalled());
+
+    rerender(<ChapterDialog open={false} {...props} />);
+    rerender(<ChapterDialog open {...props} />);
+    expect(screen.getByLabelText("Title *", { exact: true })).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Create chapter" })).toBeDisabled();
+    expect(screen.queryByText("Saving…")).not.toBeInTheDocument();
+  });
+});
+
 describe("DeleteFolderDialog", () => {
   it("falls back to a typed-name cascade confirmation on FOLDER_NOT_EMPTY", async () => {
     api.folderRemove
