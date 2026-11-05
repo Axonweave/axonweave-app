@@ -131,9 +131,10 @@ export type Subject = components["schemas"]["SubjectOut"];
 export type CreateSubjectRequest = components["schemas"]["CreateSubjectRequest"];
 export type UpdateSubjectRequest = components["schemas"]["UpdateSubjectRequest"];
 export type Folder = components["schemas"]["FolderOut"];
-export type CreateFolderRequest = components["schemas"]["CreateFolderRequest"];
-export type UpdateFolderRequest = components["schemas"]["UpdateFolderRequest"];
+// Fields with server-side defaults (display_order, *_set) are optional for callers.
+export type CreateFolderRequest = Partial<components["schemas"]["CreateFolderRequest"]> & { name: string };
+export type UpdateFolderRequest = Partial<components["schemas"]["UpdateFolderRequest"]>;
 export type Chapter = components["schemas"]["ChapterOut"];
-export type CreateChapterRequest = components["schemas"]["CreateChapterRequest"];
-export type UpdateChapterRequest = components["schemas"]["UpdateChapterRequest"];
+export type CreateChapterRequest = Partial<components["schemas"]["CreateChapterRequest"]> & { title: string };
+export type UpdateChapterRequest = Partial<components["schemas"]["UpdateChapterRequest"]>;
 export type ChapterStatus = "not_started" | "in_progress" | "completed";
