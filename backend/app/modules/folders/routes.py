@@ -25,6 +25,7 @@ async def list_folders(
     db: DbSession,
     parent_folder_id: uuid.UUID | None = Query(default=None),
     include_archived: bool = Query(default=False),
+    all_levels: bool = Query(default=False),
 ) -> FolderListResponse:
     service = FolderService(db)
     folders = await service.list_folders(
@@ -33,6 +34,7 @@ async def list_folders(
         user_id=current_user.id,
         parent_folder_id=parent_folder_id,
         include_archived=include_archived,
+        all_levels=all_levels,
     )
     return FolderListResponse(data=[FolderOut.model_validate(f) for f in folders])
 
@@ -104,6 +106,8 @@ async def update_folder(
         name=data.name,
         description=data.description,
         display_order=data.display_order,
+        parent_folder_id=data.parent_folder_id,
+        parent_folder_id_set=data.parent_folder_id_set,
     )
     return FolderResponse(data=FolderOut.model_validate(folder))
 

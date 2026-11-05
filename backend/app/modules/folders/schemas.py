@@ -46,6 +46,10 @@ class UpdateFolderRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)
     display_order: int | None = Field(default=None, ge=0)
+    # Move: set parent_folder_id_set=true to apply parent_folder_id (null = move to the top level).
+    # Same pattern as chapters (folder_id / folder_id_set): "not provided" differs from "null".
+    parent_folder_id: uuid.UUID | None = None
+    parent_folder_id_set: bool = False
 
     @field_validator("name")
     @classmethod

@@ -19,9 +19,12 @@ class FolderRepository:
         subject_id: uuid.UUID,
         parent_folder_id: uuid.UUID | None = None,
         include_archived: bool = False,
+        all_levels: bool = False,
     ) -> list[Folder]:
         stmt = select(Folder).where(Folder.subject_id == subject_id)
-        if parent_folder_id is None:
+        if all_levels:
+            pass  # every folder of the subject, flat; the caller builds the tree
+        elif parent_folder_id is None:
             stmt = stmt.where(Folder.parent_folder_id.is_(None))
         else:
             stmt = stmt.where(Folder.parent_folder_id == parent_folder_id)
@@ -80,6 +83,33 @@ class FolderRepository:
             current_id = row
         return depth
 
+    async def is_self_or_descendant(self, *, candidate_id: uuid.UUID, folder_id: uuid.UUID) -> bool:
+        """True if candidate_id is folder_id or lies somewhere below it (walks up the parents)."""
+        current_id: uuid.UUID | None = candidate_id
+        seen: set[uuid.UUID] = set()
+        while current_id is not None and current_id not in seen:
+            if current_id == folder_id:
+                return True
+            seen.add(current_id)
+            result = await self._db.execute(
+                select(Folder.parent_folder_id).where(Folder.id == current_id)
+            )
+            current_id = result.scalar_one_or_none()
+        return False
+
+    async def get_subtree_height(self, folder_id: uuid.UUID) -> int:
+        """Number of levels in the subtree rooted at folder_id (no children = 1)."""
+        height = 1
+        frontier = [folder_id]
+        while True:
+            result = await self._db.execute(
+                select(Folder.id).where(Folder.parent_folder_id.in_(frontier))
+            )
+            frontier = list(result.scalars().all())
+            if not frontier:
+                return height
+            height += 1
+
     async def has_children(self, folder_id: uuid.UUID) -> bool:
         """Check if folder has any child folders or chapters (D-12)."""
         from app.models.chapter import Chapter
@@ -121,7 +151,11 @@ class FolderRepository:
         name: str | None = None,
         description: str | None = None,
         display_order: int | None = None,
+        parent_folder_id: uuid.UUID | None = None,
+        parent_folder_id_set: bool = False,
     ) -> Folder:
+        if parent_folder_id_set:
+            folder.parent_folder_id = parent_folder_id
         if name is not None:
             folder.name = name
         if description is not None:
