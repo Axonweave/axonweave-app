@@ -39,7 +39,8 @@ class CreateChapterRequest(BaseModel):
     title: str = Field(min_length=1, max_length=500)
     description: str | None = Field(default=None, max_length=5000)
     folder_id: uuid.UUID | None = None
-    display_order: int = Field(default=0, ge=0)
+    # Omit to append after the subject's last chapter.
+    display_order: int | None = Field(default=None, ge=0)
     status: Literal["not_started", "in_progress", "completed"] = "not_started"
 
     @field_validator("title")

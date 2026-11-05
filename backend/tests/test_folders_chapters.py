@@ -443,6 +443,44 @@ class TestChapterReorder:
         assert resp.json()["success"] is True
 
 
+class TestChapterAppendOrder:
+    """New chapters go to the end instead of all tying at display_order 0 (D-15)."""
+
+    async def _create(self, client, auth, ws_id, subj_id, **body):
+        _, token, csrf = auth
+        return await client.post(
+            f"/api/v1/workspaces/{ws_id}/subjects/{subj_id}/chapters",
+            json=body,
+            cookies={"aw_session": token, "csrf_token": csrf},
+            headers={"X-CSRF-Token": csrf},
+        )
+
+    async def test_new_chapters_get_increasing_orders(self, client: AsyncClient, full_tree):
+        user, token, csrf, ws_id, subj_id = full_tree
+        auth = (user, token, csrf)
+        orders = []
+        for title in ["One", "Two", "Three"]:
+            resp = await self._create(client, auth, ws_id, subj_id, title=title)
+            assert resp.status_code == 201
+            orders.append(resp.json()["data"]["display_order"])
+        assert orders == sorted(set(orders)) and len(orders) == 3
+
+        listing = await client.get(
+            f"/api/v1/workspaces/{ws_id}/subjects/{subj_id}/chapters",
+            cookies={"aw_session": token, "csrf_token": csrf},
+        )
+        assert [c["title"] for c in listing.json()["data"]] == ["One", "Two", "Three"]
+
+    async def test_an_explicit_order_is_still_honoured(self, client: AsyncClient, full_tree):
+        user, token, csrf, ws_id, subj_id = full_tree
+        resp = await self._create(
+            client, (user, token, csrf), ws_id, subj_id, title="Pinned", display_order=7
+        )
+        assert resp.json()["data"]["display_order"] == 7
+        after = await self._create(client, (user, token, csrf), ws_id, subj_id, title="After")
+        assert after.json()["data"]["display_order"] == 8
+
+
 class TestChapterArchive:
     async def test_archive_and_restore(self, client: AsyncClient, full_tree):
         _, token, csrf, ws_id, subj_id = full_tree

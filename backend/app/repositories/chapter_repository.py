@@ -71,6 +71,15 @@ class ChapterRepository:
         )
         return result.scalar_one_or_none()
 
+    async def next_display_order(self, subject_id: uuid.UUID) -> int:
+        """One past the highest display_order in the subject (0 for the first chapter)."""
+        result = await self._db.execute(
+            select(func.coalesce(func.max(Chapter.display_order), -1) + 1).where(
+                Chapter.subject_id == subject_id
+            )
+        )
+        return int(result.scalar_one())
+
     async def create(
         self,
         *,

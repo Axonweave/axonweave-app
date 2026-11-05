@@ -108,12 +108,15 @@ class ChapterService:
         title: str,
         folder_id: uuid.UUID | None = None,
         description: str | None = None,
-        display_order: int = 0,
+        display_order: int | None = None,
         chapter_status: str = "not_started",
     ) -> Chapter:
         await self._require_workspace(workspace_id, user_id)
         await self._require_subject(subject_id, workspace_id)
         await self._validate_folder(folder_id, subject_id)
+        if display_order is None:
+            # New chapters go to the end; without this every chapter ties at 0 (D-15).
+            display_order = await self._chapters.next_display_order(subject_id)
         chapter = await self._chapters.create(
             subject_id=subject_id,
             title=title,
