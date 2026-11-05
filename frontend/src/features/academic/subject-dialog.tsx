@@ -102,7 +102,12 @@ function Form({ onOpenChange, workspaceId, subject, onSaved }: Omit<SubjectDialo
         </div>
         <FormError message={error} />
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={busy}
+          >
             Cancel
           </Button>
           <Button type="submit" disabled={busy || !name.trim()}>

@@ -77,16 +77,14 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
   return (
     <aside
       className={cn(
-        "flex h-full flex-col border-r border-border bg-sidebar text-sidebar-foreground transition-all duration-200",
+        "border-border bg-sidebar text-sidebar-foreground flex h-full flex-col border-r transition-all duration-200",
         collapsed ? "w-14" : "w-60",
         className,
       )}
     >
       {/* Brand */}
-      <div className="flex h-14 items-center justify-between border-b border-border px-3">
-        {!collapsed && (
-          <span className="text-sm font-semibold tracking-tight">Axonweave</span>
-        )}
+      <div className="border-border flex h-14 items-center justify-between border-b px-3">
+        {!collapsed && <span className="text-sm font-semibold tracking-tight">Axonweave</span>}
         <Button
           variant="ghost"
           size="icon"
@@ -102,11 +100,11 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
       <nav className="flex-1 overflow-y-auto py-3">
         <NavSection items={primaryNav} collapsed={collapsed} pathname={pathname} />
 
-        <div className="mx-3 my-3 border-t border-border" />
+        <div className="border-border mx-3 my-3 border-t" />
 
         {/* Coming soon */}
         {!collapsed && (
-          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground mb-1 px-3 text-[10px] font-semibold tracking-widest uppercase">
             Coming soon
           </p>
         )}
@@ -114,7 +112,7 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
       </nav>
 
       {/* Bottom nav */}
-      <div className="border-t border-border py-3">
+      <div className="border-border border-t py-3">
         <NavSection items={bottomNav} collapsed={collapsed} pathname={pathname} />
       </div>
     </aside>
@@ -155,7 +153,7 @@ function NavSection({
                 <span className="truncate">
                   {item.label}
                   {item.disabled && (
-                    <span className="ml-1.5 text-[10px] text-muted-foreground">(soon)</span>
+                    <span className="text-muted-foreground ml-1.5 text-[10px]">(soon)</span>
                   )}
                 </span>
               )}

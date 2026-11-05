@@ -68,7 +68,9 @@ function Form({
     <DialogContent showCloseButton={false}>
       <form onSubmit={submit} className="space-y-4">
         <DialogHeader>
-          <DialogTitle>{editing ? "Edit folder" : parent ? "New subfolder" : "New folder"}</DialogTitle>
+          <DialogTitle>
+            {editing ? "Edit folder" : parent ? "New subfolder" : "New folder"}
+          </DialogTitle>
           {!editing && (
             <DialogDescription>
               {parent ? `Inside “${parent.name}”.` : "At the top level of this subject."}
@@ -98,7 +100,12 @@ function Form({
         </div>
         <FormError message={error} />
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={busy}
+          >
             Cancel
           </Button>
           <Button type="submit" disabled={busy || !name.trim()}>

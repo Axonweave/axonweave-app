@@ -82,11 +82,7 @@ export interface DeleteAccountRequest {
 }
 
 export type WorkspaceType =
-  | "university"
-  | "personal_learning"
-  | "research"
-  | "professional_development"
-  | "custom";
+  "university" | "personal_learning" | "research" | "professional_development" | "custom";
 
 export interface Workspace {
   id: string;
@@ -132,9 +128,13 @@ export type CreateSubjectRequest = components["schemas"]["CreateSubjectRequest"]
 export type UpdateSubjectRequest = components["schemas"]["UpdateSubjectRequest"];
 export type Folder = components["schemas"]["FolderOut"];
 // Fields with server-side defaults (display_order, *_set) are optional for callers.
-export type CreateFolderRequest = Partial<components["schemas"]["CreateFolderRequest"]> & { name: string };
+export type CreateFolderRequest = Partial<components["schemas"]["CreateFolderRequest"]> & {
+  name: string;
+};
 export type UpdateFolderRequest = Partial<components["schemas"]["UpdateFolderRequest"]>;
 export type Chapter = components["schemas"]["ChapterOut"];
-export type CreateChapterRequest = Partial<components["schemas"]["CreateChapterRequest"]> & { title: string };
+export type CreateChapterRequest = Partial<components["schemas"]["CreateChapterRequest"]> & {
+  title: string;
+};
 export type UpdateChapterRequest = Partial<components["schemas"]["UpdateChapterRequest"]>;
 export type ChapterStatus = "not_started" | "in_progress" | "completed";

@@ -25,7 +25,13 @@ import type { Chapter, Folder, Subject, Workspace } from "@/types/api";
 
 type Loaded =
   | { notFound: true }
-  | { notFound: false; workspace: Workspace; subject: Subject; folders: Folder[]; chapter: Chapter };
+  | {
+      notFound: false;
+      workspace: Workspace;
+      subject: Subject;
+      folders: Folder[];
+      chapter: Chapter;
+    };
 
 const COMING_SOON_TABS = [
   "Learning materials",

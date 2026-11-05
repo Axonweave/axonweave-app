@@ -45,6 +45,7 @@ export function DeleteFolderDialog({
   if (!cascade) {
     return (
       <DestructiveDialog
+        key="plain"
         open={open}
         onOpenChange={close}
         title={`Delete folder “${folder.name}”?`}
@@ -66,8 +67,10 @@ export function DeleteFolderDialog({
     );
   }
 
+  // A distinct key gives this stage fresh state; otherwise the "busy" flag of stage one carries over.
   return (
     <DestructiveDialog
+      key="cascade"
       open={open}
       onOpenChange={close}
       title={`“${folder.name}” is not empty`}

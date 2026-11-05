@@ -155,7 +155,10 @@ export default function SubjectDetailPage() {
   const archiveFolder = async (folder: Folder) => {
     try {
       await foldersApi.archive(workspaceId, subjectId, folder.id);
-      toast({ title: `Folder “${folder.name}” archived`, description: "Restore it from Archived items." });
+      toast({
+        title: `Folder “${folder.name}” archived`,
+        description: "Restore it from Archived items.",
+      });
       reload();
     } catch (err) {
       toast({
@@ -169,7 +172,10 @@ export default function SubjectDetailPage() {
   const archiveChapter = async (chapter: Chapter) => {
     try {
       await chaptersApi.archive(workspaceId, subjectId, chapter.id);
-      toast({ title: `Chapter “${chapter.title}” archived`, description: "Restore it from Archived items." });
+      toast({
+        title: `Chapter “${chapter.title}” archived`,
+        description: "Restore it from Archived items.",
+      });
       reload();
     } catch (err) {
       toast({
@@ -236,7 +242,9 @@ export default function SubjectDetailPage() {
               {subject.name}
             </h1>
             {subject.description && (
-              <p className="text-muted-foreground mt-1 text-sm break-words">{subject.description}</p>
+              <p className="text-muted-foreground mt-1 text-sm break-words">
+                {subject.description}
+              </p>
             )}
             <p className="text-muted-foreground mt-2 text-sm">
               Workspace: <span className="text-foreground">{workspace.name}</span>
@@ -355,8 +363,8 @@ export default function SubjectDetailPage() {
             />
             {truncated && (
               <p className="text-muted-foreground text-sm">
-                Showing the first {REORDER_LIMIT} of {chapterTotal} chapters. Use search to find
-                the others.
+                Showing the first {REORDER_LIMIT} of {chapterTotal} chapters. Use search to find the
+                others.
               </p>
             )}
           </>
@@ -382,8 +390,8 @@ export default function SubjectDetailPage() {
           </span>
         </h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          Summaries of this subject and progress overviews will appear here in a later phase. Nothing
-          is calculated or shown yet.
+          Summaries of this subject and progress overviews will appear here in a later phase.
+          Nothing is calculated or shown yet.
         </p>
       </section>
 
@@ -521,7 +529,6 @@ export default function SubjectDetailPage() {
           }}
         />
       )}
-
     </div>
   );
 }

@@ -23,7 +23,13 @@ export const PRESET_COLOURS = [
   "#14b8a6",
 ];
 
-export function ColourPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function ColourPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <div className="flex flex-wrap gap-2">
       {PRESET_COLOURS.map((c) => (

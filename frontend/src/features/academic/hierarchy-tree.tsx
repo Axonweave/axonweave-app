@@ -112,10 +112,7 @@ function ChapterRow({
   );
 }
 
-function FolderBlock({
-  node,
-  ...rest
-}: { node: FolderNode } & Omit<TreeProps, "hierarchy">) {
+function FolderBlock({ node, ...rest }: { node: FolderNode } & Omit<TreeProps, "hierarchy">) {
   const { folder } = node;
   const { actions } = rest;
   const canNest = node.depth < MAX_FOLDER_DEPTH;

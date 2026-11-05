@@ -96,7 +96,8 @@ function SubjectsView() {
 
   const closeCreate = () => {
     setCreateOpen(false);
-    if (createParam) router.replace(workspaceId ? `/subjects?workspace=${workspaceId}` : "/subjects");
+    if (createParam)
+      router.replace(workspaceId ? `/subjects?workspace=${workspaceId}` : "/subjects");
   };
 
   const failure = (title: string, err: unknown) =>
@@ -315,7 +316,11 @@ function SubjectsView() {
                   actions={
                     archived
                       ? [
-                          { label: "Restore", icon: <ArchiveRestore />, onSelect: () => restore(s) },
+                          {
+                            label: "Restore",
+                            icon: <ArchiveRestore />,
+                            onSelect: () => restore(s),
+                          },
                           {
                             label: "Delete",
                             icon: <Trash2 />,

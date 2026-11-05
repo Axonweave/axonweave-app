@@ -140,7 +140,12 @@ function Form({
         </div>
         <FormError message={error} />
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={busy}
+          >
             Cancel
           </Button>
           <Button type="submit" disabled={busy || !title.trim()}>
