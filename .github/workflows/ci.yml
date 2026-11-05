@@ -172,11 +172,30 @@ jobs:
           docker run --rm -v "$PWD:/repo:ro" zricethezav/gitleaks:latest \
             detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner --log-opts="--all"
 
-      - name: Python dependency audit (runtime requirements)
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Audits the packages that are actually INSTALLED (including transitive ones such as
+      # starlette), not just the names listed in requirements.txt. A requirements-file audit with
+      # --no-deps cannot see transitive dependencies. pip-audit exits non-zero on any known
+      # vulnerability, which fails this job. Do not add "|| true".
+      - name: Python dependency audit (installed runtime and dev environments)
         working-directory: backend
         run: |
-          pip install pip-audit
-          pip-audit -r requirements.txt --no-deps --disable-pip
+          python -m venv "$RUNNER_TEMP/audit-tool"
+          "$RUNNER_TEMP/audit-tool/bin/pip" install --quiet pip-audit
+          for reqs in requirements.txt requirements-dev.txt; do
+            echo "::group::pip-audit installed environment from $reqs"
+            env="$RUNNER_TEMP/env-${reqs%.txt}"
+            python -m venv "$env"
+            "$env/bin/pip" install --quiet --upgrade pip
+            "$env/bin/pip" install --quiet -r "$reqs"
+            sitepackages="$("$env/bin/python" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')"
+            "$RUNNER_TEMP/audit-tool/bin/pip-audit" --strict --path "$sitepackages"
+            echo "::endgroup::"
+          done
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
