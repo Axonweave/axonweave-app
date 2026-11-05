@@ -125,3 +125,15 @@ export type DashboardStats = components["schemas"]["DashboardStats"];
 export type WorkspaceOverviewItem = components["schemas"]["WorkspaceOverviewItem"];
 export type RecentSubjectItem = components["schemas"]["RecentSubjectItem"];
 export type ArchivedItem = components["schemas"]["ArchivedItem"];
+
+// ---- Academic structure (derived from the generated OpenAPI types) ----
+export type Subject = components["schemas"]["SubjectOut"];
+export type CreateSubjectRequest = components["schemas"]["CreateSubjectRequest"];
+export type UpdateSubjectRequest = components["schemas"]["UpdateSubjectRequest"];
+export type Folder = components["schemas"]["FolderOut"];
+export type CreateFolderRequest = components["schemas"]["CreateFolderRequest"];
+export type UpdateFolderRequest = components["schemas"]["UpdateFolderRequest"];
+export type Chapter = components["schemas"]["ChapterOut"];
+export type CreateChapterRequest = components["schemas"]["CreateChapterRequest"];
+export type UpdateChapterRequest = components["schemas"]["UpdateChapterRequest"];
+export type ChapterStatus = "not_started" | "in_progress" | "completed";

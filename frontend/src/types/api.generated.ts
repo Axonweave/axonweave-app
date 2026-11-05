@@ -1269,6 +1269,13 @@ export interface components {
             description?: string | null;
             /** Display Order */
             display_order?: number | null;
+            /** Parent Folder Id */
+            parent_folder_id?: string | null;
+            /**
+             * Parent Folder Id Set
+             * @default false
+             */
+            parent_folder_id_set: boolean;
         };
         /** UpdatePreferencesRequest */
         UpdatePreferencesRequest: {
@@ -1368,6 +1375,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
         /** VerifyEmailRequest */
         VerifyEmailRequest: {
@@ -2607,6 +2618,7 @@ export interface operations {
             query?: {
                 parent_folder_id?: string | null;
                 include_archived?: boolean;
+                all_levels?: boolean;
             };
             header?: never;
             path: {
