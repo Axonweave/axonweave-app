@@ -892,11 +892,8 @@ export interface components {
             description?: string | null;
             /** Folder Id */
             folder_id?: string | null;
-            /**
-             * Display Order
-             * @default 0
-             */
-            display_order: number;
+            /** Display Order */
+            display_order?: number | null;
             /**
              * Status
              * @default not_started
