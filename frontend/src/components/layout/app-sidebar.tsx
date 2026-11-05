@@ -51,6 +51,20 @@ const bottomNav: NavItem[] = [
   { label: "Help & Support", href: "/help", icon: HelpCircle },
 ];
 
+const underPath = (pathname: string, base: string) =>
+  pathname === base || pathname.startsWith(`${base}/`);
+
+/** Subject pages live at /workspaces/{id}/subjects/..., which belongs to Subjects, not My Workspace. */
+const isSubjectPath = (pathname: string) =>
+  underPath(pathname, "/subjects") || /^\/workspaces\/[^/]+\/subjects(\/|$)/.test(pathname);
+
+export function isNavActive(pathname: string, href: string): boolean {
+  if (href === "#") return false;
+  if (href === "/subjects") return isSubjectPath(pathname);
+  if (href === "/workspaces") return underPath(pathname, href) && !isSubjectPath(pathname);
+  return underPath(pathname, href);
+}
+
 interface AppSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
@@ -119,7 +133,7 @@ function NavSection({
   return (
     <ul className="space-y-0.5 px-2">
       {items.map((item) => {
-        const active = !item.disabled && pathname.startsWith(item.href) && item.href !== "#";
+        const active = !item.disabled && isNavActive(pathname, item.href);
         const Icon = item.icon;
         return (
           <li key={item.href + item.label}>

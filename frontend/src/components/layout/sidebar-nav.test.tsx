@@ -67,6 +67,24 @@ describe("AppSidebar", () => {
     }
   });
 
+  it.each([
+    ["/subjects", "Subjects", "My Workspace"],
+    ["/workspaces/w1/subjects/s1", "Subjects", "My Workspace"],
+    ["/workspaces/w1/subjects/s1/chapters/c1", "Subjects", "My Workspace"],
+    ["/workspaces", "My Workspace", "Subjects"],
+  ])("on %s highlights %s and not %s", (path, on, off) => {
+    pathname = path;
+    render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
+    expect(screen.getByRole("link", { name: on })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: off })).not.toHaveAttribute("aria-current");
+  });
+
+  it("does not treat look-alike prefixes as active", () => {
+    pathname = "/subjects-archive";
+    render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
+    expect(screen.getByRole("link", { name: "Subjects" })).not.toHaveAttribute("aria-current");
+  });
+
   it("collapses to icons only and the toggle announces its state", async () => {
     const onToggle = vi.fn();
     const { rerender } = render(<AppSidebar collapsed={false} onToggle={onToggle} />);

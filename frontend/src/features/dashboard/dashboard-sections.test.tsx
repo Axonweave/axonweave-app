@@ -65,11 +65,19 @@ describe("WelcomeHeader", () => {
 });
 
 describe("QuickActions", () => {
-  it("opens the create-workspace flow and offers no dead subject/folder/chapter buttons", async () => {
+  it("opens the create-workspace flow; subject actions are real links", async () => {
     const onCreate = vi.fn();
     render(<QuickActions onCreateWorkspace={onCreate} />);
     await userEvent.click(screen.getByRole("button", { name: /create workspace/i }));
     expect(onCreate).toHaveBeenCalledOnce();
+    expect(screen.getByRole("link", { name: "New subject" })).toHaveAttribute(
+      "href",
+      "/subjects?create=1",
+    );
+    expect(screen.getByRole("link", { name: "Browse subjects" })).toHaveAttribute(
+      "href",
+      "/subjects",
+    );
     expect(
       screen.queryByRole("button", { name: /subject|folder|chapter/i }),
     ).not.toBeInTheDocument();
@@ -153,7 +161,10 @@ describe("RecentSubjects", () => {
       },
     ]);
     render(<RecentSubjects />);
-    expect(await screen.findByText("Maths")).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Maths" })).toHaveAttribute(
+      "href",
+      "/workspaces/w1/subjects/s1",
+    );
     expect(screen.getByText(/Uni · Updated/)).toBeInTheDocument();
   });
 
