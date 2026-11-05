@@ -105,7 +105,7 @@ class FolderService:
         parent_depth = await self._folders.get_depth(parent_folder_id)
         if parent_depth >= self._folders.max_depth:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail={
                     "code": "FOLDER_DEPTH_EXCEEDED",
                     "message": f"Maximum folder depth of {self._folders.max_depth} exceeded.",

@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # from requirements-dev.txt so `docker compose exec backend pytest` works. A production image
 # should install requirements.txt only.
 COPY requirements.txt requirements-dev.txt ./
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt
 
 COPY . .
 
