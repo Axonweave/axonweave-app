@@ -28,16 +28,19 @@ One branch per task, Conventional Commits, no push to `main`, one Alembic head.
 - Done when: Axonweave can talk to the provider, AI data persists, ruff/mypy/pytest pass, nothing user-facing yet.
 
 ## M2: Conversations, messages, context, non-streaming generation (Steps 5, 6)  Owner: ________
-- [ ] Conversation APIs: create, list (paginated, search, last activity order), get, rename, archive, delete; all scoped by `user_id`, 404 for non-owned (D-56).
-- [ ] Message APIs: list, send (non-streaming), feedback. Sequence numbers under a conversation row lock (D-42). Deterministic title (D-55).
-- [ ] `ContextManager` (D-47): budget, complete turns, estimate flag, `LLM_CONTEXT_TOO_LONG`, ignores superseded/failed/cancelled rows.
-- [ ] `PromptRegistry` with `academic_tutor` v1; `prompt_key`/`prompt_version` recorded on each assistant message (D-41).
-- [ ] `AiService` with retry policy (D-50) and error mapping; failed and cancelled messages never look successful.
-- [ ] `/ai/models`, `/ai/models/default`, `/ai/capabilities` (safe metadata only); `LLM_NOT_CONFIGURED` 503 path (D-58).
-- [ ] Input length limit; per-user request-rate limit (existing limiter).
-- [ ] Export (`/users/me/export`) and account deletion include AI data (D-53); tests for both.
-- [ ] Tests: ownership for every endpoint (cross-user 404, nothing changed), unauthenticated 401 sweep, follow-up context retention, context isolation, limits respected, oversized input, invalid model, provider failure paths, no secret or content in logs, delete conversation keeps usage rows with NULL ids.
+- [x] Conversation APIs: create, list (paginated, search, last activity order), get, rename, archive, delete; all scoped by `user_id`, 404 for non-owned (D-56).
+- [x] Message APIs: list, send (non-streaming), feedback. Sequence numbers under a conversation row lock (D-42). Deterministic title (D-55).
+- [x] `ContextManager` (D-47): budget, complete turns, estimate flag, `LLM_CONTEXT_TOO_LONG`, ignores superseded/failed/cancelled rows.
+- [x] `PromptRegistry` with `academic_tutor` v1; `prompt_key`/`prompt_version` recorded on each assistant message (D-41).
+- [x] `AiService` with retry policy (D-50) and error mapping; failed and cancelled messages never look successful.
+- [x] `/ai/models`, `/ai/models/default`, `/ai/capabilities` (safe metadata only); `LLM_NOT_CONFIGURED` 503 path (D-58).
+- [x] Input length limit; per-user request-rate limit (existing limiter).
+- [x] Export (`/users/me/export`) and account deletion include AI data (D-53); tests for both.
+- [x] Tests: ownership for every endpoint (cross-user 404, nothing changed), unauthenticated 401 sweep, follow-up context retention, context isolation, limits respected, oversized input, invalid model, provider failure paths, no secret or content in logs, delete conversation keeps usage rows with NULL ids.
 - Done when: multi-turn conversations work end to end on the fake provider and on the real one.
+  - Status: met on the fake provider (automated). NOT yet verified on the real provider: waiting for the
+    M1 key run (`scripts/llm_smoke_test.py`) and then one manual multi-turn check.
+  - Note: streaming requests return 400 `STREAMING_NOT_AVAILABLE` until M3; usage endpoints are M3.
 
 ## M3: Streaming, cancellation, regenerate, usage and quotas (Steps 8, 9)  Owner: ________
 - [ ] Spike first: stream through the real middleware stack and disconnect mid-stream. If `BaseHTTPMiddleware` interferes, convert CSRF, correlation id and security headers middleware to pure ASGI before continuing.
