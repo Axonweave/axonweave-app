@@ -354,7 +354,7 @@ test.describe("AI Tutor (desktop)", () => {
     await search.fill("Photosynthesis");
     const nav = page.getByRole("navigation", { name: "Conversations" });
     await expect(nav.getByRole("link", { name: "Photosynthesis notes" })).toBeVisible();
-    await expect(nav.getByRole("link")).toHaveCount(1);
+    await expect(nav.getByRole("list").getByRole("link")).toHaveCount(1);
     await search.fill("zzz-no-such-conversation");
     await expect(nav.getByText(/no conversations match/i)).toBeVisible();
     await search.fill("");
