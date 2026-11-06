@@ -6,6 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.ai.errors import AiError
 from app.ai.model_registry import build_registry
 from app.ai.providers.registry import close_providers
 from app.ai.sync import sync_catalog_at_startup
@@ -80,6 +81,17 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
         status_code=exc.status_code,
         content={"success": False, "error": error},
         headers=getattr(exc, "headers", None),
+    )
+
+
+@app.exception_handler(AiError)
+async def ai_error_handler(request: Request, exc: AiError) -> JSONResponse:
+    """AI errors carry a fixed code and message; provider text never reaches the client (D-49)."""
+    http = exc.to_http_exception()
+    return JSONResponse(
+        status_code=http.status_code,
+        content={"success": False, "error": http.detail},
+        headers=http.headers,
     )
 
 

@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.modules.ai.routes import router as ai_router
 from app.modules.auth.email_routes import router as email_auth_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.chapters.routes import router as chapters_router
@@ -18,3 +19,4 @@ router.include_router(subjects_router)
 router.include_router(folders_router)
 router.include_router(chapters_router)
 router.include_router(dashboard_router)
+router.include_router(ai_router)

@@ -73,6 +73,11 @@ class AiCatalogRepository:
             self.db.add(LLMModelPrice(model_id=model_id, pricing_version=pricing_version, **fields))
             await self.db.flush()
 
+    async def get_model(self, internal_id: str) -> LLMModel | None:
+        return (
+            await self.db.execute(select(LLMModel).where(LLMModel.internal_id == internal_id))
+        ).scalar_one_or_none()
+
     # prompts ─────────────────────────────────────────────────────────────────
 
     async def get_prompt(self, prompt_key: str, version: int) -> PromptTemplate | None:
