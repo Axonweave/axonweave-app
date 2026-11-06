@@ -35,10 +35,10 @@ const primaryNav: NavItem[] = [
   { label: "Subjects", href: "/subjects", icon: BookOpen },
   { label: "Recent Activity", href: "/activity", icon: Clock },
   { label: "Archived Items", href: "/archived", icon: Archive },
+  { label: "AI Tutor", href: "/ai-tutor", icon: BrainCircuit },
 ];
 
 const comingSoonNav: NavItem[] = [
-  { label: "AI Tutor", href: "#", icon: BrainCircuit, disabled: true },
   { label: "Research Studio", href: "#", icon: FlaskConical, disabled: true },
   { label: "Assessments", href: "#", icon: ClipboardCheck, disabled: true },
   { label: "Revision", href: "#", icon: RotateCcw, disabled: true },

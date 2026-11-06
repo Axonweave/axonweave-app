@@ -6,7 +6,7 @@
  */
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
-const API_BASE = `${BACKEND_URL}/api/v1`;
+export const API_BASE = `${BACKEND_URL}/api/v1`;
 
 export type ApiSuccess<T> = { success: true; data: T };
 export type ApiError = {
@@ -27,7 +27,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-function getCsrfToken(): string | null {
+export function getCsrfToken(): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
   return match ? decodeURIComponent(match[1]) : null;

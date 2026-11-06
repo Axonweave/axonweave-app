@@ -11,14 +11,7 @@ beforeEach(() => {
   pathname = "/dashboard";
 });
 
-const COMING_SOON = [
-  "AI Tutor",
-  "Research Studio",
-  "Assessments",
-  "Revision",
-  "Library",
-  "Favourites",
-];
+const COMING_SOON = ["Research Studio", "Assessments", "Revision", "Library", "Favourites"];
 
 describe("AppSidebar", () => {
   it("offers the real Phase 1 destinations with correct links", () => {
@@ -29,6 +22,7 @@ describe("AppSidebar", () => {
       Subjects: "/subjects",
       "Recent Activity": "/activity",
       "Archived Items": "/archived",
+      "AI Tutor": "/ai-tutor",
       Settings: "/settings",
       "Help & Support": "/help",
     };
@@ -98,6 +92,17 @@ describe("AppSidebar", () => {
   });
 });
 
+describe("AI Tutor item (D-59)", () => {
+  it("is a real link, active on the chat routes, and no longer disabled", () => {
+    pathname = "/ai-tutor/abc";
+    render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
+    const link = screen.getByRole("link", { name: "AI Tutor" });
+    expect(link).toHaveAttribute("href", "/ai-tutor");
+    expect(link).not.toHaveAttribute("aria-disabled");
+    expect(link).toHaveAttribute("aria-current", "page");
+  });
+});
+
 describe("MobileNav drawer", () => {
   it("renders nothing while closed", () => {
     render(<MobileNav open={false} onClose={vi.fn()} />);
@@ -107,7 +112,8 @@ describe("MobileNav drawer", () => {
   it("shows the full navigation when open, including disabled future modules", () => {
     render(<MobileNav open onClose={vi.fn()} />);
     expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
-    const soon = screen.getByRole("link", { name: /^AI Tutor/ });
+    expect(screen.getByRole("link", { name: "AI Tutor" })).toHaveAttribute("href", "/ai-tutor");
+    const soon = screen.getByRole("link", { name: /^Research Studio/ });
     expect(soon).toHaveAttribute("aria-disabled", "true");
   });
 
