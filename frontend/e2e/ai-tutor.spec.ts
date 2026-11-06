@@ -114,6 +114,9 @@ const input = (page: Page) => page.getByRole("textbox", { name: /message the ai 
 const assistantMessages = (page: Page) => page.locator('[data-role="assistant"]');
 
 async function sendMessage(page: Page, text: string) {
+  // Enter is ignored while an answer is still being generated (the Send button becomes Stop), so
+  // wait for the previous turn to finish first, as a real user would. Matters on slow CI runners.
+  await expect(page.getByRole("button", { name: "Send" })).toBeVisible({ timeout: 20000 });
   await input(page).fill(text);
   await input(page).press("Enter");
 }
