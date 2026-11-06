@@ -12,7 +12,7 @@ evaluation run (`docs/AI_EVALUATION.md`). **No real-provider conversation was ru
 
 CI: pull request #15 (AI Tutor UI) was observed on GitHub with all four jobs green (backend, frontend, e2e, security) after
 three e2e test fixes, and was merged. The three most recent runs on `main` were observed green on 2026-11-06. CI for this branch
-is recorded at the bottom of this file only if it was seen to run.
+(pull request #16) was observed with all four jobs green (backend, frontend, e2e, security) before merging.
 
 ## Overall
 
