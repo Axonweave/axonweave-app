@@ -291,7 +291,12 @@ class GeminiProvider(LLMProvider):
                 text = self._text(chunk)
                 if text:
                     produced = True
-                    yield StreamDelta(text)
+                    seen = (
+                        usage
+                        if meta is not None and usage.source is UsageSource.provider_reported
+                        else None
+                    )
+                    yield StreamDelta(text, usage=seen)
         except BaseException as exc:
             if isinstance(exc, asyncio.CancelledError | GeneratorExit | KeyboardInterrupt):
                 raise

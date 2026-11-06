@@ -773,6 +773,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/conversations/{conversation_id}/messages/{message_id}/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Regenerate Message */
+        post: operations["regenerate_message_api_v1_ai_conversations__conversation_id__messages__message_id__regenerate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/conversations/{conversation_id}/messages/{message_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Generation */
+        post: operations["cancel_generation_api_v1_ai_conversations__conversation_id__messages__message_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/messages/{message_id}/feedback": {
         parameters: {
             query?: never;
@@ -784,6 +818,57 @@ export interface paths {
         put?: never;
         /** Submit Feedback */
         post: operations["submit_feedback_api_v1_ai_messages__message_id__feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Usage */
+        get: operations["list_usage_api_v1_ai_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/usage/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage Summary */
+        get: operations["usage_summary_api_v1_ai_usage_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/usage/by-model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage By Model */
+        get: operations["usage_by_model_api_v1_ai_usage_by_model_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1104,6 +1189,13 @@ export interface components {
             success: boolean;
             data: components["schemas"]["ConversationOut"];
         };
+        /** CostByCurrency */
+        CostByCurrency: {
+            /** Currency */
+            currency: string;
+            /** Amount */
+            amount: string;
+        };
         /** CreateChapterRequest */
         CreateChapterRequest: {
             /** Title */
@@ -1396,6 +1488,15 @@ export interface components {
             /** Completed At */
             completed_at: string | null;
         };
+        /** MessageResponse */
+        MessageResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["MessageOut"];
+        };
         /** ModelListResponse */
         ModelListResponse: {
             /**
@@ -1480,6 +1581,16 @@ export interface components {
             success: boolean;
             /** Data */
             data: components["schemas"]["RecentSubjectItem"][];
+        };
+        /** RegenerateRequest */
+        RegenerateRequest: {
+            /** Model Id */
+            model_id?: string | null;
+            /**
+             * Stream
+             * @default false
+             */
+            stream: boolean;
         };
         /** RegisterRequest */
         RegisterRequest: {
@@ -1728,6 +1839,59 @@ export interface components {
             /** Colour */
             colour?: string | null;
         };
+        /** UsageByModelOut */
+        UsageByModelOut: {
+            /** Requests */
+            requests: number;
+            /** Failed Requests */
+            failed_requests: number;
+            /** Cancelled Requests */
+            cancelled_requests: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Total Tokens */
+            total_tokens: number;
+            /** Token Known Requests */
+            token_known_requests: number;
+            /** Cost Known Requests */
+            cost_known_requests: number;
+            /** Cost By Currency */
+            cost_by_currency: components["schemas"]["CostByCurrency"][];
+            /** Model Id */
+            model_id: string;
+            /** Display Name */
+            display_name: string;
+        };
+        /** UsageByModelResponse */
+        UsageByModelResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Days */
+            days: number;
+            /** Data */
+            data: components["schemas"]["UsageByModelOut"][];
+        };
+        /** UsageListResponse */
+        UsageListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["UsageRecordOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
         /** UsageOut */
         UsageOut: {
             /** Input Tokens */
@@ -1738,6 +1902,89 @@ export interface components {
             reasoning_tokens: number | null;
             /** Source */
             source: string;
+        };
+        /** UsageRecordOut */
+        UsageRecordOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Conversation Id */
+            conversation_id: string | null;
+            /** Message Id */
+            message_id: string | null;
+            /** Model Id */
+            model_id: string;
+            /** Model Display Name */
+            model_display_name: string;
+            /**
+             * Request Status
+             * @enum {string}
+             */
+            request_status: "success" | "failed" | "cancelled";
+            /** Error Code */
+            error_code: string | null;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Reasoning Tokens */
+            reasoning_tokens: number | null;
+            /** Total Tokens */
+            total_tokens: number | null;
+            /** Usage Source */
+            usage_source: string | null;
+            /** Estimated Cost */
+            estimated_cost: string | null;
+            /** Currency */
+            currency: string | null;
+            /** Pricing Version */
+            pricing_version: string | null;
+            /** Duration Ms */
+            duration_ms: number | null;
+        };
+        /** UsageSummaryOut */
+        UsageSummaryOut: {
+            /** Requests */
+            requests: number;
+            /** Failed Requests */
+            failed_requests: number;
+            /** Cancelled Requests */
+            cancelled_requests: number;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Output Tokens */
+            output_tokens: number;
+            /** Total Tokens */
+            total_tokens: number;
+            /** Token Known Requests */
+            token_known_requests: number;
+            /** Cost Known Requests */
+            cost_known_requests: number;
+            /** Cost By Currency */
+            cost_by_currency: components["schemas"]["CostByCurrency"][];
+            /** Days */
+            days: number;
+            /**
+             * Since
+             * Format: date-time
+             */
+            since: string;
+        };
+        /** UsageSummaryResponse */
+        UsageSummaryResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["UsageSummaryOut"];
         };
         /** UserOut */
         UserOut: {
@@ -4024,6 +4271,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Returned instead of the JSON envelope when `stream` is true: a server-sent event stream with the events message.started, message.delta, usage.updated, message.completed, message.failed and message.cancelled, plus `: ping` heartbeats. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
             /** @description Successful Response */
             201: {
                 headers: {
@@ -4031,6 +4287,87 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SendMessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    regenerate_message_api_v1_ai_conversations__conversation_id__messages__message_id__regenerate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+                message_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Returned instead of the JSON envelope when `stream` is true: a server-sent event stream with the events message.started, message.delta, usage.updated, message.completed, message.failed and message.cancelled, plus `: ping` heartbeats. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendMessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_generation_api_v1_ai_conversations__conversation_id__messages__message_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+                message_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -4068,6 +4405,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeedbackResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_usage_api_v1_ai_usage_get: {
+        parameters: {
+            query?: {
+                status?: ("success" | "failed" | "cancelled") | null;
+                days?: number;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_summary_api_v1_ai_usage_summary_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageSummaryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_by_model_api_v1_ai_usage_by_model_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageByModelResponse"];
                 };
             };
             /** @description Validation Error */

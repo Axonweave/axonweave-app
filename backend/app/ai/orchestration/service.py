@@ -17,9 +17,12 @@ Rules enforced here, in code and never by prompts:
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import random
 import re
 import time
 import uuid
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -31,14 +34,17 @@ from sqlalchemy.orm.exc import StaleDataError
 from app.ai.errors import (
     AiError,
     AiQuotaExceededError,
+    AiTooManyActiveError,
     ConversationArchivedError,
     ConversationNotFoundError,
     GenerationInProgressError,
     InputTooLongError,
     LLMBadResponseError,
     LLMError,
+    LLMInvalidModelError,
     LLMNotConfiguredError,
-    StreamingNotAvailableError,
+    MessageNotFoundError,
+    RegenerateNotAllowedError,
 )
 from app.ai.model_registry import ModelConfig
 from app.ai.orchestration.context import (
@@ -48,12 +54,14 @@ from app.ai.orchestration.context import (
     ConversationHistory,
 )
 from app.ai.orchestration.runtime import AiRuntime
-from app.ai.prompts.registry import active_prompt
+from app.ai.prompts.registry import PromptDefinition, active_prompt
 from app.ai.sync import sync_models
 from app.ai.types import (
     LLMMessage,
     LLMRequest,
     LLMResponse,
+    StreamDelta,
+    StreamEvent,
     TimeoutPolicy,
     Usage,
     UsageSource,
@@ -76,6 +84,7 @@ PROMPT_KEY = "academic_tutor"
 TITLE_MAX_CHARS = 60
 RETRY_BASE_DELAY = 0.5  # seconds; doubled per attempt, capped at RETRY_MAX_DELAY
 RETRY_MAX_DELAY = 4.0
+ACTIVE_CAP_RETRY_AFTER = 5  # seconds; a generation usually finishes sooner
 _WHITESPACE = re.compile(r"\s+")
 
 
@@ -124,30 +133,34 @@ class AiService:
         self._usage = AiUsageRepository(db)
         self._catalog = AiCatalogRepository(db)
 
-    # ── public entry point ───────────────────────────────────────────────────
+    # ── non-streaming entry points ───────────────────────────────────────────
 
     async def send_message(
-        self,
-        *,
-        user: User,
-        conversation_id: uuid.UUID,
-        content: str,
-        model_id: str | None,
-        stream: bool,
+        self, *, user: User, conversation_id: uuid.UUID, content: str, model_id: str | None
     ) -> GenerationResult:
-        if stream:
-            # Streaming arrives in M3; the request field already exists so the contract is stable.
-            raise StreamingNotAvailableError()
         prepared = await self.prepare(
             user=user, conversation_id=conversation_id, content=content, model_id=model_id
         )
         return await self.run_generation(user=user, prepared=prepared)
 
+    async def regenerate(
+        self,
+        *,
+        user: User,
+        conversation_id: uuid.UUID,
+        message_id: uuid.UUID,
+        model_id: str | None,
+    ) -> GenerationResult:
+        prepared = await self.prepare_regenerate(
+            user=user, conversation_id=conversation_id, message_id=message_id, model_id=model_id
+        )
+        return await self.run_generation(user=user, prepared=prepared)
+
     # ── step 1: validate, authorise, reserve ─────────────────────────────────
 
-    async def prepare(
-        self, *, user: User, conversation_id: uuid.UUID, content: str, model_id: str | None
-    ) -> Prepared:
+    async def _owned_active_conversation(
+        self, user: User, conversation_id: uuid.UUID
+    ) -> Conversation:
         # Ownership first: a conversation that is not yours does not exist (rule 2).
         conversation = await self._conversations.get_owned(
             conversation_id=conversation_id, user_id=user.id
@@ -156,7 +169,33 @@ class AiService:
             raise ConversationNotFoundError()
         if conversation.status == "archived":
             raise ConversationArchivedError()
+        return conversation
 
+    async def _lock_for_generation(
+        self, user_id: uuid.UUID, conversation_id: uuid.UUID
+    ) -> Conversation:
+        """Transaction A locks, always user first and conversation second (D-42, D-43)."""
+        await self._conversations.lock_user(user_id)
+        if await self._conversations.count_active_generations(user_id) >= (
+            self._settings.ai_max_active_generations_per_user
+        ):
+            await self._db.rollback()
+            raise AiTooManyActiveError(retry_after=ACTIVE_CAP_RETRY_AFTER)
+        locked = await self._conversations.get_owned(
+            conversation_id=conversation_id, user_id=user_id, for_update=True
+        )
+        if locked is None:  # deleted while we waited for the lock
+            await self._db.rollback()
+            raise ConversationNotFoundError()
+        if await self._messages.has_active_generation(conversation_id=locked.id, user_id=user_id):
+            await self._db.rollback()
+            raise GenerationInProgressError()
+        return locked
+
+    async def prepare(
+        self, *, user: User, conversation_id: uuid.UUID, content: str, model_id: str | None
+    ) -> Prepared:
+        conversation = await self._owned_active_conversation(user, conversation_id)
         model = self._runtime.registry.resolve(model_id or conversation.model_id)
         if len(content) > self._settings.llm_max_input_chars:
             raise InputTooLongError()
@@ -165,19 +204,7 @@ class AiService:
         catalog_model = await self._catalog_model(model)
         prompt = active_prompt(PROMPT_KEY)
 
-        # Transaction A: short, row-locked. User first, then conversation, always in that order.
-        await self._conversations.lock_user(user.id)
-        if await self._conversations.count_active_generations(user.id) >= (
-            self._settings.ai_max_active_generations_per_user
-        ):
-            await self._db.rollback()
-            raise GenerationInProgressError()
-        locked = await self._conversations.get_owned(
-            conversation_id=conversation_id, user_id=user.id, for_update=True
-        )
-        if locked is None:  # deleted while we waited for the lock
-            await self._db.rollback()
-            raise ConversationNotFoundError()
+        locked = await self._lock_for_generation(user.id, conversation_id)
         try:
             sequence = await self._messages.next_sequence(
                 conversation_id=locked.id, user_id=user.id
@@ -191,16 +218,8 @@ class AiService:
                 content=content,
                 completed_at=datetime.now(UTC),
             )
-            assistant_message = await self._messages.add(
-                conversation_id=locked.id,
-                user_id=user.id,
-                role="assistant",
-                status="pending",
-                sequence_number=sequence + 1,
-                content="",
-                model_id=model.internal_id,
-                prompt_key=prompt.prompt_key,
-                prompt_version=prompt.version,
+            assistant_message = await self._add_pending_assistant(
+                locked, user, sequence + 1, model, prompt, regenerates=None
             )
         except IntegrityError:
             # The partial unique index: another generation is already active here (D-43).
@@ -221,6 +240,99 @@ class AiService:
             prompt_version=prompt.version,
         )
 
+    async def _add_pending_assistant(
+        self,
+        conversation: Conversation,
+        user: User,
+        sequence: int,
+        model: ModelConfig,
+        prompt: PromptDefinition,
+        *,
+        regenerates: uuid.UUID | None,
+    ) -> Message:
+        return await self._messages.add(
+            conversation_id=conversation.id,
+            user_id=user.id,
+            role="assistant",
+            status="pending",
+            sequence_number=sequence,
+            content="",
+            model_id=model.internal_id,
+            prompt_key=prompt.prompt_key,
+            prompt_version=prompt.version,
+            regenerates_message_id=regenerates,
+        )
+
+    def _model_for_regenerate(self, requested: str | None, target: Message) -> ModelConfig:
+        registry = self._runtime.registry
+        if requested:
+            return registry.resolve(requested)
+        try:
+            return registry.resolve(target.model_id)
+        except LLMInvalidModelError:  # the old model was disabled: fall back to the default
+            return registry.resolve(None)
+
+    async def prepare_regenerate(
+        self,
+        *,
+        user: User,
+        conversation_id: uuid.UUID,
+        message_id: uuid.UUID,
+        model_id: str | None,
+    ) -> Prepared:
+        """A new attempt at the latest answer (D-42). The old one is kept, marked superseded."""
+        conversation = await self._owned_active_conversation(user, conversation_id)
+        target = await self._messages.get_owned(message_id=message_id, user_id=user.id)
+        if (
+            target is None
+            or target.conversation_id != conversation.id
+            or target.role != "assistant"
+        ):
+            raise MessageNotFoundError()
+        model = self._model_for_regenerate(model_id, target)
+
+        await self._enforce_limits(user.id)
+        catalog_model = await self._catalog_model(model)
+        prompt = active_prompt(PROMPT_KEY)
+
+        locked = await self._lock_for_generation(user.id, conversation_id)
+        await self._db.refresh(target)  # re-read under the lock: a concurrent click may have won
+        latest = await self._messages.latest_active_assistant(
+            conversation_id=locked.id, user_id=user.id
+        )
+        if latest is None or latest.id != target.id or target.superseded_at is not None:
+            await self._db.rollback()
+            raise RegenerateNotAllowedError()
+        user_message = await self._messages.previous_user_message(
+            conversation_id=locked.id, user_id=user.id, before_sequence=target.sequence_number
+        )
+        if user_message is None:
+            await self._db.rollback()
+            raise RegenerateNotAllowedError()
+        try:
+            sequence = await self._messages.next_sequence(
+                conversation_id=locked.id, user_id=user.id
+            )
+            target.superseded_at = datetime.now(UTC)
+            assistant_message = await self._add_pending_assistant(
+                locked, user, sequence, model, prompt, regenerates=target.id
+            )
+        except IntegrityError:
+            await self._db.rollback()
+            raise GenerationInProgressError() from None
+        locked.model_id = model.internal_id
+        locked.last_message_at = datetime.now(UTC)
+        await self._db.commit()
+        return Prepared(
+            conversation=locked,
+            user_message=user_message,
+            assistant_message=assistant_message,
+            model=model,
+            catalog_model=catalog_model,
+            system_prompt=prompt.content,
+            prompt_version=prompt.version,
+        )
+
     async def _enforce_limits(self, user_id: uuid.UUID) -> None:
         s = self._settings
         try:
@@ -228,7 +340,7 @@ class AiService:
         except HTTPException:
             raise AiQuotaExceededError(retry_after=60) from None
         reset_in = _seconds_until_utc_midnight()
-        if await self._usage.messages_today(user_id) >= s.ai_daily_message_quota:
+        if await self._usage.requests_today(user_id) >= s.ai_daily_message_quota:
             raise AiQuotaExceededError(retry_after=reset_in)
         if await self._usage.tokens_today(user_id) >= s.ai_daily_token_quota:
             raise AiQuotaExceededError(retry_after=reset_in)
@@ -260,7 +372,7 @@ class AiService:
         async def counter(system: str, messages: list[LLMMessage]) -> int | None:
             if not model.capabilities.count_tokens:
                 return None
-            probe = self._request(prepared, system, messages)
+            probe = self.make_request(prepared, system, messages)
             return await provider.count_tokens(probe)
 
         manager = ContextManager(
@@ -278,7 +390,7 @@ class AiService:
             system_prompt=prepared.system_prompt,
         )
 
-    def _request(
+    def make_request(
         self, prepared: Prepared, system_prompt: str, messages: list[LLMMessage]
     ) -> LLMRequest:
         s = self._settings
@@ -301,11 +413,63 @@ class AiService:
             request_tag=str(prepared.assistant_message.id),  # opaque, safe to log
         )
 
+    async def build_context_or_fail(
+        self, *, user: User, prepared: Prepared, started: float
+    ) -> ContextResult:
+        """Build the context; if that fails, store the answer as failed before raising, so the
+        reserved row never stays pending (used before the first stream event is sent)."""
+        try:
+            return await self.build_context(user=user, prepared=prepared)
+        except asyncio.CancelledError:
+            await asyncio.shield(self.finalize_failure(prepared, None, started, status="cancelled"))
+            raise
+        except LLMError as exc:
+            await self.finalize_failure(prepared, exc, started)
+            raise
+        except AiError as exc:
+            await self.finalize_failure(prepared, exc, started, record_usage=False)
+            raise
+        except Exception:
+            error = LLMBadResponseError()
+            await self.finalize_failure(prepared, error, started)
+            raise error from None
+
+    async def reload_prepared(self, snapshot: Prepared) -> Prepared | None:
+        """Re-attach a prepared generation to THIS session (the streaming task has its own).
+        Returns None if the conversation was deleted in the meantime."""
+        user_id = snapshot.conversation.user_id
+        conversation = await self._conversations.get_owned(
+            conversation_id=snapshot.conversation.id, user_id=user_id
+        )
+        assistant = await self._messages.get_owned(
+            message_id=snapshot.assistant_message.id, user_id=user_id
+        )
+        user_message = await self._messages.get_owned(
+            message_id=snapshot.user_message.id, user_id=user_id
+        )
+        catalog_model = await self._catalog.get_model(snapshot.model.internal_id)
+        if (
+            conversation is None
+            or assistant is None
+            or user_message is None
+            or catalog_model is None
+        ):
+            return None
+        return Prepared(
+            conversation=conversation,
+            user_message=user_message,
+            assistant_message=assistant,
+            model=snapshot.model,
+            catalog_model=catalog_model,
+            system_prompt=snapshot.system_prompt,
+            prompt_version=snapshot.prompt_version,
+        )
+
     async def run_generation(self, *, user: User, prepared: Prepared) -> GenerationResult:
         started = time.monotonic()
         try:
             context = await self.build_context(user=user, prepared=prepared)
-            request = self._request(prepared, context.system_prompt, context.messages)
+            request = self.make_request(prepared, context.system_prompt, context.messages)
             response = await self._call_with_retries(request)
         except asyncio.CancelledError:
             # The client went away. Do not leave a row that looks active (best effort, shielded).
@@ -333,9 +497,35 @@ class AiService:
             except LLMError as exc:
                 if not exc.retryable or attempt == attempts - 1:
                     raise
-                delay = exc.retry_after or RETRY_BASE_DELAY * (2**attempt)
-                await asyncio.sleep(min(delay, RETRY_MAX_DELAY))
+                await asyncio.sleep(_backoff_delay(exc, attempt))
         raise LLMBadResponseError()  # unreachable: the loop returns or raises
+
+    async def stream_with_retries(self, request: LLMRequest) -> AsyncIterator[StreamEvent]:
+        """Stream from the provider, retrying transient failures ONLY before the first delta.
+
+        Once any text has been produced a retry would duplicate or contradict it, so the error is
+        raised instead (D-50). The upstream iterator is always closed, which is what stops the
+        provider call when the consumer is cancelled."""
+        provider = self._runtime.provider()
+        attempts = 1 + self._settings.llm_max_retries
+        for attempt in range(attempts):
+            produced = False
+            iterator = provider.stream(request)
+            try:
+                async for event in iterator:
+                    if isinstance(event, StreamDelta):
+                        produced = True
+                    yield event
+                return
+            except LLMError as exc:
+                if produced or not exc.retryable or attempt == attempts - 1:
+                    raise
+                await asyncio.sleep(_backoff_delay(exc, attempt))
+            finally:
+                closer = getattr(iterator, "aclose", None)
+                if closer is not None:
+                    with contextlib.suppress(Exception):
+                        await closer()
 
     # ── step 3: store the outcome ────────────────────────────────────────────
 
@@ -381,18 +571,31 @@ class AiService:
         *,
         status: str = "failed",
         record_usage: bool = True,
+        usage: Usage | None = None,
+        partial_content: str | None = None,
     ) -> None:
-        """Mark the answer failed/cancelled so it can never look successful."""
+        """Mark the answer failed/cancelled so it can never look successful.
+
+        `partial_content` keeps what a stream produced before it stopped. `usage` is only what the
+        provider actually reported; otherwise tokens stay NULL and the source `unavailable` (D-40).
+        """
         assistant = prepared.assistant_message
         code = error.code if error is not None else None
+        usage = usage or Usage()
         assistant.status = status
         assistant.error_code = code
-        assistant.usage_source = UsageSource.unavailable.value
+        if partial_content is not None:
+            assistant.content = partial_content
+        assistant.usage_source = usage.source.value
+        if usage.source is not UsageSource.unavailable:
+            assistant.input_tokens = usage.input_tokens
+            assistant.output_tokens = usage.output_tokens
+            assistant.reasoning_tokens = usage.reasoning_tokens
         assistant.completed_at = None
         if record_usage:
             await self._record_usage(
                 prepared,
-                Usage(),
+                usage,
                 "cancelled" if status == "cancelled" else "failed",
                 code,
                 started,
@@ -451,6 +654,12 @@ class AiService:
             duration_ms=int((time.monotonic() - started) * 1000),
             provider_request_id=response.provider_request_id if response else None,
         )
+
+
+def _backoff_delay(exc: LLMError, attempt: int) -> float:
+    """Exponential backoff with jitter, honouring Retry-After, capped (D-50)."""
+    delay = exc.retry_after or RETRY_BASE_DELAY * (2**attempt)
+    return float(min(delay * (1 + random.random() * 0.25), RETRY_MAX_DELAY))  # noqa: S311
 
 
 def _seconds_until_utc_midnight() -> int:

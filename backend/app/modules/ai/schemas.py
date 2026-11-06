@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -183,3 +184,86 @@ class ModelResponse(BaseModel):
 class CapabilitiesResponse(BaseModel):
     success: bool = True
     data: CapabilitiesOut
+
+
+# ── regenerate / cancel ──────────────────────────────────────────────────────
+
+
+class RegenerateRequest(BaseModel):
+    model_id: str | None = Field(default=None, max_length=128)
+    stream: bool = False
+
+
+class MessageResponse(BaseModel):
+    success: bool = True
+    data: MessageOut
+
+
+# ── usage ────────────────────────────────────────────────────────────────────
+
+
+class CostByCurrency(BaseModel):
+    currency: str
+    amount: Decimal
+
+
+class UsageRecordOut(BaseModel):
+    id: uuid.UUID
+    created_at: datetime
+    conversation_id: uuid.UUID | None
+    message_id: uuid.UUID | None
+    model_id: str
+    model_display_name: str
+    request_status: Literal["success", "failed", "cancelled"]
+    error_code: str | None
+    input_tokens: int | None
+    output_tokens: int | None
+    reasoning_tokens: int | None
+    total_tokens: int | None
+    usage_source: str | None
+    estimated_cost: Decimal | None
+    currency: str | None
+    pricing_version: str | None
+    duration_ms: int | None
+
+
+class UsageListResponse(BaseModel):
+    success: bool = True
+    data: list[UsageRecordOut]
+    total: int
+    limit: int
+    offset: int
+
+
+class UsageTotals(BaseModel):
+    requests: int
+    failed_requests: int
+    cancelled_requests: int
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+    # Unknown is not zero: how many requests actually had token counts / a cost estimate.
+    token_known_requests: int
+    cost_known_requests: int
+    cost_by_currency: list[CostByCurrency]
+
+
+class UsageSummaryOut(UsageTotals):
+    days: int
+    since: datetime
+
+
+class UsageSummaryResponse(BaseModel):
+    success: bool = True
+    data: UsageSummaryOut
+
+
+class UsageByModelOut(UsageTotals):
+    model_id: str
+    display_name: str
+
+
+class UsageByModelResponse(BaseModel):
+    success: bool = True
+    days: int
+    data: list[UsageByModelOut]

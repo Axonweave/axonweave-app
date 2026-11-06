@@ -108,6 +108,9 @@ class LLMResponse:
 @dataclass(frozen=True, slots=True)
 class StreamDelta:
     text: str
+    # Cumulative usage the provider has reported so far, if any. Lets a cancelled stream keep the
+    # figures it really received instead of guessing (D-40).
+    usage: Usage | None = None
 
 
 @dataclass(frozen=True, slots=True)

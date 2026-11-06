@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -8,6 +10,7 @@ from fastapi.responses import JSONResponse
 
 from app.ai.errors import AiError
 from app.ai.model_registry import build_registry
+from app.ai.orchestration.recovery import run_sweeper
 from app.ai.providers.registry import close_providers
 from app.ai.sync import sync_catalog_at_startup
 from app.api.v1.router import router as api_v1_router
@@ -30,7 +33,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         env=settings.app_env.value,
     )
     await sync_catalog_at_startup(AsyncSessionLocal, build_registry(settings))
-    yield
+    sweeper = asyncio.create_task(run_sweeper(AsyncSessionLocal, settings))
+    try:
+        yield
+    finally:
+        sweeper.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await sweeper
     await close_providers()
     logger.info("axonweave_backend_stopped")
 

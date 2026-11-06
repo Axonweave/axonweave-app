@@ -93,16 +93,19 @@ async def smoke_test_report(settings: Settings, *, stream: bool = False) -> str:
                 f"Counted input tokens: {counted if counted is not None else 'unavailable'}"
             )
         if stream and model.capabilities.streaming:
-            text, first = "", None
+            text, first, chunks = "", None, 0
             finish = usage = None
             async for event in provider.stream(request):
                 if isinstance(event, StreamDelta):
                     first = first if first is not None else time.monotonic() - started
                     text += event.text
+                    chunks += 1
                 elif isinstance(event, StreamEnd):
                     finish, usage = event.finish_reason, event.usage
+            lines.append("Mode: streaming")
+            lines.append(f"Chunks: {chunks}")
             lines.append(
-                f"Mode: streaming (first text after {first:.2f}s)" if first else "Mode: streaming"
+                f"Time to first token: {first:.2f}s" if first is not None else "No text chunk"
             )
         else:
             response = await provider.generate(request)

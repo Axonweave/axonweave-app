@@ -77,16 +77,6 @@ class TestSendMessage:
         assert derive_title(long) == title
         assert derive_title("short") == "short"
 
-    async def test_streaming_is_not_available_yet_and_stores_nothing(
-        self, client: AsyncClient, ai: AiHarness, fake: FakeProvider, alice: Actor
-    ) -> None:
-        cid = await new_conversation(client, alice)
-        resp = await send(client, alice, cid, "hi", stream=True)
-        assert resp.status_code == 400
-        assert resp.json()["error"]["code"] == "STREAMING_NOT_AVAILABLE"
-        assert fake.calls == []
-        assert await _messages(client, alice, cid) == []
-
     async def test_blank_and_missing_content_are_rejected(
         self, client: AsyncClient, ai: AiHarness, alice: Actor
     ) -> None:
@@ -420,7 +410,10 @@ class TestDuplicateSubmission:
         a = await new_conversation(client, alice)
         b = await new_conversation(client, alice)
         first, second = await asyncio.gather(send(client, alice, a), send(client, alice, b))
-        assert sorted([first.status_code, second.status_code]) == [201, 409]
+        assert sorted([first.status_code, second.status_code]) == [201, 429]
+        loser = first if first.status_code == 429 else second
+        assert loser.json()["error"]["code"] == "AI_QUOTA_EXCEEDED"
+        assert loser.headers.get("retry-after")
 
     async def test_sequential_sends_are_fine(
         self, client: AsyncClient, ai: AiHarness, alice: Actor

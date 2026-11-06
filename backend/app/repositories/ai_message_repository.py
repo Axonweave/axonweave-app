@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Collection
+from datetime import datetime
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.message import Message, MessageFeedback
@@ -82,6 +84,88 @@ class AiMessageRepository:
                 )
             )
         ).scalar_one()
+
+    # regenerate / recovery ───────────────────────────────────────────────────
+
+    async def latest_active_assistant(
+        self, *, conversation_id: uuid.UUID, user_id: uuid.UUID
+    ) -> Message | None:
+        """The newest assistant message that has not been superseded (the only one that may be
+        regenerated, so conversations never branch)."""
+        return (
+            await self._db.execute(
+                select(Message)
+                .where(
+                    Message.conversation_id == conversation_id,
+                    Message.user_id == user_id,
+                    Message.role == "assistant",
+                    Message.superseded_at.is_(None),
+                )
+                .order_by(Message.sequence_number.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+
+    async def previous_user_message(
+        self, *, conversation_id: uuid.UUID, user_id: uuid.UUID, before_sequence: int
+    ) -> Message | None:
+        return (
+            await self._db.execute(
+                select(Message)
+                .where(
+                    Message.conversation_id == conversation_id,
+                    Message.user_id == user_id,
+                    Message.role == "user",
+                    Message.sequence_number < before_sequence,
+                )
+                .order_by(Message.sequence_number.desc())
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+
+    async def has_active_generation(
+        self, *, conversation_id: uuid.UUID, user_id: uuid.UUID
+    ) -> bool:
+        return (
+            await self._db.execute(
+                select(Message.id)
+                .where(
+                    Message.conversation_id == conversation_id,
+                    Message.user_id == user_id,
+                    Message.role == "assistant",
+                    Message.status.in_(("pending", "streaming")),
+                )
+                .limit(1)
+            )
+        ).first() is not None
+
+    async def stale_generations(
+        self, *, cutoff: datetime, exclude: Collection[uuid.UUID], limit: int = 200
+    ) -> list[Message]:
+        """Assistant messages stuck in pending/streaming with no update since `cutoff` (D-46).
+        System-wide on purpose: the sweeper is not a user request."""
+        stmt = select(Message).where(
+            Message.role == "assistant",
+            Message.status.in_(("pending", "streaming")),
+            Message.updated_at < cutoff,
+        )
+        if exclude:
+            stmt = stmt.where(Message.id.not_in(list(exclude)))
+        return list((await self._db.execute(stmt.limit(limit))).scalars())
+
+    async def fail_if_still_stale(self, *, message_id: uuid.UUID, cutoff: datetime) -> bool:
+        """Compare-and-set to `failed`: only if the row is still active and still untouched since
+        `cutoff`, so a generation that just woke up is never clobbered."""
+        result = await self._db.execute(
+            update(Message)
+            .where(
+                Message.id == message_id,
+                Message.status.in_(("pending", "streaming")),
+                Message.updated_at < cutoff,
+            )
+            .values(status="failed", error_code="LLM_UNAVAILABLE", usage_source="unavailable")
+        )
+        return bool(getattr(result, "rowcount", 0))
 
     # feedback ────────────────────────────────────────────────────────────────
 

@@ -116,7 +116,7 @@ class TestCrossUserAccess:
         repo = AiUsageRepository(db_session)
         assert await repo.tokens_today(alice.user.id) > 0
         assert await repo.tokens_today(bob.user.id) == 0
-        assert await repo.messages_today(bob.user.id) == 0
+        assert await repo.requests_today(bob.user.id) == 0
 
     async def test_bob_cannot_attach_a_message_to_alices_conversation_at_the_database(
         self, client: AsyncClient, ai: AiHarness, db_session: AsyncSession, alice: Actor, bob: Actor
