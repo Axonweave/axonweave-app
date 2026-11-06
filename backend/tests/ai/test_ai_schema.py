@@ -335,3 +335,43 @@ async def test_app_role_can_use_ai_tables(db_session: AsyncSession) -> None:
             )
         ).scalar_one()
         assert granted, table
+
+
+# ── startup must survive an unmigrated database ──────────────────────────────
+
+
+async def test_startup_sync_skips_when_tables_are_missing() -> None:
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    from app.ai.sync import sync_catalog_at_startup
+
+    # An empty database with no AI tables, exactly like a stack that has not been migrated yet.
+    from tests.conftest import _test_url
+
+    admin = create_async_engine(_test_url, isolation_level="AUTOCOMMIT")
+    async with admin.connect() as conn:
+        await conn.execute(text("DROP DATABASE IF EXISTS axonweave_empty_probe"))
+        await conn.execute(text("CREATE DATABASE axonweave_empty_probe"))
+    probe_url = _test_url.rsplit("/", 1)[0] + "/axonweave_empty_probe"
+    probe = create_async_engine(probe_url)
+    try:
+        factory = async_sessionmaker(probe, expire_on_commit=False)
+        assert await sync_catalog_at_startup(factory, build_registry(make_settings())) is False
+    finally:
+        await probe.dispose()
+        async with admin.connect() as conn:
+            await conn.execute(text("DROP DATABASE IF EXISTS axonweave_empty_probe"))
+        await admin.dispose()
+
+
+async def test_startup_sync_still_refuses_a_changed_released_prompt(
+    db_session: AsyncSession,
+) -> None:
+    from app.ai.sync import sync_catalog_at_startup
+    from tests.conftest import _TestSessionLocal
+
+    assert await sync_catalog_at_startup(_TestSessionLocal, build_registry(make_settings()))
+    await db_session.execute(text("UPDATE prompt_templates SET content_sha256 = repeat('0', 64)"))
+    await db_session.commit()
+    with pytest.raises(PromptImmutableError):
+        await sync_catalog_at_startup(_TestSessionLocal, build_registry(make_settings()))

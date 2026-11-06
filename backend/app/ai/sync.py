@@ -6,13 +6,17 @@ Idempotent. A released prompt version is immutable: if the code's content for an
 
 from __future__ import annotations
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import DBAPIError
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.ai.model_registry import ModelRegistry, _slug
 from app.ai.prompts.registry import PROMPTS, active_prompt
 from app.ai.providers.registry import provider_class
 from app.ai.usage.pricing import find_price
+from app.core.logging import get_logger
 from app.repositories.ai_catalog_repository import AiCatalogRepository
+
+logger = get_logger(__name__)
 
 
 class PromptImmutableError(RuntimeError):
@@ -73,3 +77,23 @@ async def sync_models(db: AsyncSession, registry: ModelRegistry) -> None:
                 },
             )
     await repo.disable_models_except(keys)
+
+
+async def sync_catalog_at_startup(
+    session_factory: async_sessionmaker[AsyncSession], registry: ModelRegistry
+) -> bool:
+    """Sync prompts and models without ever blocking startup on an unmigrated database.
+
+    On a fresh stack the app can start before `alembic upgrade head` has run. The tables are then
+    missing, which must not stop the rest of the app (D-58), so this logs and returns False. A
+    released prompt whose text changed (PromptImmutableError) is a real error and still propagates.
+    """
+    try:
+        async with session_factory() as session:
+            await sync_prompts(session)
+            await sync_models(session, registry)
+            await session.commit()
+    except DBAPIError:
+        logger.warning("ai_catalog_sync_skipped", reason="database_not_ready")
+        return False
+    return True
