@@ -8,8 +8,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.activity_log import ActivityLog
+from app.models.ai_usage_record import AiUsageRecord
 from app.models.chapter import Chapter
+from app.models.conversation import Conversation
 from app.models.folder import Folder
+from app.models.message import Message, MessageFeedback
 from app.models.subject import Subject
 from app.models.workspace import Workspace
 
@@ -150,4 +153,113 @@ class ExportRepository:
                 "created_at": _iso(a.created_at),
             }
             for a in rows
+        ]
+
+    # ── AI data (D-53): the user's own conversations, answers, feedback and usage ──────────────
+
+    async def ai_conversations(self, user_id: uuid.UUID) -> list[dict[str, Any]]:
+        """Conversations with their messages and feedback. Content is the user's own data."""
+        conversations = (
+            (
+                await self._db.execute(
+                    select(Conversation)
+                    .where(Conversation.user_id == user_id)
+                    .order_by(Conversation.created_at.asc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+        messages = (
+            (
+                await self._db.execute(
+                    select(Message)
+                    .where(Message.user_id == user_id)
+                    .order_by(Message.conversation_id, Message.sequence_number)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        feedback = (
+            (
+                await self._db.execute(
+                    select(MessageFeedback).where(MessageFeedback.user_id == user_id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        feedback_by_message = {f.message_id: f for f in feedback}
+        by_conversation: dict[uuid.UUID, list[dict[str, Any]]] = {}
+        for m in messages:
+            fb = feedback_by_message.get(m.id)
+            by_conversation.setdefault(m.conversation_id, []).append(
+                {
+                    "id": str(m.id),
+                    "role": m.role,
+                    "status": m.status,
+                    "sequence_number": m.sequence_number,
+                    "content": m.content,
+                    "model_id": m.model_id,
+                    "prompt_key": m.prompt_key,
+                    "prompt_version": m.prompt_version,
+                    "input_tokens": m.input_tokens,
+                    "output_tokens": m.output_tokens,
+                    "usage_source": m.usage_source,
+                    "finish_reason": m.finish_reason,
+                    "error_code": m.error_code,
+                    "superseded_at": _iso(m.superseded_at),
+                    "created_at": _iso(m.created_at),
+                    "feedback": {
+                        "rating": fb.rating,
+                        "feedback_text": fb.feedback_text,
+                        "created_at": _iso(fb.created_at),
+                    }
+                    if fb
+                    else None,
+                }
+            )
+        return [
+            {
+                "id": str(c.id),
+                "title": c.title,
+                "status": c.status,
+                "model_id": c.model_id,
+                "last_message_at": _iso(c.last_message_at),
+                "created_at": _iso(c.created_at),
+                "messages": by_conversation.get(c.id, []),
+            }
+            for c in conversations
+        ]
+
+    async def ai_usage(self, user_id: uuid.UUID) -> list[dict[str, Any]]:
+        rows = (
+            (
+                await self._db.execute(
+                    select(AiUsageRecord)
+                    .where(AiUsageRecord.user_id == user_id)
+                    .order_by(AiUsageRecord.created_at.asc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return [
+            {
+                "created_at": _iso(r.created_at),
+                "conversation_id": str(r.conversation_id) if r.conversation_id else None,
+                "message_id": str(r.message_id) if r.message_id else None,
+                "input_tokens": r.input_tokens,
+                "output_tokens": r.output_tokens,
+                "reasoning_tokens": r.reasoning_tokens,
+                "usage_source": r.usage_source,
+                "estimated_cost": str(r.estimated_cost) if r.estimated_cost is not None else None,
+                "currency": r.currency,
+                "pricing_version": r.pricing_version,
+                "request_status": r.request_status,
+                "error_code": r.error_code,
+                "duration_ms": r.duration_ms,
+            }
+            for r in rows
         ]

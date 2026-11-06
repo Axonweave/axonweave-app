@@ -1,7 +1,8 @@
 """Model registry (D-37, AI_ARCHITECTURE.md section 6.2). No vendor SDK imports.
 
-Built from settings. `LLM_DEFAULT_MODEL` becomes internal id "default"; each entry of
-`LLM_ALLOWED_MODELS` becomes an extra model. Provider model ids are never literals in code (D-38).
+Built from settings. Every model's id is `model_slug(provider_model_id)`; `LLM_DEFAULT_MODEL` is the
+default and the alias "default" resolves to it. Each `LLM_ALLOWED_MODELS` entry is an extra model.
+Provider model ids are never literals in code (D-38).
 """
 
 from __future__ import annotations
@@ -44,14 +45,18 @@ class ModelConfig:
         }
 
 
-def _slug(provider_model_id: str) -> str:
+def model_slug(provider_model_id: str) -> str:
+    """The stable id used in the API, on conversations/messages and in `llm_models.internal_id`."""
     return "m-" + re.sub(r"[^a-z0-9]+", "-", provider_model_id.lower()).strip("-")
 
 
 class ModelRegistry:
-    def __init__(self, provider: str | None, models: list[ModelConfig]) -> None:
+    def __init__(
+        self, provider: str | None, models: list[ModelConfig], default_id: str | None = None
+    ) -> None:
         self.provider = provider
         self._models = {m.internal_id: m for m in models}
+        self._default_id = default_id
 
     @property
     def configured(self) -> bool:
@@ -62,7 +67,7 @@ class ModelRegistry:
 
     @property
     def default(self) -> ModelConfig:
-        model = self._models.get(DEFAULT_MODEL_ID)
+        model = self._models.get(self._default_id) if self._default_id else None
         if model is None or not model.enabled:
             raise LLMNotConfiguredError()
         return model
@@ -71,7 +76,7 @@ class ModelRegistry:
         """The default for None; LLM_INVALID_MODEL for an unknown or disabled id."""
         if not self.configured:
             raise LLMNotConfiguredError()
-        if internal_id is None or internal_id == "":
+        if internal_id is None or internal_id in ("", DEFAULT_MODEL_ID):
             return self.default
         model = self._models.get(internal_id)
         if model is None or not model.enabled:
@@ -91,7 +96,7 @@ def build_registry(settings: Settings) -> ModelRegistry:
         return ModelRegistry(provider, [])
 
     base = ModelConfig(
-        internal_id=DEFAULT_MODEL_ID,
+        internal_id=model_slug(default_id),
         provider=provider,
         provider_model_id=default_id,
         display_name=default_id,
@@ -106,11 +111,11 @@ def build_registry(settings: Settings) -> ModelRegistry:
             models.append(
                 replace(
                     base,
-                    internal_id=_slug(extra),
+                    internal_id=model_slug(extra),
                     provider_model_id=extra,
                     display_name=extra,
                     max_input_tokens=None,
                     max_output_tokens=None,
                 )
             )
-    return ModelRegistry(provider, models)
+    return ModelRegistry(provider, models, default_id=base.internal_id)

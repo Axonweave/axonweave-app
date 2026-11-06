@@ -124,6 +124,30 @@ class ConversationNotFoundError(AiError):
     user_message = "Conversation not found."
 
 
+class ConversationArchivedError(AiError):
+    code = "CONVERSATION_ARCHIVED"
+    http_status = 409
+    user_message = "This conversation is archived. Restore it to continue."
+
+
+class MessageNotFoundError(AiError):
+    code = "MESSAGE_NOT_FOUND"
+    http_status = 404
+    user_message = "Message not found."
+
+
+class InputTooLongError(AiError):
+    code = "AI_INPUT_TOO_LONG"
+    http_status = 422
+    user_message = "Your message is too long. Please shorten it and try again."
+
+
+class StreamingNotAvailableError(AiError):
+    code = "STREAMING_NOT_AVAILABLE"
+    http_status = 400
+    user_message = "Streaming responses are not available yet. Send with stream=false."
+
+
 ALL_ERROR_CODES = frozenset(
     cls.code
     for cls in (
@@ -139,5 +163,9 @@ ALL_ERROR_CODES = frozenset(
         AiQuotaExceededError,
         GenerationInProgressError,
         ConversationNotFoundError,
+        ConversationArchivedError,
+        MessageNotFoundError,
+        InputTooLongError,
+        StreamingNotAvailableError,
     )
 )
