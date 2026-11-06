@@ -36,7 +36,12 @@ export function RecentSubjects() {
       <ul className="divide-border border-border divide-y rounded-lg border">
         {items.map((s) => (
           <li key={s.id} className="flex flex-col gap-0.5 px-4 py-3 sm:flex-row sm:justify-between">
-            <span className="min-w-0 truncate font-medium">{s.name}</span>
+            <Link
+              href={`/workspaces/${s.workspace_id}/subjects/${s.id}`}
+              className="focus-visible:ring-ring min-w-0 truncate rounded-sm font-medium underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+            >
+              {s.name}
+            </Link>
             <span className="text-muted-foreground text-xs">
               {s.workspace_name} · Updated {formatDate(s.updated_at)}
             </span>

@@ -17,7 +17,7 @@
   receive verification or reset emails.
 - **No scheduled backups, monitoring or log shipping.** See `docs/BACKUP_RESTORE.md` for the
   manual backup/restore procedure that was tested.
-- **Dependency upgrades pending:** see finding A in `docs/SECURITY_REVIEW.md` (Starlette).
+- **Dependencies:** the Starlette vulnerabilities are fixed on `fix/security-deps` (see section 5 of `docs/SECURITY_REVIEW.md`); six low/moderate `npm audit` advisories via `shadcn` remain.
 
 ## Configuration the backend reads (environment variables)
 
@@ -51,8 +51,7 @@ It does not check the database passwords.
       write access to `alembic_version` from the app role (finding B in the security review)
 - [ ] `alembic upgrade head` run with the owner role; `alembic heads` shows one head
 - [ ] CI green on the commit; local backend, frontend and Playwright runs pass
-- [ ] `pip-audit` of the **installed** environment and `npm audit` reviewed (CI's `pip-audit
-      --no-deps` does not see transitive dependencies)
+- [ ] CI's dependency audit (installed `pip-audit` and `npm audit`) is green on the commit
 - [ ] A backup was taken and a restore rehearsed on the target server
 
 ## Migrations

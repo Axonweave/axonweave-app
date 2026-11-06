@@ -276,6 +276,60 @@ class TestFolderCascadeDelete:
         assert resp.status_code == 204
 
 
+class TestFolderCascadeDeletesChapters:
+    """D-12: a cascade delete removes the chapters inside, not just the subfolders."""
+
+    async def test_cascade_deletes_chapters_in_the_subtree_only(
+        self, client: AsyncClient, full_tree
+    ):
+        _, token, csrf, ws_id, subj_id = full_tree
+        auth = {"cookies": {"aw_session": token, "csrf_token": csrf}}
+        hdr = {"X-CSRF-Token": csrf}
+        base = f"/api/v1/workspaces/{ws_id}/subjects/{subj_id}"
+
+        async def make_folder(name, parent=None):
+            body = {"name": name, **({"parent_folder_id": parent} if parent else {})}
+            r = await client.post(f"{base}/folders", json=body, headers=hdr, **auth)
+            return r.json()["data"]["id"]
+
+        async def make_chapter(title, folder=None):
+            body = {"title": title, **({"folder_id": folder} if folder else {})}
+            r = await client.post(f"{base}/chapters", json=body, headers=hdr, **auth)
+            return r.json()["data"]["id"]
+
+        doomed = await make_folder("Doomed")
+        nested = await make_folder("Nested", doomed)
+        await make_chapter("In doomed", doomed)
+        await make_chapter("In nested", nested)
+        await make_chapter("Loose")
+        other = await make_folder("Other")
+        await make_chapter("In other", other)
+
+        resp = await client.delete(f"{base}/folders/{doomed}?cascade=true", headers=hdr, **auth)
+        assert resp.status_code == 204
+
+        listing = await client.get(f"{base}/chapters", **auth)
+        titles = sorted(c["title"] for c in listing.json()["data"])
+        assert titles == ["In other", "Loose"]
+
+    async def test_plain_delete_of_an_empty_folder_leaves_other_chapters(
+        self, client: AsyncClient, full_tree
+    ):
+        _, token, csrf, ws_id, subj_id = full_tree
+        auth = {"cookies": {"aw_session": token, "csrf_token": csrf}}
+        hdr = {"X-CSRF-Token": csrf}
+        base = f"/api/v1/workspaces/{ws_id}/subjects/{subj_id}"
+        empty = (
+            await client.post(f"{base}/folders", json={"name": "Empty"}, headers=hdr, **auth)
+        ).json()["data"]["id"]
+        await client.post(f"{base}/chapters", json={"title": "Keep"}, headers=hdr, **auth)
+        assert (
+            await client.delete(f"{base}/folders/{empty}", headers=hdr, **auth)
+        ).status_code == 204
+        listing = await client.get(f"{base}/chapters", **auth)
+        assert [c["title"] for c in listing.json()["data"]] == ["Keep"]
+
+
 class TestFolderArchive:
     async def test_archive_and_restore(self, client: AsyncClient, full_tree):
         _, token, csrf, ws_id, subj_id = full_tree
@@ -441,6 +495,44 @@ class TestChapterReorder:
         )
         assert resp.status_code == 200
         assert resp.json()["success"] is True
+
+
+class TestChapterAppendOrder:
+    """New chapters go to the end instead of all tying at display_order 0 (D-15)."""
+
+    async def _create(self, client, auth, ws_id, subj_id, **body):
+        _, token, csrf = auth
+        return await client.post(
+            f"/api/v1/workspaces/{ws_id}/subjects/{subj_id}/chapters",
+            json=body,
+            cookies={"aw_session": token, "csrf_token": csrf},
+            headers={"X-CSRF-Token": csrf},
+        )
+
+    async def test_new_chapters_get_increasing_orders(self, client: AsyncClient, full_tree):
+        user, token, csrf, ws_id, subj_id = full_tree
+        auth = (user, token, csrf)
+        orders = []
+        for title in ["One", "Two", "Three"]:
+            resp = await self._create(client, auth, ws_id, subj_id, title=title)
+            assert resp.status_code == 201
+            orders.append(resp.json()["data"]["display_order"])
+        assert orders == sorted(set(orders)) and len(orders) == 3
+
+        listing = await client.get(
+            f"/api/v1/workspaces/{ws_id}/subjects/{subj_id}/chapters",
+            cookies={"aw_session": token, "csrf_token": csrf},
+        )
+        assert [c["title"] for c in listing.json()["data"]] == ["One", "Two", "Three"]
+
+    async def test_an_explicit_order_is_still_honoured(self, client: AsyncClient, full_tree):
+        user, token, csrf, ws_id, subj_id = full_tree
+        resp = await self._create(
+            client, (user, token, csrf), ws_id, subj_id, title="Pinned", display_order=7
+        )
+        assert resp.json()["data"]["display_order"] == 7
+        after = await self._create(client, (user, token, csrf), ws_id, subj_id, title="After")
+        assert after.json()["data"]["display_order"] == 8
 
 
 class TestChapterArchive:

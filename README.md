@@ -108,7 +108,7 @@ handlers and no SQL outside repositories.
 - CSRF double-submit token plus Origin check on state-changing cookie requests; explicit CORS allowlist.
 - Per-IP rate limits (in-process, single instance).
 - Production start-up refuses unsafe configuration.
-- Review, test mapping and the **open findings** (including vulnerable transitive dependencies):
+- Review, test mapping and the **findings and the dependency audit:
   `docs/SECURITY_REVIEW.md`.
 
 ## Documentation

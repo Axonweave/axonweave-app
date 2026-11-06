@@ -1880,9 +1880,9 @@ Phase 1 is complete only when the following conditions are satisfied.
 
 ## Academic organisation
 
-- [ ] User can create subjects.
-- [ ] User can create folders.
-- [ ] User can create chapters.
+- [x] User can create subjects.
+- [x] User can create folders.
+- [x] User can create chapters.
 - [ ] User can edit and delete academic items.
 - [x] Folder and chapter relationships are valid.
 - [ ] Search and sorting work.

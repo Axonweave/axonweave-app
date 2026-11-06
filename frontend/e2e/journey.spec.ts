@@ -5,9 +5,9 @@
  * -> subject, folder, chapter -> reload and confirm persisted -> log out -> back button
  * shows no protected data. A second user must not see any of the first user's data.
  *
- * Subject, folder and chapter are created through the REST API because their management UI is
- * not built yet (docs/DECISIONS.md and the Phase 1 closeout plan). Those steps are marked below.
- * Everything else goes through the browser.
+ * Subject, folder and chapter are created through the REST API here to keep this journey short.
+ * Their management UI is covered end to end in academic.spec.ts. Everything else goes through
+ * the browser.
  *
  * Registration and login are rate limited per IP (D-18). Each registration sends a unique
  * X-Forwarded-For, which the backend honours only when TRUST_PROXY_HEADERS=true (set in CI).
@@ -152,7 +152,7 @@ test.describe("Phase 1 journey", () => {
     workspaceId = found.id;
   });
 
-  // Subject, folder and chapter: API only, because the UI for them does not exist yet.
+  // Subject, folder and chapter: API only in this spec; academic.spec.ts drives them in the UI.
   test("create subject, folder and chapter (via API)", async () => {
     const subject = await apiPost(page, `/workspaces/${workspaceId}/subjects`, {
       name: subjectName,

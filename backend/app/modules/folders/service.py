@@ -55,6 +55,7 @@ class FolderService:
         user_id: uuid.UUID,
         parent_folder_id: uuid.UUID | None = None,
         include_archived: bool = False,
+        all_levels: bool = False,
     ) -> list[Folder]:
         await self._require_workspace(workspace_id, user_id)
         await self._require_subject(subject_id, workspace_id)
@@ -62,6 +63,7 @@ class FolderService:
             subject_id=subject_id,
             parent_folder_id=parent_folder_id,
             include_archived=include_archived,
+            all_levels=all_levels,
         )
 
     async def get_folder(
@@ -105,7 +107,7 @@ class FolderService:
         parent_depth = await self._folders.get_depth(parent_folder_id)
         if parent_depth >= self._folders.max_depth:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail={
                     "code": "FOLDER_DEPTH_EXCEEDED",
                     "message": f"Maximum folder depth of {self._folders.max_depth} exceeded.",
@@ -153,16 +155,24 @@ class FolderService:
         name: str | None = None,
         description: str | None = None,
         display_order: int | None = None,
+        parent_folder_id: uuid.UUID | None = None,
+        parent_folder_id_set: bool = False,
     ) -> Folder:
         await self._require_workspace(workspace_id, user_id)
         await self._require_subject(subject_id, workspace_id)
         folder = await self._require_folder(folder_id, subject_id)
 
-        if name is not None and name != folder.name:
+        moving = parent_folder_id_set and parent_folder_id != folder.parent_folder_id
+        if moving:
+            await self._validate_move(folder, parent_folder_id, subject_id)
+
+        target_parent = parent_folder_id if moving else folder.parent_folder_id
+        new_name = name if name is not None else folder.name
+        if (name is not None and name != folder.name) or moving:
             if await self._folders.name_exists(
                 subject_id=subject_id,
-                name=name,
-                parent_folder_id=folder.parent_folder_id,
+                name=new_name,
+                parent_folder_id=target_parent,
                 exclude_id=folder_id,
             ):
                 raise HTTPException(
@@ -174,7 +184,12 @@ class FolderService:
                 )
 
         folder = await self._folders.update(
-            folder, name=name, description=description, display_order=display_order
+            folder,
+            name=name,
+            description=description,
+            display_order=display_order,
+            parent_folder_id=parent_folder_id,
+            parent_folder_id_set=moving,
         )
         await self._activity.record(
             user_id=user_id,
@@ -187,6 +202,42 @@ class FolderService:
         await self._db.commit()
         await self._db.refresh(folder)
         return folder
+
+    async def _validate_move(
+        self, folder: Folder, new_parent_id: uuid.UUID | None, subject_id: uuid.UUID
+    ) -> None:
+        """D-14: same subject, never into itself or a descendant, subtree must fit in 3 levels."""
+        if new_parent_id is None:
+            return  # top level is always allowed; name uniqueness is checked by the caller
+        parent = await self._folders.get_for_subject(folder_id=new_parent_id, subject_id=subject_id)
+        if parent is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"code": "FOLDER_NOT_FOUND", "message": "Parent folder not found."},
+            )
+        if await self._folders.is_self_or_descendant(
+            candidate_id=new_parent_id, folder_id=folder.id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={
+                    "code": "FOLDER_INVALID_MOVE",
+                    "message": "A folder cannot be moved into itself or one of its own subfolders.",
+                },
+            )
+        parent_depth = await self._folders.get_depth(new_parent_id)
+        subtree_height = await self._folders.get_subtree_height(folder.id)
+        if parent_depth + subtree_height > self._folders.max_depth:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail={
+                    "code": "FOLDER_DEPTH_EXCEEDED",
+                    "message": (
+                        f"Maximum folder depth of {self._folders.max_depth} exceeded: the folder "
+                        "and its subfolders would not fit at that location."
+                    ),
+                },
+            )
 
     async def archive_folder(
         self,
@@ -293,5 +344,7 @@ class FolderService:
             entity_name=folder.name,
             workspace_id=workspace_id,
         )
+        if cascade:
+            await self._folders.delete_chapters_in_subtree(folder_id)
         await self._folders.delete(folder)
         await self._db.commit()

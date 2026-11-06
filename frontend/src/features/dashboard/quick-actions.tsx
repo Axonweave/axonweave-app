@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, Archive, FolderKanban, Plus } from "lucide-react";
+import { Activity, Archive, BookOpen, BookPlus, FolderKanban, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface QuickActionsProps {
@@ -10,8 +10,8 @@ const linkClass =
   "inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-sm font-medium hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
- * Only actions that work today are shown. Subject, folder and chapter creation are added here
- * once their dialogs exist; until then they are not rendered at all (no dead buttons).
+ * Only actions that work are shown. Folders and chapters are created inside a subject page, so
+ * the subject links are the way in.
  */
 export function QuickActions({ onCreateWorkspace }: QuickActionsProps) {
   return (
@@ -20,6 +20,14 @@ export function QuickActions({ onCreateWorkspace }: QuickActionsProps) {
         <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
         Create workspace
       </Button>
+      <Link href="/subjects?create=1" className={linkClass}>
+        <BookPlus className="h-4 w-4" aria-hidden="true" />
+        New subject
+      </Link>
+      <Link href="/subjects" className={linkClass}>
+        <BookOpen className="h-4 w-4" aria-hidden="true" />
+        Browse subjects
+      </Link>
       <Link href="/workspaces" className={linkClass}>
         <FolderKanban className="h-4 w-4" aria-hidden="true" />
         All workspaces
