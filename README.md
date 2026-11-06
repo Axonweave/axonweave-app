@@ -17,7 +17,7 @@ LLM configured: the AI endpoints answer 503 and the AI Tutor says AI is not conf
 Next.js 16 + React 19 + TypeScript + Tailwind + shadcn/ui (frontend); Python 3.12 + FastAPI +
 SQLAlchemy + Alembic + Pydantic (backend); PostgreSQL 16; Argon2id password hashing; opaque
 server-side sessions in HTTP-only cookies with CSRF protection. Docker Compose for local
-development. Modular monolith; no Redis, no microservices.
+development. Modular monolith; Redis is used from Phase 3 (Celery, rate limiter); no microservices.
 
 ## AI Tutor (Phase 2)
 
