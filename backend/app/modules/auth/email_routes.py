@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 
 from app.core.dependencies import ActiveUser, DbSession
 from app.core.email import EmailSender, get_email_sender
-from app.core.rate_limit import InProcessRateLimiter, get_client_ip, get_rate_limiter
+from app.core.rate_limit import RateLimiter, get_client_ip, get_rate_limiter
 from app.modules.auth.email_service import EmailAuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -56,7 +56,7 @@ async def forgot_password(
     data: ForgotPasswordRequest,
     request: Request,
     db: DbSession,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> dict[str, object]:
     ip = get_client_ip(request)
     await limiter.check(f"forgot:{ip}", *_FORGOT_LIMIT)
@@ -76,7 +76,7 @@ async def reset_password(
     data: ResetPasswordRequest,
     request: Request,
     db: DbSession,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> dict[str, object]:
     ip = get_client_ip(request)
     await limiter.check(f"reset:{ip}", *_FORGOT_LIMIT)
@@ -92,7 +92,7 @@ async def verify_email(
     data: VerifyEmailRequest,
     request: Request,
     db: DbSession,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> dict[str, object]:
     ip = get_client_ip(request)
     await limiter.check(f"verify:{ip}", *_VERIFY_LIMIT)
@@ -108,7 +108,7 @@ async def resend_verification(
     request: Request,
     current_user: ActiveUser,
     db: DbSession,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> dict[str, object]:
     ip = get_client_ip(request)
     await limiter.check(f"resend:{ip}", *_RESEND_LIMIT)

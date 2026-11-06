@@ -11,6 +11,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -36,6 +37,8 @@ class Chapter(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             name="fk_chapters_folder_subject",
             ondelete="SET NULL",
         ),
+        # Target for composite FKs from documents (Phase 3).
+        UniqueConstraint("id", "subject_id", name="uq_chapters_id_subject"),
         Index("ix_chapters_subject_id", "subject_id"),
         Index("ix_chapters_folder_id", "folder_id"),
     )

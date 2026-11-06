@@ -4,7 +4,7 @@ from fastapi import APIRouter, Cookie, Depends, Request, Response
 
 from app.core.dependencies import CurrentUser, DbSession
 from app.core.email import EmailSender, get_email_sender
-from app.core.rate_limit import InProcessRateLimiter, get_client_ip, get_rate_limiter
+from app.core.rate_limit import RateLimiter, get_client_ip, get_rate_limiter
 from app.core.security_logging import (
     log_login_failure,
     log_login_success,
@@ -29,7 +29,7 @@ async def register(
     request: Request,
     db: DbSession,
     response: Response,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
     sender: Annotated[EmailSender, Depends(get_email_sender)],
 ) -> AuthResponse:
     ip = get_client_ip(request)
@@ -62,7 +62,7 @@ async def login(
     request: Request,
     db: DbSession,
     response: Response,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> AuthResponse:
     ip = get_client_ip(request)
     await limiter.check(f"login:{ip}", *_LOGIN_LIMIT)
@@ -87,7 +87,7 @@ async def logout(
     request: Request,
     db: DbSession,
     response: Response,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
     aw_session: Annotated[str | None, Cookie()] = None,
 ) -> dict[str, object]:
     ip = get_client_ip(request)

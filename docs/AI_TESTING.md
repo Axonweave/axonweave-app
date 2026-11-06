@@ -71,6 +71,24 @@ The ordinary suites use mocked provider responses, as the spec requires (18.4), 
 - An autouse fixture in `backend/tests/conftest.py` removes `LLM_*`, `GEMINI_API_KEY` and `FAKE_LLM_CHUNK_DELAY_SECONDS` from the environment so a developer's
   configured key or fake-provider setting cannot change test results.
 
+## Celery in tests (Phase 3)
+
+Tasks run **eagerly**, in the test process with no broker, through the `celery_eager` fixture (`tests/conftest.py`):
+
+```python
+def test_health_task_runs_eagerly(celery_eager):
+    assert ping.delay().get() == {"status": "ok"}
+```
+
+- Exceptions propagate to the test (`task_eager_propagates`). The fixture switches eager mode off again afterwards.
+- A task that wraps its own `asyncio.run` (the storage-cleanup and sweep tasks) cannot be called from inside an async test. Test the service
+  function it wraps (`process_outbox`, `ProcessingJobRepository.fail_stale_running`), as `tests/ingestion/test_celery_and_outbox.py` does.
+- `tests/__init__.py` sets `RATE_LIMIT_BACKEND=memory`, `STORAGE_BACKEND=` and `EMBEDDING_PROVIDER=` before anything imports the app, so the suite never
+  uses the stack's Redis or object store by accident. The real values are kept in `tests.AMBIENT_STORAGE` / `AMBIENT_REDIS_URL` for the few tests that
+  need them: the S3 storage contract tests (they **fail instead of skipping when `CI` is set** and no endpoint is configured) and one real-Redis limiter test.
+- Migration tests (`tests/documents/test_migration.py`) run the real `alembic` command against a throwaway database and compare constraint, index and column
+  names with the schema built from the models.
+
 ## Known limits of the tests
 
 - **No real-provider test runs in CI.** Real streaming was verified by hand with `llm_smoke_test.py --stream` and the optional live test, once, on one model.

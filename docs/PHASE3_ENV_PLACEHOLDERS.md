@@ -2,7 +2,7 @@
 
 The planning session could not edit `.env.example` (the file is denied to Claude Code by the project's permission settings, and it was
 deliberately not worked around). Append the block below to `.env.example` by hand in the M1 PR, then delete this file.
-Names only; values are placeholders or safe defaults. Every variable must also be passed through `docker-compose.yml` (no `env_file`).
+Names only; values are placeholders or safe defaults. M1 reads the storage, Redis, Celery, embedding, `DOC_*` and `SCANNER_*` variables (see `app/core/config.py` and `docker-compose.yml`); the `CHUNK_*`, `RETRIEVAL_*` and `RAG_*` ones are added to Settings in M3/M4 and are listed here so the block is complete. Every variable must also be passed through `docker-compose.yml` (no `env_file`).
 
 ```dotenv
 # ── Phase 3: object storage (S3-compatible; local emulator in docker compose) ──

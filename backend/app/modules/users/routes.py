@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.dependencies import ActiveUser, DbSession, VerifiedUser
 from app.core.email import EmailSender, get_email_sender
-from app.core.rate_limit import InProcessRateLimiter, get_client_ip, get_rate_limiter
+from app.core.rate_limit import RateLimiter, get_client_ip, get_rate_limiter
 from app.core.security import hash_token
 from app.modules.auth.email_service import EmailAuthService
 from app.modules.users.schemas import (
@@ -116,7 +116,7 @@ async def change_password(
     request: Request,
     current_user: VerifiedUser,
     db: DbSession,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
     aw_session: Annotated[str | None, Cookie()] = None,
 ) -> dict[str, object]:
     ip = get_client_ip(request)
@@ -140,7 +140,7 @@ async def change_email(
     request: Request,
     current_user: VerifiedUser,
     db: DbSession,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
     sender: Annotated[EmailSender, Depends(get_email_sender)],
 ) -> dict[str, object]:
     ip = get_client_ip(request)
@@ -163,7 +163,7 @@ async def export_data(
     request: Request,
     current_user: VerifiedUser,
     db: DbSession,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> JSONResponse:
     ip = get_client_ip(request)
     await limiter.check(f"export:{ip}", 2, 3600)  # 2 per hour
@@ -186,7 +186,7 @@ async def delete_account(
     current_user: ActiveUser,
     db: DbSession,
     response: Response,
-    limiter: Annotated[InProcessRateLimiter, Depends(get_rate_limiter)],
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> dict[str, object]:
     ip = get_client_ip(request)
     await limiter.check(f"delete_account:{ip}", 3, 3600)
