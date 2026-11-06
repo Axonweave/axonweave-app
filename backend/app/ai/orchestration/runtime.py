@@ -12,12 +12,14 @@ from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.ai.errors import LLMNotConfiguredError
 from app.ai.model_registry import ModelRegistry, build_registry
 from app.ai.providers.base import LLMProvider
 from app.ai.providers.registry import get_provider
 from app.core.config import Settings, get_settings
+from app.database.connection import AsyncSessionLocal
 
 
 @dataclass(frozen=True)
@@ -47,4 +49,10 @@ def get_ai_runtime() -> AiRuntime:
     return _default_runtime()
 
 
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
+    """Sessions for work that outlives the request (streaming tasks). Tests override this."""
+    return AsyncSessionLocal
+
+
 Runtime = Annotated[AiRuntime, Depends(get_ai_runtime)]
+SessionFactory = Annotated[async_sessionmaker[AsyncSession], Depends(get_session_factory)]

@@ -58,6 +58,8 @@ class FakeProvider(LLMProvider):
         self.finish_reason = FinishReason.stop
         self.report_usage = True
         self.malformed = False  # return an empty body
+        self.delta_usage = False  # attach cumulative usage to each delta (like Gemini chunks)
+        self.chunks_sent = 0  # deltas actually yielded, to prove a cancelled stream stopped
         self.calls: list[LLMRequest] = []
 
     @classmethod
@@ -110,7 +112,12 @@ class FakeProvider(LLMProvider):
                 raise LLMUnavailableError()
             if self.chunk_delay:
                 await asyncio.sleep(self.chunk_delay)
-            yield StreamDelta(text[start : start + self.chunk_size])
+            piece = text[start : start + self.chunk_size]
+            seen = None
+            if self.delta_usage and self.report_usage:
+                seen = self._usage(request, text[: start + len(piece)])
+            yield StreamDelta(piece, usage=seen)
+            self.chunks_sent += 1
             sent += 1
         yield StreamEnd(
             finish_reason=self.finish_reason,

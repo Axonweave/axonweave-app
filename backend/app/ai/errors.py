@@ -142,10 +142,16 @@ class InputTooLongError(AiError):
     user_message = "Your message is too long. Please shorten it and try again."
 
 
-class StreamingNotAvailableError(AiError):
-    code = "STREAMING_NOT_AVAILABLE"
-    http_status = 400
-    user_message = "Streaming responses are not available yet. Send with stream=false."
+class RegenerateNotAllowedError(AiError):
+    code = "AI_REGENERATE_NOT_ALLOWED"
+    http_status = 409
+    user_message = "Only the latest answer in a conversation can be regenerated."
+
+
+class AiTooManyActiveError(AiQuotaExceededError):
+    """Per-user cap on simultaneous generations (D-43). Same code, so it reads as a limit."""
+
+    user_message = "You have too many responses generating at once. Wait for one to finish."
 
 
 ALL_ERROR_CODES = frozenset(
@@ -166,6 +172,6 @@ ALL_ERROR_CODES = frozenset(
         ConversationArchivedError,
         MessageNotFoundError,
         InputTooLongError,
-        StreamingNotAvailableError,
+        RegenerateNotAllowedError,
     )
 )

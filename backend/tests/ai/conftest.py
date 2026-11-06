@@ -10,12 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.model_registry import build_registry
 from app.ai.orchestration import service as orchestration
-from app.ai.orchestration.runtime import AiRuntime, get_ai_runtime
+from app.ai.orchestration.runtime import AiRuntime, get_ai_runtime, get_session_factory
+from app.ai.orchestration.streaming import get_generation_registry
 from app.ai.providers.base import LLMProvider
 from app.ai.providers.fake_provider import FakeProvider
 from app.core.rate_limit import get_rate_limiter
 from app.main import app
 from tests.ai.test_provider_layer import make_settings
+from tests.conftest import _TestSessionLocal
 from tests.test_closeout_users_config import Actor, _actor, _call
 
 API = "/ai"
@@ -59,9 +61,13 @@ def ai(
 ) -> Generator[AiHarness]:
     monkeypatch.setattr(orchestration, "RETRY_BASE_DELAY", 0.0)
     get_rate_limiter().reset()
+    get_generation_registry().clear()
+    app.dependency_overrides[get_session_factory] = lambda: _TestSessionLocal
     harness = AiHarness(fake)
     harness.configure()
     yield harness
+    app.dependency_overrides.pop(get_session_factory, None)
+    get_generation_registry().clear()
     app.dependency_overrides.pop(get_ai_runtime, None)
 
 
