@@ -4,25 +4,34 @@ Skipped unless a provider is configured in the environment. It spends a few toke
 `pytest -m live tests/ai/test_live_streaming.py`. It prints no key and no message text.
 """
 
+from collections.abc import Iterator
+
 import pytest
 from httpx import AsyncClient
 
-from app.ai.orchestration.runtime import get_ai_runtime
+from app.ai.orchestration.runtime import get_ai_runtime, get_session_factory
+from app.ai.orchestration.streaming import get_generation_registry
 from app.core.config import get_settings
 from app.main import app
 from tests.ai.conftest import call, new_conversation
 from tests.ai.test_ai_streaming import names, parse_sse, usage_rows
+from tests.conftest import _TestSessionLocal
 from tests.test_closeout_users_config import Actor
 
 pytestmark = pytest.mark.live
 
 
 @pytest.fixture(autouse=True)
-def _real_provider() -> None:
+def _real_provider() -> Iterator[None]:
     settings = get_settings()
     if settings.llm_provider in (None, "", "fake") or settings.gemini_api_key is None:
         pytest.skip("no real provider configured")
     app.dependency_overrides.pop(get_ai_runtime, None)
+    # The stream task opens its own session: point it at the test database, never the app one.
+    app.dependency_overrides[get_session_factory] = lambda: _TestSessionLocal
+    get_generation_registry().clear()
+    yield
+    app.dependency_overrides.pop(get_session_factory, None)
 
 
 async def test_real_stream_through_sse_endpoint(client: AsyncClient, alice: Actor) -> None:
