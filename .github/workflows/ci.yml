@@ -31,6 +31,8 @@ jobs:
       run:
         working-directory: backend
 
+    # Throwaway values for an ephemeral CI database; APP_ENV=testing. Not real secrets
+    # (allow-listed in .gitleaks.toml).
     env:
       APP_ENV: testing
       APP_SECRET_KEY: ci_test_secret_key_at_least_32_characters_long
@@ -72,46 +74,115 @@ jobs:
             exit 1
           fi
 
-      - name: Run tests
-        run: pytest --tb=short --cov=app --cov-report=term-missing
+      - name: Run tests (coverage must stay at or above 85%)
+        run: pytest --tb=short --cov=app --cov-report=term-missing --cov-fail-under=85
 
-  # ── Frontend (placeholder until B0 lands) ────────────────────────────────────
+  # ── Frontend ─────────────────────────────────────────────────────────────────
   frontend-ci:
-    name: Frontend — lint and build
+    name: Frontend — lint, type-check, unit tests, build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check frontend exists
-        id: frontend_check
-        run: |
-          if [ -f "frontend/package.json" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "Frontend not yet initialised (B0 pending). Skipping."
-          fi
-
       - name: Set up Node 22
-        if: steps.frontend_check.outputs.exists == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install frontend dependencies
-        if: steps.frontend_check.outputs.exists == 'true'
-        working-directory: frontend
-        run: npm ci
-
-      - name: Lint frontend
-        if: steps.frontend_check.outputs.exists == 'true'
-        working-directory: frontend
+      - run: npm ci
+      - name: Lint
         run: npm run lint
-
-      - name: Build frontend
-        if: steps.frontend_check.outputs.exists == 'true'
-        working-directory: frontend
+      - name: Type-check
+        run: npx tsc --noEmit
+      - name: Unit tests (Vitest)
+        run: npm run test
+      - name: Build
         run: npm run build
+
+  # ── End-to-end (full stack in Docker Compose) ───────────────────────────────
+  e2e:
+    name: E2E — Playwright against the full stack
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    env:
+      # Behind no proxy in CI; lets each test user register from a distinct "IP" so the
+      # per-IP registration limit (D-18) does not interfere. Never enable this in production
+      # without a trusted proxy.
+      TRUST_PROXY_HEADERS: "true"
+      PW_EXTERNAL_STACK: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start the stack
+        run: docker compose up -d --build
+
+      - name: Wait for the app
+        run: curl --fail --silent --retry 40 --retry-all-errors --retry-connrefused --retry-delay 3 http://localhost:3000/login > /dev/null
+
+      - name: Apply migrations
+        run: docker compose exec -T backend alembic upgrade head
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies and browsers
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright (desktop and mobile projects)
+        working-directory: frontend
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose logs --tail 200
+
+  # ── Security scans ──────────────────────────────────────────────────────────
+  security:
+    name: Security — secrets and dependency audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret scan (gitleaks, full history)
+        run: |
+          docker run --rm -v "$PWD:/repo:ro" zricethezav/gitleaks:latest \
+            detect --source /repo --config /repo/.gitleaks.toml --redact --no-banner --log-opts="--all"
+
+      - name: Python dependency audit (runtime requirements)
+        working-directory: backend
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt --no-deps --disable-pip
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: npm audit (fail on high or critical)
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high

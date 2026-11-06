@@ -1,8 +1,15 @@
+import { ActivityFeed } from "@/features/activity/activity-feed";
+
 export default function ActivityPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">Recent Activity</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Your recent actions across workspaces.</p>
+    <div className="min-w-0 space-y-6">
+      <div>
+        <h1 className="text-foreground text-2xl font-semibold">Recent activity</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          A record of what you have created, changed, archived and deleted.
+        </p>
+      </div>
+      <ActivityFeed />
     </div>
   );
 }

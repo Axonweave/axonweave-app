@@ -15,6 +15,8 @@ from typing import Protocol
 
 from fastapi import HTTPException, Request
 
+from app.core.config import get_settings
+
 
 class RateLimiter(Protocol):
     """Interface for rate-limiter backends (swap to Redis later)."""
@@ -74,8 +76,14 @@ def get_rate_limiter() -> InProcessRateLimiter:
 
 
 def get_client_ip(request: Request) -> str:
-    """Return best-effort client IP from X-Forwarded-For or direct connection."""
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    """Client IP for rate limiting and audit logs.
+
+    X-Forwarded-For is client-controlled unless a trusted reverse proxy overwrites it, so it is
+    only honoured when TRUST_PROXY_HEADERS is enabled (set it only behind such a proxy).
+    Otherwise any caller could dodge per-IP limits by sending a different value each request.
+    """
+    if get_settings().trust_proxy_headers:
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"

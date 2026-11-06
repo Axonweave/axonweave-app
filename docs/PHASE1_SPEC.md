@@ -1841,37 +1841,39 @@ Build the project in the following order.
 
 Phase 1 is complete only when the following conditions are satisfied.
 
+> Ticked boxes mean **Met** as assessed in `docs/PHASE1_ACCEPTANCE.md` (evidence per item). Unticked means Partly or Not met; the reason is given there.
+
 ## Authentication
 
-- [ ] User can register.
-- [ ] Duplicate email registration is prevented.
-- [ ] Passwords are securely hashed.
-- [ ] Email verification works.
-- [ ] User can log in.
-- [ ] User can log out.
-- [ ] Session expiration works.
+- [x] User can register.
+- [x] Duplicate email registration is prevented.
+- [x] Passwords are securely hashed.
+- [x] Email verification works.
+- [x] User can log in.
+- [x] User can log out.
+- [x] Session expiration works.
 - [ ] Password reset works.
-- [ ] Protected APIs reject unauthenticated requests.
+- [x] Protected APIs reject unauthenticated requests.
 
 ## Dashboard
 
-- [ ] Dashboard displays real user information.
+- [x] Dashboard displays real user information.
 - [ ] Sidebar navigation works.
 - [ ] Responsive layouts work.
-- [ ] Loading and error states are implemented.
+- [x] Loading and error states are implemented.
 
 ## Profile and settings
 
 - [ ] User can view their profile.
 - [ ] User can edit permitted profile details.
-- [ ] User can change their password.
+- [x] User can change their password.
 - [ ] User can manage sessions.
-- [ ] Account deletion workflow is defined and implemented.
+- [x] Account deletion workflow is defined and implemented.
 
 ## Workspace
 
-- [ ] User can create a workspace.
-- [ ] User can view their workspaces.
+- [x] User can create a workspace.
+- [x] User can view their workspaces.
 - [ ] User can edit a workspace.
 - [ ] User can archive and restore a workspace.
 - [ ] User can delete a workspace.
@@ -1882,27 +1884,27 @@ Phase 1 is complete only when the following conditions are satisfied.
 - [ ] User can create folders.
 - [ ] User can create chapters.
 - [ ] User can edit and delete academic items.
-- [ ] Folder and chapter relationships are valid.
+- [x] Folder and chapter relationships are valid.
 - [ ] Search and sorting work.
 
 ## Data protection
 
-- [ ] User A cannot access User B's data.
+- [x] User A cannot access User B's data.
 - [ ] All protected APIs enforce authorization.
 - [ ] Database credentials are not exposed.
-- [ ] Secrets are not committed to Git.
-- [ ] Sensitive information is excluded from logs.
-- [ ] CSRF and rate limiting are implemented.
+- [x] Secrets are not committed to Git.
+- [x] Sensitive information is excluded from logs.
+- [x] CSRF and rate limiting are implemented.
 - [ ] HTTPS and secure cookies are configured for production.
-- [ ] Backup and restoration procedures are tested.
+- [x] Backup and restoration procedures are tested.
 
 ## Code quality
 
-- [ ] Frontend and backend are separated.
-- [ ] Backend follows modular architecture.
+- [x] Frontend and backend are separated.
+- [x] Backend follows modular architecture.
 - [ ] Database migrations work.
-- [ ] API documentation is available.
-- [ ] Tests pass.
+- [x] API documentation is available.
+- [x] Tests pass.
 - [ ] Setup documentation is complete.
 
 ---

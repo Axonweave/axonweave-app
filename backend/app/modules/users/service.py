@@ -25,6 +25,7 @@ from app.modules.users.schemas import (
     UpdatePreferencesRequest,
     UpdateProfileRequest,
 )
+from app.repositories.export_repository import ExportRepository
 from app.repositories.session_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 
@@ -36,6 +37,7 @@ class UsersService:
         self._db = db
         self._users = UserRepository(db)
         self._sessions = SessionRepository(db)
+        self._export = ExportRepository(db)
 
     # ── Profile ───────────────────────────────────────────────────────────────
 
@@ -186,7 +188,16 @@ class UsersService:
             },
             "preferences": {
                 "theme": user.preferences.theme if user.preferences else "system",
+                "explanation_style": user.preferences.explanation_style
+                if user.preferences
+                else None,
+                "academic_level": user.preferences.academic_level if user.preferences else None,
             },
+            "workspaces": await self._export.workspaces(user.id),
+            "subjects": await self._export.subjects(user.id),
+            "folders": await self._export.folders(user.id),
+            "chapters": await self._export.chapters(user.id),
+            "activity": await self._export.activity(user.id),
         }
 
     # ── Account deletion ──────────────────────────────────────────────────────

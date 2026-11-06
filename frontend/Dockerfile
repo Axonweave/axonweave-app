@@ -7,6 +7,11 @@ RUN npm ci
 
 COPY . .
 
+# NEXT_PUBLIC_* values are inlined into the client bundle at build time, so this must be a
+# build argument; a runtime environment variable would have no effect.
+ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+
 RUN npm run build
 
 FROM node:22-alpine AS runner

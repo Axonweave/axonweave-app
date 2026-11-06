@@ -17,7 +17,7 @@ test.describe("Registration", () => {
     await expect(page.locator("form")).toBeVisible();
   });
 
-  test("register → email sent → verify → redirect to dashboard", async ({ page }) => {
+  test("register shows the check-your-email confirmation", async ({ page }) => {
     const email = `e2e-${UNIQUE}@example.com`;
 
     await page.goto("/register");
@@ -28,8 +28,9 @@ test.describe("Registration", () => {
     await page.getByLabel(/terms/i).check();
     await page.getByRole("button", { name: /create account/i }).click();
 
-    // Should show a "check your email" message
-    await expect(page.getByText(/verify your email/i)).toBeVisible({ timeout: 10000 });
+    // Registration does not open a session; the user is told to verify their email.
+    // Following the link is covered in journey.spec.ts via Mailpit.
+    await expect(page.getByText(/verify your email/i)).toBeVisible({ timeout: 15000 });
   });
 });
 

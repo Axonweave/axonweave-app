@@ -16,7 +16,7 @@ from typing import Protocol
 
 import structlog
 
-from app.core.config import get_settings
+from app.core.config import AppEnv, get_settings
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
@@ -55,12 +55,12 @@ class ConsoleEmailSender:
     """Logs email to console — fallback for local dev without Mailpit."""
 
     async def send(self, to: str, subject: str, html_body: str, text_body: str) -> None:
-        logger.info(
-            "console_email",
-            to=to,
-            subject=subject,
-            body=text_body[:500],
-        )
+        # Bodies contain one-time links (verification / reset tokens), so they are only
+        # logged in development; elsewhere only the subject is recorded.
+        if settings.app_env == AppEnv.development:
+            logger.info("console_email", to=to, subject=subject, body=text_body[:500])
+        else:
+            logger.info("console_email", to_masked=to[:3] + "***", subject=subject)
 
 
 class InMemoryEmailSender:

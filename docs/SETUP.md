@@ -18,22 +18,24 @@ cd axonweave-app
 
 # 2. Create your .env file (never commit this)
 cp .env.example .env
-# Edit .env and set:
-#   APP_SECRET_KEY — random 32+ char string
-#   DATABASE_URL, DATABASE_MIGRATION_URL — already set for local dev
-#   (leave SMTP settings as-is for Mailpit)
+# Edit .env and set at least:
+#   APP_SECRET_KEY — random string, 32+ characters
+# The database URLs have working local defaults in docker-compose.yml.
+# Leave the email settings as they are: mail goes to Mailpit in development.
 
-# 3. Start all services
-docker compose up
+# 3. Start all services (builds the images the first time)
+docker compose up --build
 
 # 4. Apply database migrations (first time only, or after schema changes)
 docker compose exec backend alembic upgrade head
-
-# 5. Open the app
-open http://localhost:3000      # Frontend
-open http://localhost:8025      # Mailpit (email UI for dev)
-open http://localhost:8000/docs # Backend API docs
 ```
+
+Then open http://localhost:3000 (app), http://localhost:8025 (Mailpit: verification and
+password-reset emails arrive here) and http://localhost:8000/docs (API docs, development only).
+
+The backend image is a development image: it includes pytest, ruff and mypy, so the commands
+below work inside it. After changing `NEXT_PUBLIC_BACKEND_URL` or frontend dependencies rebuild
+the frontend: `docker compose up -d --build frontend`.
 
 ## Services
 
@@ -51,28 +53,31 @@ open http://localhost:8000/docs # Backend API docs
 # Backend tests (inside Docker)
 docker compose exec backend pytest
 
-# Backend tests (local Python)
-cd backend && pytest
-
 # Frontend unit tests
 cd frontend && npm test
 
-# E2E tests (requires full stack running)
-cd frontend && npm run test:e2e
+# E2E tests (requires the full stack running; do not let Playwright start its own dev server)
+cd frontend && PW_EXTERNAL_STACK=1 npx playwright test
+# PowerShell: $env:PW_EXTERNAL_STACK='1'; npx playwright test
 ```
+
+Registration and login are rate limited per IP (D-18). Repeated e2e runs can hit 429; restart the
+backend (`docker compose restart backend`) to reset the in-process limiter. CI sets
+`TRUST_PROXY_HEADERS=true` so tests can send distinct client IPs; leave it `false` locally and in
+production unless you run behind your own proxy. The e2e specs read verification emails through
+the Mailpit API at `http://localhost:8025/api/v1`.
 
 ## Lint and type-check
 
 ```bash
 # Backend
-cd backend
-ruff check .
-ruff format --check .
-mypy app
+docker compose exec backend sh -c "ruff check . && ruff format --check ."
+docker compose exec backend mypy app
 
 # Frontend
 cd frontend
 npm run lint
+npx tsc --noEmit
 ```
 
 ## Database migrations
@@ -100,8 +105,9 @@ cd frontend && npm run generate-types
 
 ## Troubleshooting
 
-**Backend won't start — "missing env var"**  
-Check your `.env` file has all variables from `.env.example`.
+**Backend won't start with a validation error**  
+`APP_SECRET_KEY` must be set (32+ characters). With `APP_ENV=production` the backend also refuses
+to start on insecure cookie, URL or placeholder-secret settings.
 
 **Migration fails with "already exists"**  
 The DB has a newer migration than your code. Run `git pull` to get the latest migrations.
@@ -110,4 +116,12 @@ The DB has a newer migration than your code. Run `git pull` to get the latest mi
 Check Mailpit at http://localhost:8025 — all outgoing email goes there in dev mode.
 
 **Port conflict**  
-Change `FRONTEND_PORT` / `BACKEND_PORT` in `.env` and update `docker-compose.yml` accordingly.
+Ports are fixed in `docker-compose.yml` (3000, 8000, 8025, 1025, 5432). Stop whatever uses them or
+edit the `ports:` mappings there.
+
+**`pytest: executable file not found` in the backend container**  
+The container was built before the Dockerfile installed `requirements-dev.txt`. Rebuild:
+`docker compose up -d --build backend`.
+
+**Registration or login returns 429 during repeated runs**  
+That is the rate limiter working. Restart the backend to clear it.

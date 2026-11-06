@@ -250,3 +250,30 @@ async def test_user_a_cannot_use_user_b_session(
     resp_a = await client.get("/api/v1/auth/me", cookies={"aw_session": raw_a})
     assert resp_a.status_code == 200
     assert resp_a.json()["data"]["email"] == user_a.email
+
+
+async def test_registered_password_is_stored_as_argon2id_hash(
+    client: AsyncClient, db_session: AsyncSession
+) -> None:
+    """Spec 22: passwords are securely hashed. The plaintext must never reach the database."""
+    from sqlalchemy import select
+
+    password = "SecurePass123!!"
+    resp = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "full_name": "Hash Check",
+            "email": "hashcheck@example.com",
+            "password": password,
+            "confirm_password": password,
+            "terms_accepted": True,
+        },
+    )
+    assert resp.status_code == 201
+    stored = (
+        await db_session.execute(
+            select(User.password_hash).where(User.email == "hashcheck@example.com")
+        )
+    ).scalar_one()
+    assert stored.startswith("$argon2id$")
+    assert password not in stored

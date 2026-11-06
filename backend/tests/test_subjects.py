@@ -388,3 +388,36 @@ class TestSearchAndFilter:
         names = [s["name"] for s in resp.json()["data"]]
         assert "Calculus" in names
         assert "Statistics" not in names
+
+    async def test_sort_by_name_ascending_and_descending(
+        self, client: AsyncClient, user_with_workspace
+    ):
+        _, token, csrf, ws_id = user_with_workspace
+        auth = {
+            "cookies": {"aw_session": token, "csrf_token": csrf},
+            "headers": {"X-CSRF-Token": csrf},
+        }
+        for name in ["Banana", "Cherry", "Apple"]:
+            created = await client.post(
+                f"/api/v1/workspaces/{ws_id}/subjects", json={"name": name}, **auth
+            )
+            assert created.status_code == 201
+
+        asc = await client.get(
+            f"/api/v1/workspaces/{ws_id}/subjects?sort_by=name&sort_dir=asc", **auth
+        )
+        desc = await client.get(
+            f"/api/v1/workspaces/{ws_id}/subjects?sort_by=name&sort_dir=desc", **auth
+        )
+        assert [s["name"] for s in asc.json()["data"]] == ["Apple", "Banana", "Cherry"]
+        assert [s["name"] for s in desc.json()["data"]] == ["Cherry", "Banana", "Apple"]
+
+    async def test_sort_field_outside_allowlist_is_rejected(
+        self, client: AsyncClient, user_with_workspace
+    ):
+        _, token, csrf, ws_id = user_with_workspace
+        resp = await client.get(
+            f"/api/v1/workspaces/{ws_id}/subjects?sort_by=password_hash",
+            cookies={"aw_session": token, "csrf_token": csrf},
+        )
+        assert resp.status_code == 422

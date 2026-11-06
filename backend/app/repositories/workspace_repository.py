@@ -91,7 +91,11 @@ class WorkspaceRepository:
             )
         )
         for ws in existing.scalars().all():
-            ws.is_default = False
+            if ws.id != workspace.id:
+                ws.is_default = False
+        # Flush the clearing first: the partial unique index allows only one default, and a
+        # single batched UPDATE may otherwise set the new default before clearing the old one.
+        await self._db.flush()
         workspace.is_default = True
         await self._db.flush()
 
