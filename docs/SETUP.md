@@ -67,6 +67,18 @@ backend (`docker compose restart backend`) to reset the in-process limiter. CI s
 production unless you run behind your own proxy. The e2e specs read verification emails through
 the Mailpit API at `http://localhost:8025/api/v1`.
 
+The AI Tutor e2e tests (`e2e/ai-tutor.spec.ts`) need the **fake provider**, so they are deterministic,
+free and never touch a real key. Start the stack with it, then run Playwright:
+
+```bash
+LLM_PROVIDER=fake LLM_DEFAULT_MODEL= FAKE_LLM_CHUNK_DELAY_SECONDS=0.1 TRUST_PROXY_HEADERS=true docker compose up -d --build
+# PowerShell: $env:LLM_PROVIDER='fake'; $env:LLM_DEFAULT_MODEL=''; $env:FAKE_LLM_CHUNK_DELAY_SECONDS='0.1'; $env:TRUST_PROXY_HEADERS='true'; docker compose up -d --build
+```
+
+Variables set in your shell override `.env`, so your real Gemini key is not used. Unset them (or open a
+new terminal) and run `docker compose up -d backend` to go back to the real provider. The fake provider
+refuses to run when `APP_ENV=production` (D-60).
+
 ## Lint and type-check
 
 ```bash

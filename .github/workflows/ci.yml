@@ -116,6 +116,10 @@ jobs:
       # without a trusted proxy.
       TRUST_PROXY_HEADERS: "true"
       PW_EXTERNAL_STACK: "1"
+      # AI Tutor e2e tests use the deterministic FakeProvider (D-60), never a real key. The delay
+      # between chunks lets the Stop test press the button mid-stream.
+      LLM_PROVIDER: fake
+      FAKE_LLM_CHUNK_DELAY_SECONDS: "0.1"
 
     steps:
       - uses: actions/checkout@v4

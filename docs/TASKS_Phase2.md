@@ -64,14 +64,19 @@ One branch per task, Conventional Commits, no push to `main`, one Alembic head.
     sweeper (D-46) recovers rows left by a dead instance after `ai_stale_generation_seconds`.
 
 ## M4: AI Tutor UI (Step 7 + streaming client)  Owner: ________
-- [ ] Enable the sidebar item (D-59); update Vitest and Help text. Route `(app)/ai-tutor` and `[conversationId]`.
-- [ ] Conversation sidebar (new, list, search, rename, delete with confirmation, date grouping), chat window, input (Enter sends, Shift+Enter newline, Stop button, length guidance), header with model selector only when more than one model.
-- [ ] Safe Markdown rendering (D-52); copy, regenerate, thumbs up/down.
-- [ ] Fetch-based SSE client with CSRF header, abort, partial-failure handling, retry, server refetch as source of truth.
-- [ ] Welcome screen with suggested prompts that really send; "not configured" state (D-58); first-use privacy notice and acknowledgement (D-54); test-provider badge (D-60); usage summary view.
-- [ ] Loading, empty and error states; responsive to 375 px with no horizontal scroll; keyboard accessible with visible focus.
-- [ ] Vitest for components and the stream parser; Playwright on the fake provider: start chat, stream, stop, regenerate, follow-up, rename, delete, switch, reload persistence, second-user isolation, mobile.
+- [x] Enable the sidebar item (D-59); update Vitest and Help text. Route `(app)/ai-tutor` and `[conversationId]`.
+- [x] Conversation sidebar (new, list, search, rename, delete with confirmation, date grouping), chat window, input (Enter sends, Shift+Enter newline, Stop button, length guidance), header with model selector only when more than one model.
+- [x] Safe Markdown rendering (D-52); copy, regenerate, thumbs up/down.
+- [x] Fetch-based SSE client with CSRF header, abort, partial-failure handling, retry, server refetch as source of truth.
+- [x] Welcome screen with suggested prompts that really send; "not configured" state (D-58); first-use privacy notice and acknowledgement (D-54); test-provider badge (D-60); usage summary view.
+- [x] Loading, empty and error states; responsive to 375 px with no horizontal scroll; keyboard accessible with visible focus.
+- [x] Vitest for components and the stream parser; Playwright on the fake provider: start chat, stream, stop, regenerate, follow-up, rename, delete, switch, reload persistence, second-user isolation, mobile.
 - Done when: the whole spec section 1.3 flow works in the browser.
+  - Status: built and verified on the fake provider (see below). NOT verified: a real Gemini conversation in the browser, real screen readers, Safari/Firefox, real phones (only Chromium at 375 px and Pixel 5 emulation), long conversations (>100 messages are loaded in pages of 100 but not stress-tested), and behaviour behind buffering proxies.
+  - Verified: 200 Vitest tests (125 existing + 75 new: parser, stream client, hostile Markdown, input, message view, hook, shell gates); 21 Playwright tests x2 projects (`e2e/ai-tutor.spec.ts`) plus the whole Phase 1 e2e suite (105 passed, 21 skipped, 0 failed); `next build` (production) succeeds.
+  - Backend changes made for the UI (small, tested): `GET /ai/status`; `POST /users/me/ai-notice/acknowledge` and `ai_notice_acknowledged_at` on preferences (D-54; column existed since 0002); `FAKE_LLM_CHUNK_DELAY_SECONDS` (fake provider only) so the e2e Stop test can press Stop mid-stream.
+  - Known limits: the thumbs up/down state is kept in the page only (the message API does not return stored feedback), so it resets on reload; leaving the page mid-answer disconnects, which the server records as a cancel (D-45); no math rendering (D-52 allows it only if it works under the CSP); archived conversations are archived from the UI but there is no "archived chats" view yet.
+  - Found by the browser tests (fixed): `usePathname()` in the shared app layout broke `next build` under Cache Components; after Stop, the client could keep showing a stale `pending` answer until it re-read the server (it now re-reads until the answer is no longer active).
 
 ## M5: Security review, evaluation, docs, acceptance (Steps 10, 11, spec 25)  Owner: ________
 - [ ] Security review against spec 15 and 22.5 (all twelve cases mapped to named tests): auth, ownership, keys never exposed (including OpenAPI and error bodies), input limits, rate limits, safe rendering, cancellation, logging review, provider data handling.
