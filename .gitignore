@@ -43,5 +43,8 @@ backend/openapi.json
 postgres-data/
 pgdata/
 
+# Phase 3: real test documents (never commit; fixtures are generated in code, D-76)
+testdata-private/
+
 # Git worktrees used for parallel Claude sessions
 .worktrees/
