@@ -1,5 +1,5 @@
 import os
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -57,6 +57,8 @@ _TestSessionLocal = async_sessionmaker(
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def create_test_tables() -> AsyncGenerator[None, None]:
     async with _test_engine.begin() as conn:
+        # pgvector is created by the owner role (D-62); the migration does the same in real stacks.
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with _test_engine.begin() as conn:
@@ -159,3 +161,23 @@ async def create_user_and_session(
     raw_token, csrf_token = await _make_session(db_session, user)
     await db_session.commit()
     yield user, raw_token, csrf_token
+
+
+@pytest.fixture
+def celery_eager() -> Generator[None, None, None]:
+    """Run Celery tasks inline, in this process, with no broker (docs/AI_TESTING.md).
+
+    Tasks execute synchronously when called with `.apply()` or `.delay()`, and exceptions propagate
+    to the test. Tasks that use their own event loop (`asyncio.run`) cannot be called from inside a
+    running async test: call them through `await asyncio.to_thread(task.apply)` or test the
+    service function they wrap.
+    """
+    from app.ingestion.worker import celery_app
+
+    celery_app.conf.task_always_eager = True
+    celery_app.conf.task_eager_propagates = True
+    try:
+        yield
+    finally:
+        celery_app.conf.task_always_eager = False
+        celery_app.conf.task_eager_propagates = False

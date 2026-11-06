@@ -39,6 +39,17 @@ exclude = ["alembic/", "scripts/"]
 module = ["app.ai.*", "app.modules.*"]
 ignore_errors = true
 
+# Libraries without type stubs (Phase 3). Their use is confined to app/storage/s3_backend.py and app/ingestion/.
+[[tool.mypy.overrides]]
+module = ["boto3.*", "botocore.*", "celery.*", "kombu.*"]
+ignore_missing_imports = true
+
+# Celery's task decorators are untyped.
+[[tool.mypy.overrides]]
+module = ["app.ingestion.*"]
+disallow_untyped_decorators = false
+disallow_subclassing_any = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

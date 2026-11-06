@@ -1,0 +1,9 @@
+-r requirements.txt
+
+# Document parsing and OCR (Phase 3, D-70). Installed ONLY in the worker image target:
+# the API image never contains parsers. Versions verified 2026-11-06.
+PyMuPDF==2.1
+python-pptx==1.0.2
+python-docx==1.2.0
+Pillow==13.0.0
+pytesseract==0.3.13

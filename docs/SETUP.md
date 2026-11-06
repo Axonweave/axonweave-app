@@ -45,7 +45,24 @@ the frontend: `docker compose up -d --build frontend`.
 | Backend | http://localhost:8000 | FastAPI app |
 | API docs | http://localhost:8000/docs | OpenAPI UI |
 | Mailpit | http://localhost:8025 | Dev email inbox |
-| PostgreSQL | localhost:5432 | Database |
+| PostgreSQL (pgvector) | localhost:5432 | Database, with the `vector` extension (Phase 3) |
+| Redis | internal only | Celery broker and the rate limiter (Phase 3) |
+| Object store (SeaweedFS) | http://127.0.0.1:8333 | S3-compatible storage for uploaded originals (Phase 3, local debugging only) |
+| Worker, beat | internal only | Celery worker (parsing, OCR) and scheduler. The worker has no internet access |
+
+### Phase 3 notes
+
+- `docker compose up` starts everything, including `storage-init`, a one-shot job that creates the private bucket and exits.
+- **The database image changed** from `postgres:16-alpine` to the Debian-based `pgvector/pgvector` image, and the data volume is now named
+  `pgvector_data`. The old `postgres_data` volume is **left untouched** (an Alpine data directory is not safely reusable by the Debian image because
+  the libc collations differ). A fresh database is created on the first start: run `docker compose exec backend alembic upgrade head` again. To bring old
+  local data across, dump it from the old volume (`pg_dump`) and restore it into the new database, then delete the old volume yourself when you are sure.
+- Compose now uses `DB_OWNER_PASSWORD` (if you set it in `.env`) in the owner connection URL defaults, so the database password and the migration URL
+  can no longer disagree.
+- Worker and beat mount `./backend` read-only for development; a production image bakes the code in. After changing task code, restart them:
+  `docker compose restart worker beat`.
+- The worker is on an internal network with no route to the internet (it reaches only Postgres, Redis and the object store). The embedding
+  stage (M4) will need a controlled path to the embedding provider; until then nothing in the worker needs the internet.
 
 ## Running tests
 

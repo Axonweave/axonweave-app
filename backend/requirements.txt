@@ -25,3 +25,12 @@ httpx==0.28.0
 
 # AI provider SDK (Phase 2). Imported only in app/ai/providers/gemini_provider.py
 google-genai==3.0.0
+
+# Phase 3 (D-62, D-63, D-64). Versions verified 2026-11-06.
+# pgvector: Python type registration only; the extension is created by a migration (D-62).
+pgvector==0.5.1
+# Celery broker/limiter. Imported by the API only to enqueue tasks and by the worker to run them.
+celery==5.7.0
+redis==8.1.0
+# S3 client. Imported only in app/storage/s3_backend.py (a test enforces it).
+boto3==1.43.125

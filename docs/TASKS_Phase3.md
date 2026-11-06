@@ -27,6 +27,9 @@ no push to `main`, one Alembic head. Every milestone ends with ruff, mypy, pytes
 - [ ] Schema tests: cross-owner rows rejected by the database, one running job per version, unique chunk index, scope CHECK, composite chain (folder/chapter belong to subject).
 - [ ] Measure and record pgvector filtered-search behaviour on synthetic data (exact vs HNSW with `hnsw.iterative_scan`) to prepare D-73.
 - Done when: the stack runs with the new services, the schema is migrated and tested, storage round-trips on both backends, Phase 1/2 suites unchanged and green.
+  - Status (branch `feat/docs-infra-schema`, not yet merged, so boxes stay unticked): built and verified locally; see the PR for the verified / not verified list.
+  - Not part of this PR, still open for M1: the pgvector filtered-search measurement (needs real embeddings, moved to M4 with the evaluation set) and the pre-existing `format:check` chore.
+  - Changed from the plan while building: messages also get `scope_type`/`scope_id`/`answer_mode` (D-67); the chunk scope columns have no FKs (informational, never used for authorisation); `.env.example` still needs the block from `docs/PHASE3_ENV_PLACEHOLDERS.md` pasted by a human.
 
 ## M2: Upload and document management API  Owner: ________
 - [ ] Spike first: stream a large multipart upload through the real middleware stack (CSRF, security headers, correlation id) with the size cap enforced; convert to pure ASGI only if needed.

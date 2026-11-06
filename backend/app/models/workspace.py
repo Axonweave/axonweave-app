@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 class Workspace(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "workspaces"
     __table_args__ = (
+        # Target for composite ownership FKs (documents, Phase 3).
+        UniqueConstraint("id", "user_id", name="uq_workspaces_id_user"),
         # D-11: unique name per user among non-archived rows (case-insensitive)
         Index(
             "ix_workspaces_user_name_unique",
