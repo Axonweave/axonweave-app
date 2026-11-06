@@ -2,6 +2,7 @@ import os
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
@@ -17,6 +18,23 @@ from app.models.user import User
 from app.models.user_preferences import UserPreferences
 from app.models.user_profile import UserProfile
 from app.models.workspace import Workspace
+
+# Developer-environment settings that must never change what a test sees. Tests that need a provider
+# pass it explicitly (see tests/ai/test_provider_layer.py::make_settings).
+_AMBIENT_AI_ENV = (
+    "LLM_PROVIDER",
+    "LLM_DEFAULT_MODEL",
+    "LLM_ALLOWED_MODELS",
+    "GEMINI_API_KEY",
+    "FAKE_LLM_CHUNK_DELAY_SECONDS",
+)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_ambient_ai_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in _AMBIENT_AI_ENV:
+        monkeypatch.delenv(name, raising=False)
+
 
 _test_url = os.environ.get(
     "DATABASE_TEST_URL",
