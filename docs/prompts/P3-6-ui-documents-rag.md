@@ -1,0 +1,13 @@
+# P3-6 - Phase 3 M6: Frontend (library, upload, viewer, citations)
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase3.md and docs/PHASE3_SPEC.md sections 15, 16, 20 and 22. Frontend work; fix backend bugs only with a test and mention them in the summary.
+
+First check that the subjects, folders and chapters pages exist and work. If they do not, create `docs/autopilot/P3-6-BLOCKED.md` and stop.
+1. Enable the Library sidebar item. Library page: document list (type, size, date, status, workspace/subject/chapter), search, filters, pagination, empty/loading/error states. A Documents tab now; leave room for a Study materials tab in Phase 4.
+2. Upload: drag-and-drop zone, multiple files, client-side pre-checks (type, size) for usability only, per-file progress, cancel, API error messages, a target selector (workspace > subject > folder > chapter), and upload buttons inside subject and chapter pages.
+3. Processing status: the real status per document with polling (back off, stop at a terminal state); failed state with a safe message and a Retry button; never show "ready" before completed.
+4. Document detail page: metadata, processing details, actions (rename, move, replace, reprocess, download, delete with a confirm dialog stating everything that will be deleted), and "Ask AI about this document".
+5. Viewer: PDF viewer with pdf.js (page navigation, zoom, in-document search, jump-to-page and highlight from citations using stored bboxes when present); PPTX viewer = slide list with extracted text and slide navigation; DOCX viewer = extracted headings and tables. Update the CSP for the pdf.js worker and the inline endpoint; never render uploaded HTML.
+6. AI Tutor: an always-visible scope selector (general, workspace, subject, chapter, document) and answer-mode selector, with a clear label of what the AI can see; entry points from document, chapter and subject pages; citations as clickable chips under answers with a source panel (document, page or slide, snippet) that opens the viewer at the right spot; unavailable citations (deleted document) shown as such; insufficient-evidence replies shown plainly; handle message.citations and the replacement text in message.completed.
+7. Accessibility, mobile layouts, keyboard use.
+8. Tests: Vitest (upload zone validation, status component, citation rendering and sanitisation) and Playwright with the Fake providers: upload -> processing -> ready -> ask -> citation opens the right page; a failed file; delete; a second user cannot see or open the first user's document or citation; mobile.
+9. You cannot look at the UI. List what needs a human visual check under HUMAN-NEEDED.
