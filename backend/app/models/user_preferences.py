@@ -1,7 +1,8 @@
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import CheckConstraint, ForeignKey, String
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,5 +35,9 @@ class UserPreferences(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     academic_level: Mapped[str | None] = mapped_column(String(64), nullable=True)
     study_preferences: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     preferred_language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")
+    # Set when the user acknowledges the AI data-handling notice (Phase 2).
+    ai_notice_acknowledged_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     user: Mapped["User"] = relationship("User", back_populates="preferences")

@@ -6,11 +6,15 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.ai.model_registry import build_registry
+from app.ai.providers.registry import close_providers
+from app.ai.sync import sync_catalog_at_startup
 from app.api.v1.router import router as api_v1_router
 from app.core.config import AppEnv, get_settings
 from app.core.csrf import CSRFMiddleware
 from app.core.logging import CorrelationIdMiddleware, configure_logging, get_logger
 from app.core.security_headers import SecurityHeadersMiddleware
+from app.database.connection import AsyncSessionLocal
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -24,7 +28,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         version=settings.app_version,
         env=settings.app_env.value,
     )
+    await sync_catalog_at_startup(AsyncSessionLocal, build_registry(settings))
     yield
+    await close_providers()
     logger.info("axonweave_backend_stopped")
 
 
