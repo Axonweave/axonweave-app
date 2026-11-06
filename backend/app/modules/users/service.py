@@ -198,6 +198,8 @@ class UsersService:
             "folders": await self._export.folders(user.id),
             "chapters": await self._export.chapters(user.id),
             "activity": await self._export.activity(user.id),
+            "ai_conversations": await self._export.ai_conversations(user.id),
+            "ai_usage": await self._export.ai_usage(user.id),
         }
 
     # ── Account deletion ──────────────────────────────────────────────────────
