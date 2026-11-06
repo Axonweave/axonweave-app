@@ -11,7 +11,7 @@ psycopg[binary,pool]==3.2.3
 alembic==1.14.0
 
 # Validation / settings
-pydantic[email]==2.10.2
+pydantic[email]==2.14.3
 pydantic-settings==2.6.1
 
 # Logging
