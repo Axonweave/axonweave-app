@@ -26,10 +26,14 @@ All of these must pass locally:
 ```bash
 docker compose exec backend sh -c "ruff check . && ruff format --check ."
 docker compose exec backend mypy app
-docker compose exec backend pytest
+docker compose exec backend pytest -m "not live"
 docker compose exec backend alembic heads           # exactly one head
 cd frontend && npm run lint && npx tsc --noEmit && npm run test
 ```
+
+Use `-m "not live"`: tests marked `live` call the real AI provider, cost money and run only when you
+choose (`pytest -m live tests/ai`). Likewise `scripts/run_ai_eval.py` and `scripts/llm_smoke_test.py` send
+real requests; run them deliberately and never in CI. Never paste, commit or print a provider key.
 
 For UI work also run the Playwright specs against the running stack. Regenerate the frontend API
 types if backend schemas changed (`docs/SETUP.md`).
@@ -44,9 +48,12 @@ types if backend schemas changed (`docs/SETUP.md`).
 
 Use the template in `.github/pull_request_template.md`. State:
 
-- the task (see `docs/TASKS_Phase1.md`) and the spec section 22 items it satisfies;
+- the task (see `docs/TASKS_Phase1.md` or `docs/TASKS_Phase2.md`) and the spec acceptance items it satisfies
+  (Phase 1 section 22, Phase 2 section 23 in `docs/PHASE2_ACCEPTANCE.md`);
 - anything touched outside your owned area or in a shared file (list in `docs/TASKS_Phase1.md`);
-- what was tested and what was **not**; do not tick an acceptance item that was not verified.
+- what was tested and what was **not**; do not tick an acceptance item that was not verified;
+- for AI changes: whether the fake provider or a real one was used, and any change to quotas, limits, prompts
+  or the privacy notice.
 
 CI must be green. Reviewers check: ownership scoping on every query, 404 for non-owned resources,
 no sensitive data in responses or logs, no placeholder controls.
