@@ -250,6 +250,10 @@ test.describe("AI Tutor (desktop)", () => {
 
   test("follow-up questions work in the same conversation", async () => {
     await page.getByRole("link", { name: /Explain a difficult concept/i }).click();
+    // Wait for the route to change: until then the previous conversation (which also has one
+    // answer) is still on screen, and a send would be dropped by the switch.
+    await expect(page).toHaveURL(new RegExp(`/ai-tutor/${conversationId}$`));
+    await expect(page.locator('[data-role="user"]')).toContainText("Explain a difficult concept");
     await expect(assistantMessages(page)).toHaveCount(1);
     await sendMessage(page, "And now a follow up question");
     await expect(assistantMessages(page)).toHaveCount(2, { timeout: 15000 });
