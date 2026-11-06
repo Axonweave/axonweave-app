@@ -193,6 +193,23 @@ export interface paths {
         patch: operations["update_preferences_api_v1_users_me_preferences_patch"];
         trace?: never;
     };
+    "/api/v1/users/me/ai-notice/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acknowledge Ai Notice */
+        post: operations["acknowledge_ai_notice_api_v1_users_me_ai_notice_acknowledge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/me/sessions": {
         parameters: {
             query?: never;
@@ -909,6 +926,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ai Status */
+        get: operations["ai_status_api_v1_ai_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/capabilities": {
         parameters: {
             query?: never;
@@ -970,6 +1004,29 @@ export interface components {
             data: components["schemas"]["ActivityItem"][];
             /** Total */
             total: number;
+        };
+        /**
+         * AiStatusOut
+         * @description What the UI needs to know before any model call. Never exposes keys or settings.
+         */
+        AiStatusOut: {
+            /** Configured */
+            configured: boolean;
+            /** Provider Display Name */
+            provider_display_name: string | null;
+            /** Is Test Provider */
+            is_test_provider: boolean;
+            /** Max Input Chars */
+            max_input_chars: number;
+        };
+        /** AiStatusResponse */
+        AiStatusResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["AiStatusOut"];
         };
         /** ArchivedItem */
         ArchivedItem: {
@@ -2018,6 +2075,8 @@ export interface components {
             study_preferences: unknown;
             /** Preferred Language */
             preferred_language: string | null;
+            /** Ai Notice Acknowledged At */
+            ai_notice_acknowledged_at?: string | null;
         };
         /** UserProfileOut */
         UserProfileOut: {
@@ -2544,6 +2603,37 @@ export interface operations {
                 "application/json": components["schemas"]["UpdatePreferencesRequest"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    acknowledge_ai_notice_api_v1_users_me_ai_notice_acknowledge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -4569,6 +4659,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModelResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ai_status_api_v1_ai_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiStatusResponse"];
                 };
             };
             /** @description Validation Error */

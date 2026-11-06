@@ -59,6 +59,20 @@ class UsersService:
 
     # ── Preferences ───────────────────────────────────────────────────────────
 
+    async def acknowledge_ai_notice(self, user: User) -> User:
+        """Record that this user has seen the AI data-handling notice (D-54). Idempotent: the first
+        acknowledgement time is kept."""
+        prefs = user.preferences
+        if prefs is None:
+            raise HTTPException(
+                status_code=404,
+                detail={"code": "PREFS_NOT_FOUND", "message": "Preferences not found."},
+            )
+        if prefs.ai_notice_acknowledged_at is None:
+            prefs.ai_notice_acknowledged_at = datetime.now(UTC)
+        await self._db.flush()
+        return user
+
     async def update_preferences(self, user: User, data: UpdatePreferencesRequest) -> User:
         prefs = user.preferences
         if prefs is None:

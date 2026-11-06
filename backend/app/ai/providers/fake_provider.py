@@ -66,7 +66,9 @@ class FakeProvider(LLMProvider):
     def create(cls, settings: Settings) -> Self:
         if settings.app_env not in _ALLOWED_ENVS:
             raise LLMNotConfiguredError()
-        return cls()
+        provider = cls()
+        provider.chunk_delay = settings.fake_llm_chunk_delay_seconds
+        return provider
 
     def _text_for(self, request: LLMRequest) -> str:
         if self.reply is not None:

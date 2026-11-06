@@ -15,6 +15,8 @@ from app.ai.orchestration.streaming import SSE_HEADERS, StreamRunner
 from app.core.dependencies import ActiveUser, DbSession
 from app.models.user import User
 from app.modules.ai.schemas import (
+    AiStatusOut,
+    AiStatusResponse,
     CapabilitiesOut,
     CapabilitiesResponse,
     ConversationListResponse,
@@ -354,6 +356,11 @@ async def list_models(current_user: ActiveUser, runtime: Runtime) -> ModelListRe
 @router.get("/models/default", response_model=ModelResponse)
 async def default_model(current_user: ActiveUser, runtime: Runtime) -> ModelResponse:
     return ModelResponse(data=ModelOut.model_validate(ModelService(runtime).default()))
+
+
+@router.get("/status", response_model=AiStatusResponse)
+async def ai_status(current_user: ActiveUser, runtime: Runtime) -> AiStatusResponse:
+    return AiStatusResponse(data=AiStatusOut.model_validate(ModelService(runtime).status()))
 
 
 @router.get("/capabilities", response_model=CapabilitiesResponse)

@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     llm_provider: str = ""
     # Provider model id; verify with scripts/list_llm_models.py (D-38). Never hardcoded.
     llm_default_model: str = ""
+    # Test-only: pause between FakeProvider chunks so e2e tests can press Stop.
+    fake_llm_chunk_delay_seconds: float = Field(default=0.0, ge=0.0, le=2.0)
     # Optional comma-separated extra provider model ids users may select.
     llm_allowed_models: str = ""
     # Optional verified limits for the default model (unknown -> conservative defaults, D-47).
