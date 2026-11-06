@@ -201,7 +201,9 @@ class TestProductionConfigGuards:
     def test_valid_production_config_starts(self):
         assert self._make().app_env == "production"
 
-    def test_missing_secret_key_refuses_to_start(self):
+    def test_missing_secret_key_refuses_to_start(self, monkeypatch):
+        # CI sets APP_SECRET_KEY in the environment; "missing" must mean missing everywhere.
+        monkeypatch.delenv("APP_SECRET_KEY", raising=False)
         data = {k: v for k, v in _BASE.items() if k != "app_secret_key"}
         with pytest.raises(ValidationError):
             Settings(_env_file=None, **data)
