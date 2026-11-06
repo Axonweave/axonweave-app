@@ -40,19 +40,28 @@ One branch per task, Conventional Commits, no push to `main`, one Alembic head.
 - Done when: multi-turn conversations work end to end on the fake provider and on the real one.
   - Status: met on the fake provider (automated). NOT yet verified on the real provider: waiting for the
     M1 key run (`scripts/llm_smoke_test.py`) and then one manual multi-turn check.
-  - Note: streaming requests return 400 `STREAMING_NOT_AVAILABLE` until M3; usage endpoints are M3.
+  - Note: streaming and usage endpoints were added in M3.
 
 ## M3: Streaming, cancellation, regenerate, usage and quotas (Steps 8, 9)  Owner: ________
-- [ ] Spike first: stream through the real middleware stack and disconnect mid-stream. If `BaseHTTPMiddleware` interferes, convert CSRF, correlation id and security headers middleware to pure ASGI before continuing.
-- [ ] SSE endpoint (D-44): events per spec 12.3, heartbeat, headers, periodic partial flush, final persistence, failures after start as `message.failed`.
-- [ ] Cancellation (D-45): registry, cancel endpoint, disconnect handling with shielded cleanup, upstream call cancelled.
-- [ ] Regenerate (D-42) with `superseded_at`; duplicate-click protection via the partial unique index and per-user cap (D-43).
-- [ ] Stale generation recovery at startup and periodically (D-46).
-- [ ] Usage recording on every outcome; reasoning tokens; `usage_source`; cost from the pricing registry with `pricing_version`; NULL when unknown (D-39, D-40).
-- [ ] Quotas: daily messages and tokens, active-generation cap; 429/409 with `Retry-After`.
-- [ ] Usage endpoints (`/ai/usage`, `/summary`, `/by-model`), owner-scoped.
-- [ ] Tests: ordering, heartbeat, cancel, disconnect, partial persistence, failure after start, retries only before first token, concurrent sends (one wins, others 409), quota enforcement, usage accuracy against fake provider figures, other user's usage invisible.
+- [x] Spike first: stream through the real middleware stack and disconnect mid-stream. If `BaseHTTPMiddleware` interferes, convert CSRF, correlation id and security headers middleware to pure ASGI before continuing.
+- [x] SSE endpoint (D-44): events per spec 12.3, heartbeat, headers, periodic partial flush, final persistence, failures after start as `message.failed`.
+- [x] Cancellation (D-45): registry, cancel endpoint, disconnect handling with shielded cleanup, upstream call cancelled.
+- [x] Regenerate (D-42) with `superseded_at`; duplicate-click protection via the partial unique index and per-user cap (D-43).
+- [x] Stale generation recovery at startup and periodically (D-46).
+- [x] Usage recording on every outcome; reasoning tokens; `usage_source`; cost from the pricing registry with `pricing_version`; NULL when unknown (D-39, D-40).
+- [x] Quotas: daily messages and tokens, active-generation cap; 429 `AI_QUOTA_EXCEEDED` with `Retry-After` (cross-conversation cap); same-conversation double send stays 409.
+- [x] Usage endpoints (`/ai/usage`, `/summary`, `/by-model`), owner-scoped.
+- [x] Tests: ordering, heartbeat, cancel, disconnect, partial persistence, failure after start, retries only before first token, concurrent sends (one wins, others 409), quota enforcement, usage accuracy against fake provider figures, other user's usage invisible.
 - Done when: users see progressive output, can stop it, and consumption is measurable and capped.
+  - Status: met on the fake provider (automated, 37 tests). NOT verified: real Gemini streaming (needs the
+    user's key: `python scripts/llm_smoke_test.py --stream`, then `pytest -m live`), multiple processes, load,
+    real browsers, buffering proxies.
+  - Spike result: the existing `BaseHTTPMiddleware` stack streams progressively (first chunk 0.18 s), keeps
+    Cache-Control / X-Accel-Buffering / correlation id, and an abrupt disconnect reaches the generator within
+    0.05 s. No conversion to pure ASGI was needed.
+  - Limit (D-45): the generation registry (cancel endpoint) and rate limiter are in-process, so cancel by endpoint
+    works only on the instance running the generation. A disconnect still cancels on any instance, and the
+    sweeper (D-46) recovers rows left by a dead instance after `ai_stale_generation_seconds`.
 
 ## M4: AI Tutor UI (Step 7 + streaming client)  Owner: ________
 - [ ] Enable the sidebar item (D-59); update Vitest and Help text. Route `(app)/ai-tutor` and `[conversationId]`.
