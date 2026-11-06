@@ -182,6 +182,9 @@ LLM_PROVIDER=
 LLM_DEFAULT_MODEL=
 # Optional comma-separated extra provider model ids users may pick
 LLM_ALLOWED_MODELS=
+# Optional verified limits of the default model (see list_llm_models.py output)
+LLM_MODEL_MAX_INPUT_TOKENS=
+LLM_MODEL_MAX_OUTPUT_TOKENS=
 GEMINI_API_KEY=
 
 LLM_CONNECT_TIMEOUT_SECONDS=10
