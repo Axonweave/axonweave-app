@@ -1,6 +1,6 @@
 # AI architecture (Phase 2, spec Step 2)
 
-Status: design, no feature code. Decisions referenced as D-nn are in `docs/DECISIONS.md` (D-37 onward).
+Status: written as the Step 2 design and kept up to date; the sections below describe what was built unless marked otherwise (see "As built" at the end for the changes made while implementing). Decisions referenced as D-nn are in `docs/DECISIONS.md` (D-37 onward).
 Context: `docs/AI_INTEGRATION_PLAN.md` (how Phase 1 works and where this plugs in).
 
 ## 1. Principles
@@ -363,3 +363,24 @@ Checklist for the PR that adds it: adapter file, one registry line, adapter unit
 - Streaming tests through the real middleware stack: ordering, heartbeat, cancel, disconnect, partial flush, failure after start.
 - Optional live-provider tests, marked and skipped without a key.
 - Playwright on `FakeProvider`: start a chat, stream, stop, regenerate, rename, delete, switch conversations, second user isolation, mobile.
+
+## 18. As built: differences and additions (Phase 2 close-out)
+
+The design above was implemented as written, with these additions and notes:
+
+- **Frontend (M4):** `frontend/src/features/ai-tutor/` holds the UI. The shell lives in the `(app)/ai-tutor` layout so a streaming chat survives the URL change when a
+  conversation is created. The SSE client is a fetch-based reader with an incremental parser. After every stream the client re-reads the conversation from the
+  server, which is the source of truth. Markdown is rendered by `react-markdown` + `remark-gfm` + `rehype-sanitize` with no raw HTML and safe links only (D-52).
+- **Status endpoint:** `GET /ai/status` works with no provider configured and reports `configured`, `provider_display_name`, `is_test_provider` and `max_input_chars`, so the UI can show the
+  "not configured" state, the privacy notice text and the input limit without calling a provider (D-54, D-58).
+- **Privacy notice:** `POST /users/me/ai-notice/acknowledge` stores `user_preferences.ai_notice_acknowledged_at` (idempotent).
+- **Fake provider delay:** `FAKE_LLM_CHUNK_DELAY_SECONDS` (0 to 2, fake provider only) lets browser tests press Stop mid-stream.
+- **Evaluation:** `backend/scripts/run_ai_eval.py` and `docs/ai_eval/questions.yaml` (see `docs/AI_EVALUATION.md`). The runner calls the provider directly with the production
+  prompt, one attempt per request, and hard caps on requests and tokens.
+- **Single-instance limits (D-45):** the cancel registry and the per-minute rate limiter are in-process. Daily quotas, the one-active-generation rule and stale-generation recovery
+  are database-backed and are not affected.
+- **Pricing:** the price catalogue is empty, so cost is unknown for every real request until a price is verified (D-39).
+- **Not built (by design, spec section 24):** document parsing, retrieval, flashcards, quizzes, agents, tool use.
+
+Related documents: `docs/AI_SECURITY.md`, `docs/AI_API_REFERENCE.md`, `docs/CONVERSATION_MANAGEMENT.md`, `docs/USAGE_AND_COST_TRACKING.md`, `docs/LLM_PROVIDER_INTEGRATION.md`
+(which expands section 15), `docs/AI_TESTING.md`, `docs/AI_EVALUATION.md`.

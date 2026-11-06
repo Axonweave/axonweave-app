@@ -79,14 +79,14 @@ One branch per task, Conventional Commits, no push to `main`, one Alembic head.
   - Found by the browser tests (fixed): `usePathname()` in the shared app layout broke `next build` under Cache Components; after Stop, the client could keep showing a stale `pending` answer until it re-read the server (it now re-reads until the answer is no longer active).
 
 ## M5: Security review, evaluation, docs, acceptance (Steps 10, 11, spec 25)  Owner: ________
-- [ ] Security review against spec 15 and 22.5 (all twelve cases mapped to named tests): auth, ownership, keys never exposed (including OpenAPI and error bodies), input limits, rate limits, safe rendering, cancellation, logging review, provider data handling.
-- [ ] Prompt-injection tests: user text cannot change the system prompt or access control; model-supplied ids are never trusted.
-- [ ] Evaluation set (spec 18): questions across the listed subject areas, criteria table, manual review, results recorded with provider, model id, prompt version, date; compare only on identical settings.
-- [ ] Load and failure tests: concurrent requests, provider outage, stream failure, long conversations.
-- [ ] Documentation (spec 25): `AI_ARCHITECTURE.md` (update), `LLM_PROVIDER_INTEGRATION.md`, `AI_API_REFERENCE.md`, `CONVERSATION_MANAGEMENT.md`, `AI_SECURITY.md`, `USAGE_AND_COST_TRACKING.md`, `AI_TESTING.md`. No credentials in any of them.
-- [ ] Acceptance checklist for spec section 23 written honestly (met / partly met / not met), like `PHASE1_ACCEPTANCE.md`.
-- [ ] CI: backend and E2E jobs green on `main`; migration drift check; coverage gate still met.
-- Done when: every section 23 criterion is met or honestly listed as open.
+- [x] Security review against spec 15 and 22.5 (all twelve cases mapped to named tests) in `docs/AI_SECURITY.md`; gitleaks (full history, with and without the repo config), `pip-audit` (includes `google-genai`), `npm audit`, and a frontend bundle/source scan for key patterns were run.
+- [x] Prompt-injection tests: user text cannot reach the system slot, the API never returns prompt text, model output cannot change access (`backend/tests/ai/test_ai_closeout.py`).
+- [~] Evaluation set (spec 18): 40 questions, a capped runner (`backend/scripts/run_ai_eval.py`), one 15-request real run on `gemini-3.5-flash-lite` with latency and tokens recorded (`docs/AI_EVALUATION.md`). **Answer quality is NOT scored**; the scoring columns are blank for a human reviewer. Cost is unknown (no verified price).
+- [x] Load and failure tests: provider outage then recovery, rate limit, stream failure and interruption, concurrent sends (one user), 60-turn conversation, interleaved users, nothing left running after cancel. A multi-user parallel or load test was not run.
+- [x] Documentation (spec 25): `AI_ARCHITECTURE.md` (updated), `LLM_PROVIDER_INTEGRATION.md` (includes the OpenAI-compatible adapter steps for Qwen or Llama; the adapter itself is not built), `AI_API_REFERENCE.md`, `CONVERSATION_MANAGEMENT.md`, `AI_SECURITY.md`, `USAGE_AND_COST_TRACKING.md`, `AI_TESTING.md`; `README.md` and `docs/WORKFLOW.md` updated. No credentials in any of them.
+- [x] Acceptance checklist for spec section 23 written honestly: `docs/PHASE2_ACCEPTANCE.md` (see its tally and open items).
+- [ ] CI: backend and E2E jobs green on `main` (observed green for PR #15 and the three latest `main` runs on 2026-11-06); this branch's CI to be observed.
+- Done when: every section 23 criterion is met or honestly listed as open. Open items are listed at the end of `PHASE2_ACCEPTANCE.md` (human scoring, price verification, real browser run, provider terms, key rotation, multi-instance).
 
 ## Out of scope (do not start)
 Everything in Phase 2 spec section 24: document parsing, OCR, chunking, embeddings, vector DB, RAG, flashcards, quizzes, spaced repetition, knowledge graph, learner intelligence, research extraction, audio, agents, tool execution, multi-agent orchestration.
