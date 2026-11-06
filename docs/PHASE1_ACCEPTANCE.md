@@ -99,8 +99,9 @@ because the API works.
 
 1. **Subjects, folders and chapters UI missing** (dependent task: branch
    `feat/ui-subjects-folders-chapters`, planned but not started).
-2. **Vulnerable Starlette** pulled in by the pinned FastAPI, and CI's `pip-audit` cannot see it
-   (`docs/SECURITY_REVIEW.md` finding A).
+2. ~~Vulnerable Starlette~~ **Resolved on branch `fix/security-deps`** (not yet merged): FastAPI
+   0.133.0 and Starlette 1.3.1, with a CI audit that checks installed packages
+   (`docs/SECURITY_REVIEW.md` section 5). Six low/moderate `npm audit` advisories via `shadcn` remain.
 3. **Production email is impossible** with the current SMTP sender (no TLS or authentication).
 4. `npm run format:check` fails on files that predate this work; CI does not run it.
 5. `docs/TASKS_Phase1.md` earlier recorded B4 "subjects backend + UI" and "Phase 1 complete" as done;

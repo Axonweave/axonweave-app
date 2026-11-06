@@ -57,7 +57,7 @@ Ticked = done and verified in a local run. GitHub Actions has not been observed 
 
 Not done (open):
 - [ ] **Subjects / folders / chapters UI** (`feat/ui-subjects-folders-chapters`; plan exists, decisions on folder move and subject counts unanswered).
-- [ ] Upgrade FastAPI/Starlette (seven advisories) and make CI audit transitive dependencies. Needs a team decision because it turns CI red until fixed.
+- [x] Upgrade FastAPI/Starlette (seven advisories) and make CI audit the installed environment: done on branch `fix/security-deps` (not merged).
 - [ ] SMTP sender with STARTTLS and authentication; production images/compose file; TLS; scheduled backups.
 - [ ] Restrict the app database role's access to `alembic_version`.
 - [ ] Add `TRUST_PROXY_HEADERS=false` to `.env.example` (edit was blocked in the session; maintainer to do by hand).
