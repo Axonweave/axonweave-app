@@ -9,7 +9,7 @@ from __future__ import annotations
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.ai.model_registry import ModelRegistry, _slug
+from app.ai.model_registry import ModelRegistry
 from app.ai.prompts.registry import PROMPTS, active_prompt
 from app.ai.providers.registry import provider_class
 from app.ai.usage.pricing import find_price
@@ -49,7 +49,7 @@ async def sync_models(db: AsyncSession, registry: ModelRegistry) -> None:
     keys: list[str] = []
     default_id = registry.default.provider_model_id
     for cfg in registry.enabled():
-        key = _slug(cfg.provider_model_id)
+        key = cfg.internal_id
         keys.append(key)
         model = await repo.upsert_model(
             provider.id,

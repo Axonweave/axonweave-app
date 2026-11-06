@@ -71,6 +71,9 @@ class Settings(BaseSettings):
     llm_overall_timeout_seconds: float = 120
     llm_max_retries: int = Field(default=2, ge=0, le=5)
     llm_max_output_tokens: int = Field(default=2000, ge=1)
+    llm_fallback_input_tokens: int = Field(
+        default=8000, ge=1
+    )  # context budget when a model's limit is unknown
     llm_max_input_chars: int = Field(default=8000, ge=1)
     llm_history_limit: int = Field(default=20, ge=1)
     # Empty = provider default; 0 disables thinking where the model supports it.
