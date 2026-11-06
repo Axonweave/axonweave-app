@@ -124,7 +124,7 @@ jobs:
         run: docker compose up -d --build
 
       - name: Wait for the app
-        run: curl --fail --silent --retry 40 --retry-connrefused --retry-delay 3 http://localhost:3000/login > /dev/null
+        run: curl --fail --silent --retry 40 --retry-all-errors --retry-connrefused --retry-delay 3 http://localhost:3000/login > /dev/null
 
       - name: Apply migrations
         run: docker compose exec -T backend alembic upgrade head
