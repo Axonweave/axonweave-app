@@ -28,7 +28,8 @@ class AiUsageRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             name="fk_ai_usage_message_owner",
         ),
         CheckConstraint(
-            "usage_source IS NULL OR usage_source IN ('provider_reported', 'estimated')",
+            "usage_source IS NULL OR "
+            "usage_source IN ('provider_reported', 'estimated', 'unavailable')",
             name="ck_ai_usage_source",
         ),
         CheckConstraint(
@@ -61,6 +62,7 @@ class AiUsageRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     reasoning_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     usage_source: Mapped[str | None] = mapped_column(String(24), nullable=True)
     estimated_cost: Mapped[Decimal | None] = mapped_column(Numeric(14, 8), nullable=True)
+    currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     pricing_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
     request_status: Mapped[str] = mapped_column(String(16), nullable=False)
     error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)

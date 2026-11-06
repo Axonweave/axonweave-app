@@ -21,12 +21,12 @@ from tests.conftest import _make_user
 
 
 async def _catalog(db: AsyncSession) -> tuple[LLMProvider, LLMModel]:
-    provider = LLMProvider(name="fake", display_name="Fake")
+    provider = LLMProvider(provider_name="fake", display_name="Fake")
     db.add(provider)
     await db.flush()
     model = LLMModel(
         provider_id=provider.id,
-        model_key="m-one",
+        internal_id="m-one",
         provider_model_id="one",
         display_name="One",
         capabilities={},
@@ -105,7 +105,7 @@ async def test_sequence_numbers_are_unique_per_conversation(db_session: AsyncSes
 
 @pytest.mark.parametrize(
     "over",
-    [{"role": "system"}, {"status": "weird"}, {"sequence_number": 0}, {"usage_source": "guess"}],
+    [{"role": "robot"}, {"status": "weird"}, {"sequence_number": 0}, {"usage_source": "guess"}],
 )
 async def test_message_check_constraints(db_session: AsyncSession, over: dict[str, Any]) -> None:
     user = await _make_user(db_session, email="a@example.com")
@@ -121,7 +121,7 @@ async def test_single_default_model_and_single_active_prompt(db_session: AsyncSe
         db_session,
         LLMModel(
             provider_id=provider.id,
-            model_key="m-two",
+            internal_id="m-two",
             provider_model_id="two",
             display_name="Two",
             is_default=True,

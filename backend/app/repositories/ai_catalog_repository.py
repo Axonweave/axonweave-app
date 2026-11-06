@@ -20,10 +20,10 @@ class AiCatalogRepository:
 
     async def upsert_provider(self, name: str, display_name: str) -> LLMProvider:
         row = (
-            await self.db.execute(select(LLMProvider).where(LLMProvider.name == name))
+            await self.db.execute(select(LLMProvider).where(LLMProvider.provider_name == name))
         ).scalar_one_or_none()
         if row is None:
-            row = LLMProvider(name=name, display_name=display_name, is_enabled=True)
+            row = LLMProvider(provider_name=name, display_name=display_name, is_enabled=True)
             self.db.add(row)
         else:
             row.display_name = display_name
@@ -37,13 +37,13 @@ class AiCatalogRepository:
         )
 
     async def upsert_model(
-        self, provider_id: Any, model_key: str, fields: dict[str, Any]
+        self, provider_id: Any, internal_id: str, fields: dict[str, Any]
     ) -> LLMModel:
         row = (
-            await self.db.execute(select(LLMModel).where(LLMModel.model_key == model_key))
+            await self.db.execute(select(LLMModel).where(LLMModel.internal_id == internal_id))
         ).scalar_one_or_none()
         if row is None:
-            row = LLMModel(provider_id=provider_id, model_key=model_key, **fields)
+            row = LLMModel(provider_id=provider_id, internal_id=internal_id, **fields)
             self.db.add(row)
         else:
             for k, v in fields.items():
@@ -51,10 +51,10 @@ class AiCatalogRepository:
         await self.db.flush()
         return row
 
-    async def disable_models_except(self, model_keys: Sequence[str]) -> None:
+    async def disable_models_except(self, internal_ids: Sequence[str]) -> None:
         await self.db.execute(
             update(LLMModel)
-            .where(LLMModel.model_key.not_in(list(model_keys)))
+            .where(LLMModel.internal_id.not_in(list(internal_ids)))
             .values(is_enabled=False, is_default=False)
         )
 

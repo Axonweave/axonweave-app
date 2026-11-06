@@ -26,7 +26,7 @@ class Conversation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
-    model_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    model_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     last_message_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     messages: Mapped[list["Message"]] = relationship(

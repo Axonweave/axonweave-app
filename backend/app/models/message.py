@@ -33,13 +33,14 @@ class Message(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             ondelete="CASCADE",
             name="fk_messages_conversation_owner",
         ),
-        CheckConstraint("role IN ('user', 'assistant')", name="ck_messages_role"),
+        CheckConstraint("role IN ('system', 'user', 'assistant', 'tool')", name="ck_messages_role"),
         CheckConstraint(
             "status IN ('pending', 'streaming', 'completed', 'failed', 'cancelled')",
             name="ck_messages_status",
         ),
         CheckConstraint(
-            "usage_source IS NULL OR usage_source IN ('provider_reported', 'estimated')",
+            "usage_source IS NULL OR "
+            "usage_source IN ('provider_reported', 'estimated', 'unavailable')",
             name="ck_messages_usage_source",
         ),
         CheckConstraint("sequence_number > 0", name="ck_messages_sequence_positive"),
@@ -61,7 +62,7 @@ class Message(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="completed")
     sequence_number: Mapped[int] = mapped_column(Integer, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    model_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    model_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     prompt_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
     prompt_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
     input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -102,4 +103,4 @@ class MessageFeedback(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     rating: Mapped[str] = mapped_column(String(16), nullable=False)
-    comment: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    feedback_text: Mapped[str | None] = mapped_column(String(1000), nullable=True)

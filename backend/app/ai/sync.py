@@ -67,9 +67,9 @@ async def sync_models(db: AsyncSession, registry: ModelRegistry) -> None:
                 price.pricing_version,
                 {
                     "currency": price.currency,
-                    "input_per_million": price.input_per_million,
-                    "output_per_million": price.output_per_million,
-                    "source_url": price.source_url,
+                    "input_price_per_1m": price.input_per_million,
+                    "output_price_per_1m": price.output_per_million,
+                    "source_note": price.source_url,
                 },
             )
     await repo.disable_models_except(keys)
