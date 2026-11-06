@@ -120,6 +120,9 @@ jobs:
       # between chunks lets the Stop test press the button mid-stream.
       LLM_PROVIDER: fake
       FAKE_LLM_CHUNK_DELAY_SECONDS: "0.1"
+      # The serial AI Tutor flow sends many messages as one user in a couple of minutes; the
+      # default 10/min per-user limit (a real control) would trip it. Raised for the test stack only.
+      AI_REQUESTS_PER_MINUTE_PER_USER: "200"
 
     steps:
       - uses: actions/checkout@v4
