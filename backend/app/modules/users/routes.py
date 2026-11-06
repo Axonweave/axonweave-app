@@ -69,6 +69,12 @@ async def update_preferences(
     return PreferencesResponse(data=UserPreferencesOut.model_validate(user.preferences))
 
 
+@router.post("/me/ai-notice/acknowledge", response_model=PreferencesResponse)
+async def acknowledge_ai_notice(current_user: ActiveUser, db: DbSession) -> PreferencesResponse:
+    user = await UsersService(db).acknowledge_ai_notice(current_user)
+    return PreferencesResponse(data=UserPreferencesOut.model_validate(user.preferences))
+
+
 # ── Sessions ──────────────────────────────────────────────────────────────────
 
 

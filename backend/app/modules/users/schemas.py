@@ -24,6 +24,7 @@ class UserPreferencesOut(BaseModel):
     academic_level: str | None
     study_preferences: Any
     preferred_language: str | None
+    ai_notice_acknowledged_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

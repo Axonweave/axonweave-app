@@ -171,6 +171,20 @@ class ModelOut(BaseModel):
     is_test_provider: bool
 
 
+class AiStatusOut(BaseModel):
+    """What the UI needs to know before any model call. Never exposes keys or settings."""
+
+    configured: bool
+    provider_display_name: str | None
+    is_test_provider: bool
+    max_input_chars: int
+
+
+class AiStatusResponse(BaseModel):
+    success: bool = True
+    data: AiStatusOut
+
+
 class ModelListResponse(BaseModel):
     success: bool = True
     data: list[ModelOut]

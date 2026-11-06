@@ -54,8 +54,13 @@ export default function HelpPage() {
           </li>
         </ol>
         <p className="text-muted-foreground text-sm">
-          AI Tutor, Research Studio, Assessments and Revision are marked &quot;Coming soon&quot; in
-          the sidebar. They are not available yet.
+          The{" "}
+          <Link href="/ai-tutor" className={linkClass}>
+            AI Tutor
+          </Link>{" "}
+          answers questions in conversations that are saved to your account. Research Studio,
+          Assessments and Revision are marked &quot;Coming soon&quot; in the sidebar. They are not
+          available yet.
         </p>
       </section>
 

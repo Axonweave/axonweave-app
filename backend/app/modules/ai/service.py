@@ -151,6 +151,17 @@ class ModelService:
     def default(self) -> dict[str, Any]:
         return self._out(self._runtime.registry.default, is_default=True)
 
+    def status(self) -> dict[str, Any]:
+        registry = self._runtime.registry
+        provider = registry.provider if registry.configured else None
+        cls = provider_class(provider) if provider else None
+        return {
+            "configured": registry.configured,
+            "provider_display_name": cls.display_name if cls else None,
+            "is_test_provider": cls is not None and cls.kind == "test",
+            "max_input_chars": self._runtime.settings.llm_max_input_chars,
+        }
+
     def capabilities(self) -> dict[str, Any]:
         return self._runtime.registry.default.capabilities.to_dict()
 
