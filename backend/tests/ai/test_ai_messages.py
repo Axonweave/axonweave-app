@@ -478,3 +478,28 @@ class TestFeedback:
 @pytest.fixture(autouse=True)
 def _quiet() -> None:
     return None
+
+
+class TestStaleConversationModel:
+    async def test_conversation_on_a_disabled_model_continues_on_the_default(
+        self, client: AsyncClient, ai: AiHarness, fake: FakeProvider, alice: Actor
+    ) -> None:
+        from sqlalchemy import update
+
+        from app.models.conversation import Conversation
+        from tests.conftest import _TestSessionLocal
+
+        cid = await new_conversation(client, alice)
+        async with _TestSessionLocal() as db:
+            await db.execute(update(Conversation).values(model_id="a-model-that-was-removed"))
+            await db.commit()
+        resp = await send(client, alice, cid, "still works")
+        assert resp.status_code == 201
+        assert fake.calls[-1].model  # served by the default model
+
+    async def test_an_explicit_invalid_model_is_still_rejected(
+        self, client: AsyncClient, ai: AiHarness, alice: Actor
+    ) -> None:
+        cid = await new_conversation(client, alice)
+        resp = await send(client, alice, cid, "hi", model_id="not-a-model")
+        assert resp.status_code == 422 and resp.json()["error"]["code"] == "LLM_INVALID_MODEL"

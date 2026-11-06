@@ -196,7 +196,15 @@ class AiService:
         self, *, user: User, conversation_id: uuid.UUID, content: str, model_id: str | None
     ) -> Prepared:
         conversation = await self._owned_active_conversation(user, conversation_id)
-        model = self._runtime.registry.resolve(model_id or conversation.model_id)
+        if model_id:
+            model = self._runtime.registry.resolve(model_id)  # an explicit choice must be valid
+        else:
+            try:
+                model = self._runtime.registry.resolve(conversation.model_id)
+            except LLMInvalidModelError:
+                # The model this conversation was started with is no longer enabled (provider or
+                # configuration changed): continue on the default instead of locking the chat.
+                model = self._runtime.registry.resolve(None)
         if len(content) > self._settings.llm_max_input_chars:
             raise InputTooLongError()
 
