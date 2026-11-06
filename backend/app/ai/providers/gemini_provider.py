@@ -96,6 +96,18 @@ def map_error(exc: BaseException) -> LLMError:
     """Vendor/transport exception -> our taxonomy. The vendor message is inspected, never kept."""
     if isinstance(exc, LLMError):
         return exc
+    mapped = _map_error(exc)
+    # Safe triage hint for operators: exception class, HTTP code and status word only. Never the
+    # vendor message (it can echo request content) and never a key.
+    status = getattr(exc, "status", None)
+    mapped.diagnostic = (  # type: ignore[attr-defined]
+        f"{type(exc).__name__} code={getattr(exc, 'code', None)} "
+        f"status={status if isinstance(status, str) else None}"
+    )
+    return mapped
+
+
+def _map_error(exc: BaseException) -> LLMError:
     if isinstance(exc, TimeoutError | asyncio.TimeoutError | httpx.TimeoutException):
         return LLMTimeoutError()
     if isinstance(exc, genai_errors.APIError):
@@ -327,15 +339,18 @@ class GeminiProvider(LLMProvider):
 
     async def count_tokens(self, request: LLMRequest) -> int | None:
         try:
-            config = (
-                genai_types.CountTokensConfig(system_instruction=request.system_prompt)
-                if request.system_prompt
-                else None
-            )
+            # The Gemini API rejects `system_instruction` in a count-tokens config, so the system
+            # prompt is counted as a leading content block instead (an estimate, close enough).
+            contents = self._contents(request)
+            if request.system_prompt:
+                contents.insert(
+                    0,
+                    genai_types.Content(
+                        role="user", parts=[genai_types.Part(text=request.system_prompt)]
+                    ),
+                )
             result = await asyncio.wait_for(
-                self._client.aio.models.count_tokens(
-                    model=request.model, contents=self._contents(request), config=config
-                ),
+                self._client.aio.models.count_tokens(model=request.model, contents=contents),
                 timeout=min(request.timeouts.generation, request.timeouts.overall),
             )
         except BaseException as exc:

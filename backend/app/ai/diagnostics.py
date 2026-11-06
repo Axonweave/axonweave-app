@@ -113,6 +113,9 @@ async def smoke_test_report(settings: Settings, *, stream: bool = False) -> str:
             lines.append("Mode: single response")
     except LLMError as exc:
         lines.append(f"FAILED: {exc.code}")
+        hint = getattr(exc, "diagnostic", None)
+        if hint:
+            lines.append(f"Cause (class/code only): {hint}")
         raise DiagnosticFailed("\n".join(lines)) from exc
     finally:
         await provider.aclose()

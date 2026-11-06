@@ -42,6 +42,12 @@ _BASE: dict[str, Any] = {
     "app_secret_key": "x" * 40,
     "database_url": "postgresql+psycopg://u:p@db:5432/app",
     "database_migration_url": "postgresql+psycopg://o:p@db:5432/app",
+    # Explicit blanks: real environment variables override `_env_file=None`, so a developer with a
+    # configured provider must not change what these tests see.
+    "llm_provider": "",
+    "llm_default_model": "",
+    "llm_allowed_models": "",
+    "gemini_api_key": None,
 }
 _PROD: dict[str, Any] = {
     **_BASE,
