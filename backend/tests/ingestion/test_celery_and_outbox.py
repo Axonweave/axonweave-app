@@ -44,7 +44,11 @@ def test_tasks_do_not_run_eagerly_without_the_fixture() -> None:
 
 
 def test_every_beat_entry_points_at_a_registered_task() -> None:
-    assert set(BEAT_SCHEDULE) == {"storage-cleanup-outbox", "sweep-stale-processing-jobs"}
+    assert set(BEAT_SCHEDULE) == {
+        "storage-cleanup-outbox",
+        "dispatch-queued-processing-jobs",
+        "sweep-stale-processing-jobs",
+    }
     for entry in BEAT_SCHEDULE.values():
         assert entry["task"] in celery_app.tasks, entry["task"]
         assert entry["schedule"] > 0

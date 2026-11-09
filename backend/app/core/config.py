@@ -122,6 +122,13 @@ class Settings(BaseSettings):
     doc_max_total_bytes_per_user: int = Field(default=1024**3, ge=1)
     doc_uploads_per_minute_per_user: int = Field(default=20, ge=1)
     doc_max_pages: int = Field(default=500, ge=1)
+    doc_chunk_target_tokens: int = Field(default=400, ge=50)
+    doc_chunk_overlap_tokens: int = Field(default=60, ge=0)
+    doc_chunk_max_tokens: int = Field(default=600, ge=100)
+    doc_ocr_timeout_seconds: int = Field(default=60, ge=5)
+    # Optional address-space cap for a worker process in MB (0 = off). The container memory limit in
+    # compose is the enforced cap; this only turns a runaway parser into a MemoryError.
+    worker_memory_limit_mb: int = Field(default=0, ge=0)
     doc_max_extracted_chars: int = Field(default=2_000_000, ge=1)
     doc_zip_max_entries: int = Field(default=2000, ge=1)
     doc_zip_max_uncompressed_bytes: int = Field(default=200 * 1024 * 1024, ge=1)

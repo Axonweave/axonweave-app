@@ -172,7 +172,7 @@ class DocumentRepository:
         checksum: str,
         storage_key: str,
         pipeline_version: str,
-    ) -> Document:
+    ) -> tuple[Document, uuid.UUID]:
         """Insert the document, version 1 and a queued job in one flush; the caller commits."""
         doc = Document(
             id=document_id,
@@ -204,18 +204,17 @@ class DocumentRepository:
         )
         self._db.add(version)
         await self._db.flush()
-        self._db.add(
-            DocumentProcessingJob(
-                user_id=user_id,
-                document_id=document_id,
-                document_version_id=version.id,
-                pipeline_version=pipeline_version,
-                status="queued",
-                stage="queued",
-            )
+        job = DocumentProcessingJob(
+            user_id=user_id,
+            document_id=document_id,
+            document_version_id=version.id,
+            pipeline_version=pipeline_version,
+            status="queued",
+            stage="queued",
         )
+        self._db.add(job)
         await self._db.flush()
-        return doc
+        return doc, job.id
 
     async def move(
         self,
@@ -300,3 +299,32 @@ class DocumentRepository:
             select(Document).where(Document.user_id == user_id).order_by(Document.created_at)
         )
         return rows.scalars().all()
+
+    # ── pipeline support (M3): all scoped by the job's user_id ───────────────
+
+    async def get_version_by_id(
+        self, *, version_id: uuid.UUID, user_id: uuid.UUID
+    ) -> DocumentVersion | None:
+        result = await self._db.execute(
+            select(DocumentVersion).where(
+                DocumentVersion.id == version_id, DocumentVersion.user_id == user_id
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def set_version_status(
+        self, *, doc: Document, version: DocumentVersion, status: str, **fields: Any
+    ) -> None:
+        """Version status is authoritative; the document copy follows only the latest version
+        (D-68)."""
+        version.processing_status = status
+        for name, value in fields.items():
+            setattr(version, name, value)
+        if version.version_number == doc.latest_version:
+            doc.processing_status = status
+        await self._db.flush()
+
+    async def activate_version(self, doc: Document, version: DocumentVersion) -> None:
+        """Make this version the searchable one (one transaction with the chunk swap)."""
+        doc.active_version = version.version_number
+        await self._db.flush()

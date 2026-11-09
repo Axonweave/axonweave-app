@@ -2,6 +2,7 @@ import hashlib
 import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -11,8 +12,10 @@ from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import UploadFile
 
 from app.core.config import Settings
+from app.ingestion.dispatch import JobDispatcher, get_job_dispatcher
 from app.ingestion.version import PIPELINE_VERSION
 from app.models.document import Document, DocumentVersion
+from app.models.document_chunk import DocumentChunk
 from app.models.document_processing_job import DocumentProcessingJob
 from app.models.user import User
 from app.modules.documents import cleanup
@@ -28,8 +31,10 @@ from app.modules.documents.validation import (
     sanitise_display_name,
 )
 from app.repositories.chapter_repository import ChapterRepository
+from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.folder_repository import FolderRepository
+from app.repositories.processing_job_repository import ProcessingJobRepository
 from app.repositories.subject_repository import SubjectRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.storage.base import StorageBackend, StorageError
@@ -56,8 +61,16 @@ class Download:
 
 class DocumentService:
     def __init__(
-        self, db: AsyncSession, storage: StorageBackend, scanner: Scanner, settings: Settings
+        self,
+        db: AsyncSession,
+        storage: StorageBackend,
+        scanner: Scanner,
+        settings: Settings,
+        dispatcher: JobDispatcher | None = None,
     ) -> None:
+        self._dispatcher = dispatcher or get_job_dispatcher()
+        self._jobs = ProcessingJobRepository(db)
+        self._chunks = DocumentChunkRepository(db)
         self._db = db
         self._storage = storage
         self._scanner = scanner
@@ -187,7 +200,7 @@ class DocumentService:
             logger.error("document_store_failed", code=exc.code)
             raise UploadRejected("STORAGE_UNAVAILABLE", "Storage is unavailable.", 503) from None
         try:
-            doc = await self._docs.create_with_version_and_job(
+            doc, job_id = await self._docs.create_with_version_and_job(
                 document_id=document_id,
                 user_id=user.id,
                 workspace_id=placement.workspace_id,
@@ -211,6 +224,7 @@ class DocumentService:
             except StorageError as exc:
                 logger.error("document_orphan_cleanup_failed", code=exc.code)
             raise
+        await self._dispatch(job_id)
         logger.info(
             "document_uploaded",
             user_id=str(user.id),
@@ -308,3 +322,133 @@ class DocumentService:
             logger.error("document_object_missing", document_id=str(doc.id))
             raise _not_found("DOCUMENT_FILE_MISSING", "The document file is not available.")
         return Download(document=doc, stream=self._storage.open(version.storage_key))
+
+    # -- processing control (M3) ---------------------------------------------
+
+    async def _dispatch(self, job_id: uuid.UUID) -> None:
+        """Best effort: a job the broker did not take stays queued and the sweeper sends it."""
+        await run_in_threadpool(self._dispatcher.dispatch, job_id)
+
+    def require_processing(self) -> None:
+        if not self._dispatcher.available():
+            raise HTTPException(
+                503,
+                detail={
+                    "code": "PROCESSING_UNAVAILABLE",
+                    "message": "Document processing is not available.",
+                },
+            )
+
+    async def _latest_version(self, doc: Document) -> DocumentVersion:
+        version = await self._docs.get_version(
+            document_id=doc.id, user_id=doc.user_id, version_number=doc.latest_version
+        )
+        if version is None:
+            raise _not_found("DOCUMENT_NOT_FOUND", "Document not found.")
+        return version
+
+    async def _requeue(
+        self, *, user_id: uuid.UUID, document_id: uuid.UUID, allowed: tuple[str, ...], code: str
+    ) -> Document:
+        self.require_processing()
+        doc = await self.get_owned(user_id=user_id, document_id=document_id)
+        version = await self._latest_version(doc)
+        if await self._jobs.active_for_version(version.id) is not None:
+            raise HTTPException(
+                409,
+                detail={"code": "PROCESSING_IN_PROGRESS", "message": "Processing is in progress."},
+            )
+        if version.processing_status not in allowed:
+            raise HTTPException(
+                409, detail={"code": code, "message": "This document cannot be processed now."}
+            )
+        job = await self._jobs.create_queued(
+            user_id=user_id, document_id=doc.id, version_id=version.id, pipeline=PIPELINE_VERSION
+        )
+        await self._docs.set_version_status(doc=doc, version=version, status="queued")
+        await self._db.commit()
+        await self._dispatch(job.id)
+        await self._db.refresh(doc)
+        return doc
+
+    async def retry(self, *, user_id: uuid.UUID, document_id: uuid.UUID) -> Document:
+        return await self._requeue(
+            user_id=user_id,
+            document_id=document_id,
+            allowed=("failed", "cancelled"),
+            code="NOT_RETRYABLE",
+        )
+
+    async def reprocess(self, *, user_id: uuid.UUID, document_id: uuid.UUID) -> Document:
+        return await self._requeue(
+            user_id=user_id,
+            document_id=document_id,
+            allowed=("completed", "failed", "cancelled"),
+            code="NOT_REPROCESSABLE",
+        )
+
+    async def cancel(self, *, user_id: uuid.UUID, document_id: uuid.UUID) -> Document:
+        doc = await self.get_owned(user_id=user_id, document_id=document_id)
+        version = await self._latest_version(doc)
+        job = await self._jobs.active_for_version(version.id)
+        if job is None:
+            raise HTTPException(
+                409, detail={"code": "NOTHING_TO_CANCEL", "message": "Nothing is processing."}
+            )
+        if job.status == "queued":  # not started: cancel right away
+            await self._jobs.finish(job.id, "cancelled", None, datetime.now(UTC))
+            await self._docs.set_version_status(doc=doc, version=version, status="cancelled")
+        else:  # running: the worker stops at the next stage boundary
+            await self._jobs.request_cancel(job.id)
+        await self._db.commit()
+        await self._db.refresh(doc)
+        return doc
+
+    async def processing_details(
+        self, *, user_id: uuid.UUID, document_id: uuid.UUID
+    ) -> tuple[Document, DocumentVersion, list[DocumentProcessingJob], int]:
+        doc = await self.get_owned(user_id=user_id, document_id=document_id)
+        version = await self._latest_version(doc)
+        jobs = await self._jobs.history(version_id=version.id, user_id=user_id)
+        count = await self._chunks.count_for_version(user_id=user_id, version_id=version.id)
+        return doc, version, jobs, count
+
+    async def _readable_version(self, doc: Document) -> DocumentVersion:
+        if doc.active_version is None:
+            raise HTTPException(
+                409,
+                detail={"code": "DOCUMENT_NOT_READY", "message": "The document is not processed."},
+            )
+        version = await self._docs.get_version(
+            document_id=doc.id, user_id=doc.user_id, version_number=doc.active_version
+        )
+        if version is None:
+            raise _not_found("DOCUMENT_NOT_FOUND", "Document not found.")
+        return version
+
+    async def pages(self, *, user_id: uuid.UUID, document_id: uuid.UUID) -> list[dict[str, Any]]:
+        doc = await self.get_owned(user_id=user_id, document_id=document_id)
+        version = await self._readable_version(doc)
+        return await self._chunks.pages(user_id=user_id, document_id=doc.id, version_id=version.id)
+
+    async def content(
+        self,
+        *,
+        user_id: uuid.UUID,
+        document_id: uuid.UUID,
+        page: int | None,
+        slide: int | None,
+        limit: int,
+        offset: int,
+    ) -> tuple[list[DocumentChunk], int]:
+        doc = await self.get_owned(user_id=user_id, document_id=document_id)
+        version = await self._readable_version(doc)
+        return await self._chunks.content(
+            user_id=user_id,
+            document_id=doc.id,
+            version_id=version.id,
+            page=page,
+            slide=slide,
+            limit=limit,
+            offset=offset,
+        )

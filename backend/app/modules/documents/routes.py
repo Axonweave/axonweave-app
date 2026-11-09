@@ -11,10 +11,17 @@ from app.core.dependencies import ActiveUser, DbSession
 from app.core.rate_limit import RateLimiter, get_rate_limiter
 from app.modules.documents.scanner import Scanner, get_scanner
 from app.modules.documents.schemas import (
+    ChunkOut,
+    ContentResponse,
     DocumentListResponse,
     DocumentOut,
     DocumentResponse,
     FileTypeLiteral,
+    JobOut,
+    PageOut,
+    PagesResponse,
+    ProcessingDetailsOut,
+    ProcessingDetailsResponse,
     ProcessingStatusOut,
     ProcessingStatusResponse,
     RejectedFile,
@@ -86,11 +93,13 @@ async def upload_documents(
     settings: AppSettings,
     limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
 ) -> UploadResponse:
+    service = _service(db, storage, scanner, settings)
+    service.require_processing()  # without a broker nothing could ever be processed
     await limiter.check(
         f"doc_upload:{current_user.id}", settings.doc_uploads_per_minute_per_user, 60
     )
     form = await read_upload_form(request, settings)
-    outcome = await _service(db, storage, scanner, settings).upload(user=current_user, form=form)
+    outcome = await service.upload(user=current_user, form=form)
     if not outcome.documents and outcome.rejected:
         _, first = outcome.rejected[0]
         raise HTTPException(
@@ -308,4 +317,140 @@ async def inline_document(
             "Content-Security-Policy": "sandbox; default-src 'none'",
             "Content-Length": str(doc.file_size),
         },
+    )
+
+
+@router.post("/{document_id}/retry", response_model=DocumentResponse)
+async def retry_document(
+    document_id: uuid.UUID,
+    current_user: ActiveUser,
+    db: DbSession,
+    storage: Storage,
+    scanner: Scan,
+    settings: AppSettings,
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
+) -> DocumentResponse:
+    await limiter.check(f"doc_process:{current_user.id}", 10, 60)
+    doc = await _service(db, storage, scanner, settings).retry(
+        user_id=current_user.id, document_id=document_id
+    )
+    return DocumentResponse(data=DocumentOut.model_validate(doc))
+
+
+@router.post("/{document_id}/reprocess", response_model=DocumentResponse)
+async def reprocess_document(
+    document_id: uuid.UUID,
+    current_user: ActiveUser,
+    db: DbSession,
+    storage: Storage,
+    scanner: Scan,
+    settings: AppSettings,
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
+) -> DocumentResponse:
+    await limiter.check(f"doc_process:{current_user.id}", 10, 60)
+    doc = await _service(db, storage, scanner, settings).reprocess(
+        user_id=current_user.id, document_id=document_id
+    )
+    return DocumentResponse(data=DocumentOut.model_validate(doc))
+
+
+@router.post("/{document_id}/cancel", response_model=DocumentResponse)
+async def cancel_processing(
+    document_id: uuid.UUID,
+    current_user: ActiveUser,
+    db: DbSession,
+    storage: Storage,
+    scanner: Scan,
+    settings: AppSettings,
+) -> DocumentResponse:
+    doc = await _service(db, storage, scanner, settings).cancel(
+        user_id=current_user.id, document_id=document_id
+    )
+    return DocumentResponse(data=DocumentOut.model_validate(doc))
+
+
+@router.get("/{document_id}/processing", response_model=ProcessingDetailsResponse)
+async def processing_details(
+    document_id: uuid.UUID,
+    current_user: ActiveUser,
+    db: DbSession,
+    storage: Storage,
+    scanner: Scan,
+    settings: AppSettings,
+) -> ProcessingDetailsResponse:
+    doc, version, jobs, chunk_count = await _service(
+        db, storage, scanner, settings
+    ).processing_details(user_id=current_user.id, document_id=document_id)
+    return ProcessingDetailsResponse(
+        data=ProcessingDetailsOut(
+            document_id=doc.id,
+            version=version.version_number,
+            processing_status=version.processing_status,
+            extraction_method=version.extraction_method,
+            ocr_used=version.ocr_used,
+            ocr_mean_confidence=version.ocr_mean_confidence,
+            page_count=version.page_count,
+            slide_count=version.slide_count,
+            word_count=version.word_count,
+            warnings=[str(w) for w in version.warnings],
+            pipeline_version=version.pipeline_version,
+            index_version=version.index_version,
+            chunk_count=chunk_count,
+            jobs=[JobOut.model_validate(j) for j in jobs],
+        )
+    )
+
+
+@router.get("/{document_id}/pages", response_model=PagesResponse)
+async def document_pages(
+    document_id: uuid.UUID,
+    current_user: ActiveUser,
+    db: DbSession,
+    storage: Storage,
+    scanner: Scan,
+    settings: AppSettings,
+) -> PagesResponse:
+    rows = await _service(db, storage, scanner, settings).pages(
+        user_id=current_user.id, document_id=document_id
+    )
+    return PagesResponse(data=[PageOut(**r) for r in rows])
+
+
+@router.get("/{document_id}/content", response_model=ContentResponse)
+async def document_content(
+    document_id: uuid.UUID,
+    current_user: ActiveUser,
+    db: DbSession,
+    storage: Storage,
+    scanner: Scan,
+    settings: AppSettings,
+    page: int | None = Query(default=None, ge=1),
+    slide: int | None = Query(default=None, ge=1),
+    limit: int = Query(default=20, ge=1, le=50),
+    offset: int = Query(default=0, ge=0),
+) -> ContentResponse:
+    """The owner's own extracted text, by chunk, for the document detail view."""
+    chunks, total = await _service(db, storage, scanner, settings).content(
+        user_id=current_user.id,
+        document_id=document_id,
+        page=page,
+        slide=slide,
+        limit=limit,
+        offset=offset,
+    )
+    return ContentResponse(
+        data=[
+            ChunkOut(
+                chunk_index=c.chunk_index,
+                text=c.content,
+                page_number=c.page_number,
+                slide_number=c.slide_number,
+                section_heading=c.section_heading,
+                token_count=c.token_count,
+            )
+            for c in chunks
+        ],
+        total=total,
+        limit=limit,
+        offset=offset,
     )
