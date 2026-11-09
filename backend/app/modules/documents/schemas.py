@@ -120,3 +120,66 @@ class ProcessingStatusResponse(BaseModel):
 
 
 SortField = Literal["created_at", "updated_at", "display_name", "file_size"]
+
+
+class JobOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    status: str
+    stage: str
+    retry_count: int
+    error_code: str | None
+    started_at: datetime | None
+    completed_at: datetime | None
+    created_at: datetime
+
+
+class ProcessingDetailsOut(BaseModel):
+    document_id: uuid.UUID
+    version: int
+    processing_status: str
+    extraction_method: str | None
+    ocr_used: bool
+    ocr_mean_confidence: float | None
+    page_count: int | None
+    slide_count: int | None
+    word_count: int | None
+    warnings: list[str]
+    pipeline_version: str | None
+    index_version: int | None
+    chunk_count: int
+    jobs: list[JobOut]
+
+
+class ProcessingDetailsResponse(BaseModel):
+    success: bool = True
+    data: ProcessingDetailsOut
+
+
+class PageOut(BaseModel):
+    number: int
+    kind: str  # "page" or "slide"
+    chunk_count: int
+    char_count: int
+
+
+class PagesResponse(BaseModel):
+    success: bool = True
+    data: list[PageOut]
+
+
+class ChunkOut(BaseModel):
+    chunk_index: int
+    text: str
+    page_number: int | None
+    slide_number: int | None
+    section_heading: str | None
+    token_count: int
+
+
+class ContentResponse(BaseModel):
+    success: bool = True
+    data: list[ChunkOut]
+    total: int
+    limit: int
+    offset: int

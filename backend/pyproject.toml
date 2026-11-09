@@ -41,7 +41,7 @@ ignore_errors = true
 
 # Libraries without type stubs (Phase 3). Their use is confined to app/storage/s3_backend.py and app/ingestion/.
 [[tool.mypy.overrides]]
-module = ["boto3.*", "botocore.*", "celery.*", "kombu.*"]
+module = ["boto3.*", "botocore.*", "celery.*", "kombu.*", "pymupdf.*", "fitz.*", "pptx.*", "docx.*", "pytesseract.*", "PIL.*"]
 ignore_missing_imports = true
 
 # Celery's task decorators are untyped.
@@ -49,6 +49,11 @@ ignore_missing_imports = true
 module = ["app.ingestion.*"]
 disallow_untyped_decorators = false
 disallow_subclassing_any = false
+
+# PyMuPDF, python-pptx and python-docx are untyped or only partly typed.
+[[tool.mypy.overrides]]
+module = ["app.ingestion.extractors.*"]
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

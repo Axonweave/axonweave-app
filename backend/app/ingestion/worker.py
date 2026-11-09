@@ -12,7 +12,7 @@ from typing import Any
 
 import structlog
 from celery import Celery
-from celery.signals import task_failure
+from celery.signals import task_failure, worker_process_init
 
 from app.core.config import Settings, get_settings
 from app.ingestion.errors import safe_error_code
@@ -23,6 +23,10 @@ logger = structlog.get_logger(__name__)
 BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
     "storage-cleanup-outbox": {
         "task": "storage.process_cleanup_outbox",
+        "schedule": 60.0,
+    },
+    "dispatch-queued-processing-jobs": {
+        "task": "ingestion.dispatch_queued",
         "schedule": 60.0,
     },
     "sweep-stale-processing-jobs": {
@@ -66,6 +70,22 @@ def create_celery_app(settings: Settings | None = None) -> Celery:
 
 
 celery_app = create_celery_app()
+
+
+@worker_process_init.connect
+def _limit_memory(**_: Any) -> None:
+    """Optional address-space cap for each worker process (WORKER_MEMORY_LIMIT_MB, 0 = off). The
+    container memory limit is the enforced cap; this turns a runaway parser into a MemoryError."""
+    limit_mb = get_settings().worker_memory_limit_mb
+    if limit_mb <= 0:
+        return
+    try:
+        import resource
+
+        limit = limit_mb * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
+    except (ImportError, ValueError, OSError):
+        logger.warning("worker_memory_limit_not_applied")
 
 
 @task_failure.connect
