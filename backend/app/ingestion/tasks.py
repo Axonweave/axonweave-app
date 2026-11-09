@@ -12,6 +12,12 @@ import structlog
 from celery import Task
 
 from app.core.config import get_settings
+from app.embeddings.registry import (
+    close_embedding_providers,
+    embedding_configured,
+    get_embedding_provider,
+)
+from app.embeddings.service import EmbeddingService
 from app.ingestion import errors
 from app.ingestion.cleanup_service import process_outbox
 from app.ingestion.db import task_session_factory
@@ -51,13 +57,23 @@ def process_document(self: Task, job_id: str) -> str:
     """Process one document version. Only the job id travels through the broker."""
 
     async def run() -> str:
+        settings = get_settings()
         async with task_session_factory() as factory:
+            embedder = (
+                EmbeddingService(factory, get_embedding_provider(settings), settings)
+                if embedding_configured(settings)
+                else None
+            )
             deps = PipelineDeps(
                 session_factory=factory,
                 storage=get_storage_backend(),
-                settings=get_settings(),
+                settings=settings,
+                embedder=embedder,
             )
-            return await run_job(deps, uuid.UUID(job_id), celery_task_id=self.request.id)
+            try:
+                return await run_job(deps, uuid.UUID(job_id), celery_task_id=self.request.id)
+            finally:
+                await close_embedding_providers()
 
     outcome = asyncio.run(run())
     if outcome == RETRY:  # transient failure already recorded; let Celery back off and re-run
