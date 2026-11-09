@@ -1,5 +1,7 @@
 """Phase 3 M2: upload and document management API (spec 4, 19.1; D-64, D-66, D-71, D-72)."""
 
+import asyncio
+import struct
 import uuid
 from collections.abc import Iterator
 from typing import Any
@@ -383,6 +385,65 @@ class TestHostileUploads:
         assert resp.status_code == 503
         assert resp.json()["error"]["code"] == "SCANNER_UNAVAILABLE"
         assert storage.keys() == []
+
+
+class FakeClamd:
+    """A tiny clamd: reads an INSTREAM and answers with a canned reply."""
+
+    def __init__(self, reply: bytes):
+        self.reply, self.received = reply, 0
+
+    async def handle(self, reader, writer):
+        await reader.readexactly(len(b"zINSTREAM\0"))
+        while True:
+            (n,) = struct.unpack("!I", await reader.readexactly(4))
+            if n == 0:
+                break
+            self.received += len(await reader.readexactly(n))
+        writer.write(self.reply)
+        await writer.drain()
+        writer.close()
+
+
+async def _clamd(reply: bytes):
+    fake = FakeClamd(reply)
+    server = await asyncio.start_server(fake.handle, "127.0.0.1", 0)
+    return fake, server, server.sockets[0].getsockname()[1]
+
+
+class TestClamdScanner:
+    async def test_clean_file_is_stored_and_streamed_to_the_scanner(
+        self, client: AsyncClient, alice: Actor, storage: InMemoryStorageBackend
+    ):
+        fake, server, port = await _clamd(b"stream: OK\0")
+        async with server:
+            configure(scanner_backend="clamav", clamav_host="127.0.0.1", clamav_port=port)
+            resp = await upload(client, alice, [("a.pdf", make_pdf())])
+        assert resp.status_code == 201
+        assert fake.received == len(make_pdf())
+
+    async def test_infected_file_is_rejected_and_not_stored(
+        self, client: AsyncClient, alice: Actor, storage: InMemoryStorageBackend
+    ):
+        _, server, port = await _clamd(b"stream: Eicar-Test-Signature FOUND\0")
+        async with server:
+            configure(scanner_backend="clamav", clamav_host="127.0.0.1", clamav_port=port)
+            resp = await upload(client, alice, [("a.pdf", make_pdf())])
+        assert resp.status_code == 422
+        assert resp.json()["error"]["code"] == "MALWARE_DETECTED"
+        assert storage.keys() == []
+
+    async def test_error_reply_and_dead_scanner_fail_closed(
+        self, client: AsyncClient, alice: Actor, storage: InMemoryStorageBackend
+    ):
+        _, server, port = await _clamd(b"INSTREAM size limit exceeded. ERROR\0")
+        async with server:
+            configure(scanner_backend="clamav", clamav_host="127.0.0.1", clamav_port=port)
+            resp = await upload(client, alice, [("a.pdf", make_pdf())])
+        assert resp.status_code == 503
+        configure(scanner_backend="clamav", clamav_host="127.0.0.1", clamav_port=port)  # now closed
+        resp = await upload(client, alice, [("a.pdf", make_pdf())])
+        assert resp.status_code == 503 and storage.keys() == []
 
 
 class TestQuotasAndRateLimit:

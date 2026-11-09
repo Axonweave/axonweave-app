@@ -19,7 +19,7 @@ from app.models.document_chunk import DocumentChunk
 from app.models.document_processing_job import DocumentProcessingJob
 from app.models.user import User
 from app.modules.documents import cleanup
-from app.modules.documents.scanner import Scanner, ScannerUnavailableError
+from app.modules.documents.scanner import MalwareDetectedError, Scanner, ScannerUnavailableError
 from app.modules.documents.schemas import Placement
 from app.modules.documents.upload import UploadForm
 from app.modules.documents.validation import (
@@ -172,6 +172,10 @@ class DocumentService:
             raise UploadRejected("STORAGE_QUOTA_EXCEEDED", "Storage limit reached.", 409)
         try:
             await self._scanner.scan(f)
+        except MalwareDetectedError:
+            raise UploadRejected(
+                "MALWARE_DETECTED", "The file was rejected by the malware scan.", 422
+            ) from None
         except ScannerUnavailableError:
             raise UploadRejected(
                 "SCANNER_UNAVAILABLE", "Uploads are temporarily unavailable.", 503

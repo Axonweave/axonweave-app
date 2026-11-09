@@ -62,3 +62,12 @@ RAG_SHORT_QUERY_CHARS=40
 ```
 
 The defaults above are starting points, not measured values; revisit them in M3/M4 and record changes in `DECISIONS.md`.
+
+## Added in M7 follow-up
+```dotenv
+# ── Optional malware scan (docker compose --profile scan up) ──
+SCANNER_BACKEND=none                    # none | clamav (fail closed when clamav)
+CLAMAV_HOST=                            # e.g. clamav
+CLAMAV_PORT=3310
+CLAMAV_TIMEOUT_SECONDS=30
+```

@@ -23,7 +23,7 @@ Honest scope note: this is a code and test review plus automated scans. It is no
 | Control | Evidence |
 |---|---|
 | No content in logs | `test_pipeline.py::test_document_text_never_reaches_the_logs`; `test_rag.py::test_no_passage_text_in_logs` |
-| Fail closed if a scanner is enabled but unavailable | `test_documents_api.py::test_scanner_enabled_but_unavailable_fails_closed` (no ClamAV adapter exists yet, see open items) |
+| Fail closed if a scanner is enabled but unavailable; infected files rejected | `test_documents_api.py::test_scanner_enabled_but_unavailable_fails_closed`, `TestClamdScanner` (clean / infected / error reply / dead scanner) |
 | Rate limits (upload, search) | `test_documents_api.py::test_upload_rate_limit_returns_429`; `test_search.py::test_rate_limited` |
 | Fake providers refuse production | `tests/test_phase3_config.py::test_fake_embedder_is_refused_in_production` |
 | Unauthenticated sweep over document routes | `tests/test_spec_security_cases.py` (all-routes sweep) |
@@ -48,17 +48,18 @@ Verified in `docker-compose.yml`: worker uses the `internal` network (`internal:
 `read_only: true` with a 512 MB tmpfs scratch, `cap_drop: [ALL]`, `no-new-privileges`, `mem_limit: 1g`. Per-job
 timeouts, page/character/OCR caps are enforced in code and tested. The API image does not import parser libraries.
 
-**Gap found:** because the worker has no route out, it **cannot reach the embedding provider** (Gemini) in this
-compose file. With `EMBEDDING_PROVIDER` set, indexing in the worker would hit `EMBEDDINGS_UNAVAILABLE` and the document
-completes with keyword search only. Live embedding was verified only by running the pipeline from a script in the
-API container (`rag_live_check.py`, `eval_retrieval.py`), not through the compose worker. Fix needed before relying on
-embeddings in the worker: add a controlled egress (for example an allow-listed forward proxy on a second network for the
-embedding host only) and test it. Not done.
+**Gap found and fixed (M7 follow-up):** the worker had no route out and also no `GEMINI_API_KEY`, so it could not embed
+in compose. Now: the worker still has no direct route (verified: a direct TCP connection to 1.1.1.1:443 fails) and reaches the
+internet only through `egress-proxy` (Squid, `infrastructure/proxy/squid.conf`), which allows HTTPS CONNECT to
+`generativelanguage.googleapis.com` and denies everything else. Verified from the worker container: the provider host answers
+through the proxy, `example.com` is refused (`ProxyError`), and a real `gemini-embedding-001` call from the worker returned a
+768-dimension vector. Limit: this proves the worker process can embed; a full upload-to-indexed run with real embeddings
+through the browser was not repeated. The proxy allow-list names the host, not the API path.
 
 ## 5. Open items
 
-- No antivirus adapter (ClamAV) is implemented; the interface fails closed if enabled without one.
+- ClamAV: a clamd INSTREAM adapter now exists (`scanner.py`, fail closed, infected file gets 422 `MALWARE_DETECTED`). It is
+  tested against a fake clamd server (`TestClamdScanner`), **not against a real ClamAV daemon**. Optional compose profile `scan`.
 - The worker memory cap relies on the container `mem_limit` (no in-process rlimit).
-- Worker egress to the embedding provider (section 4).
 - 6 moderate/low npm advisories in dev-tooling transitive dependencies.
 - gitleaks run locally; only CI covers it.
