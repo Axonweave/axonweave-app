@@ -24,9 +24,22 @@ class AiConversationRepository:
         self._db = db
 
     async def create(
-        self, *, user_id: uuid.UUID, title: str | None, model_id: str | None
+        self,
+        *,
+        user_id: uuid.UUID,
+        title: str | None,
+        model_id: str | None,
+        scope_type: str = "general",
+        scope_id: uuid.UUID | None = None,
     ) -> Conversation:
-        conv = Conversation(user_id=user_id, title=title, model_id=model_id, status="active")
+        conv = Conversation(
+            user_id=user_id,
+            title=title,
+            model_id=model_id,
+            status="active",
+            scope_type=scope_type,
+            scope_id=scope_id,
+        )
         self._db.add(conv)
         await self._db.flush()
         return conv

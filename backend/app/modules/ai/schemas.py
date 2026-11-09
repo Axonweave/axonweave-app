@@ -20,6 +20,8 @@ class ConversationOut(BaseModel):
     title: str | None
     status: Literal["active", "archived"]
     model_id: str | None
+    scope_type: str
+    scope_id: uuid.UUID | None
     last_message_at: datetime | None
     created_at: datetime
     updated_at: datetime
@@ -40,9 +42,19 @@ class ConversationListResponse(BaseModel):
     offset: int
 
 
+ScopeKindLiteral = Literal["workspace", "subject", "folder", "chapter", "document"]
+
+
+class ConversationScopeIn(BaseModel):
+    kind: ScopeKindLiteral
+    id: uuid.UUID
+
+
 class CreateConversationRequest(BaseModel):
     title: str | None = Field(default=None, max_length=_TITLE_MAX)
     model_id: str | None = Field(default=None, max_length=128)
+    # Validated against the caller's own data in the service; omitted = general chat.
+    scope: ConversationScopeIn | None = None
 
     @field_validator("title")
     @classmethod
@@ -82,6 +94,7 @@ class MessageOut(BaseModel):
     finish_reason: str | None
     error_code: str | None
     regenerates_message_id: uuid.UUID | None
+    answer_mode: str | None
     superseded_at: datetime | None
     created_at: datetime
     completed_at: datetime | None
@@ -101,6 +114,8 @@ class SendMessageRequest(BaseModel):
     content: str = Field(min_length=1, max_length=_CONTENT_HARD_CAP)
     model_id: str | None = Field(default=None, max_length=128)
     stream: bool = False
+    # Only meaningful for a conversation with a document scope; ignored for general chat.
+    answer_mode: Literal["document_only", "document_first", "general"] | None = None
 
     @field_validator("content")
     @classmethod
@@ -117,11 +132,37 @@ class UsageOut(BaseModel):
     source: str
 
 
+class CitationOut(BaseModel):
+    id: uuid.UUID
+    message_id: uuid.UUID
+    rank: int
+    document_id: uuid.UUID | None
+    document_name: str
+    page_number: int | None
+    slide_number: int | None
+    section_heading: str | None
+    snippet: str | None
+    available: bool
+
+    model_config = {"from_attributes": True}
+
+
+class CitationResponse(BaseModel):
+    success: bool = True
+    data: CitationOut
+
+
+class CitationListResponse(BaseModel):
+    success: bool = True
+    data: list[CitationOut]
+
+
 class SendMessageData(BaseModel):
     conversation_id: uuid.UUID
     user_message: MessageOut
     message: MessageOut
     usage: UsageOut
+    citations: list[CitationOut] = []
 
 
 class SendMessageResponse(BaseModel):

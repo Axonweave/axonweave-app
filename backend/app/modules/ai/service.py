@@ -29,19 +29,37 @@ from app.models.user import User
 from app.repositories.ai_conversation_repository import AiConversationRepository
 from app.repositories.ai_message_repository import AiMessageRepository
 from app.repositories.ai_usage_repository import AiUsageRepository, UsageAggregate
+from app.retrieval.scope import ScopeResolver
 
 
 class ConversationService:
     def __init__(self, db: AsyncSession, runtime: AiRuntime) -> None:
+        self._db = db
         self._repo = AiConversationRepository(db)
         self._runtime = runtime
 
-    async def create(self, *, user: User, title: str | None, model_id: str | None) -> Conversation:
+    async def create(
+        self,
+        *,
+        user: User,
+        title: str | None,
+        model_id: str | None,
+        scope: tuple[str, uuid.UUID] | None = None,
+    ) -> Conversation:
+        if scope is not None:
+            # A scope that is not the caller's is 404, like a missing one (rule 2).
+            await ScopeResolver(self._db).resolve(user.id, scope[0], scope[1])  # type: ignore[arg-type]
         resolved: str | None = None
         if model_id is not None:
             # Validates the id (invalid or disabled -> LLM_INVALID_MODEL, none configured -> 503).
             resolved = self._runtime.registry.resolve(model_id).internal_id
-        return await self._repo.create(user_id=user.id, title=title, model_id=resolved)
+        return await self._repo.create(
+            user_id=user.id,
+            title=title,
+            model_id=resolved,
+            scope_type=scope[0] if scope else "general",
+            scope_id=scope[1] if scope else None,
+        )
 
     async def list(
         self, *, user: User, status: str | None, q: str | None, limit: int, offset: int
