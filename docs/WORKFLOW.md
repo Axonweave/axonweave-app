@@ -68,3 +68,8 @@ Change minimally and mention in the PR: `backend/app/api/v1/router.py`, `backend
 
 Plan first for non-trivial work and wait for approval. One task per session; clear context between
 tasks. If the spec is ambiguous or contradicts `docs/DECISIONS.md`, stop and ask.
+
+## Phase 3 notes
+Phase 3 was delivered as stacked milestone PRs (M1 to M6), each merged only after backend, frontend, e2e and security jobs
+were green. Run one pytest at a time; the full backend suite is memory-heavy locally and CI is the first full run.
+Rebuild the worker image after backend changes or tasks will be missing.

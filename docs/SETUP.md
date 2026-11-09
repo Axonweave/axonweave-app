@@ -154,3 +154,11 @@ The container was built before the Dockerfile installed `requirements-dev.txt`. 
 
 **Registration or login returns 429 during repeated runs**  
 That is the rate limiter working. Restart the backend to clear it.
+
+## Phase 3 additions (documents and RAG)
+`docker compose up` also starts pgvector PostgreSQL, Redis, an S3-compatible object store, a Celery worker and beat.
+Rebuild images after backend changes (`docker compose up -d --build backend worker beat`): a stale image once caused
+upload 500s (missing `python-multipart`). Names-only helpers: `python scripts/list_embedding_models.py`. To index with real
+embeddings set `EMBEDDING_PROVIDER` and `EMBEDDING_MODEL` (see `docs/PHASE3_ENV_PLACEHOLDERS.md`; the worker currently has no
+outbound route, see `docs/DOCUMENT_SECURITY.md` section 4). Re-index stale documents: `python scripts/reindex_documents.py`
+(dry run) then `--apply`. Clear local rate-limit state with `redis-cli FLUSHALL` when e2e runs trip 429.

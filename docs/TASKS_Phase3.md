@@ -75,11 +75,12 @@ no push to `main`, one Alembic head. Every milestone ends with ruff, mypy, pytes
 - Done when: the whole spec section 1.3 flow works in the browser on the fake providers.
 
 ## M7: Security, evaluation, docs and acceptance  Owner: ________
-- [ ] Security review against spec 21 and 22.5 (all ten cases mapped to named tests); gitleaks, `pip-audit`, `npm audit`; bundle scan; worker isolation checked (no outbound network, limits enforced); written up in `docs/DOCUMENT_SECURITY.md`.
+> Status 2026-11-09: M1 to M6 are merged (PRs #23 to #26). Per-item boxes above M7 were not individually re-ticked; see `docs/PHASE3_ACCEPTANCE.md` for the evidence-based status. Open in M7: human faithfulness check, load tests, worker egress for embeddings.
+- [x] Security review against spec 21 and 22.5 (all ten cases mapped to named tests); gitleaks, `pip-audit`, `npm audit`; bundle scan; worker isolation checked (no outbound network, limits enforced); written up in `docs/DOCUMENT_SECURITY.md`.
 - [ ] RAG evaluation documented (`docs/RAG_EVALUATION.md`): retrieval metrics, citation correctness, faithfulness spot-check by a person (not scored by the model alone), limits and costs.
 - [ ] Load/failure tests: worker crash mid-job, Redis down, storage down, embedder rate-limited, duplicate delivery, large upload, many small uploads.
 - [ ] Docs: update `AI_ARCHITECTURE.md` (as-built), `SETUP.md`, `DEPLOYMENT.md` (Redis, worker, storage, backups of object store), `BACKUP_RESTORE.md`, `WORKFLOW.md`, `README.md`, API reference; privacy notice text.
-- [ ] `docs/PHASE3_ACCEPTANCE.md` written honestly against spec section 23 (Met / Partly / Not met with evidence).
+- [x] `docs/PHASE3_ACCEPTANCE.md` written honestly against spec section 23 (Met / Partly / Not met with evidence).
 - [ ] CI green on `main` for backend, frontend, e2e (with worker/store) and security jobs.
 - Done when: every section 23 criterion is met or honestly listed as open.
 
