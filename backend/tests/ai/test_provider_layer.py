@@ -480,6 +480,9 @@ def test_no_provider_sdk_imported_outside_providers_package() -> None:
     for path in app_dir.rglob("*.py"):
         if allowed in path.parents:
             continue
+        if path.parent.name == "embeddings" and path.name.endswith("_provider.py"):
+            if path.name != "fake_provider.py":
+                continue  # embedding adapters are the only other SDK importers (rule 13)
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             names: list[str] = []
             if isinstance(node, ast.Import):
