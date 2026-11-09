@@ -79,7 +79,7 @@ no push to `main`, one Alembic head. Every milestone ends with ruff, mypy, pytes
 - [x] Security review against spec 21 and 22.5 (all ten cases mapped to named tests); gitleaks, `pip-audit`, `npm audit`; bundle scan; worker isolation checked (no outbound network, limits enforced); written up in `docs/DOCUMENT_SECURITY.md`.
 - [ ] RAG evaluation documented (`docs/RAG_EVALUATION.md`): retrieval metrics, citation correctness, faithfulness spot-check by a person (not scored by the model alone), limits and costs.
 - [ ] Load/failure tests: worker crash mid-job, Redis down, storage down, embedder rate-limited, duplicate delivery, large upload, many small uploads.
-- [ ] Docs: update `AI_ARCHITECTURE.md` (as-built), `SETUP.md`, `DEPLOYMENT.md` (Redis, worker, storage, backups of object store), `BACKUP_RESTORE.md`, `WORKFLOW.md`, `README.md`, API reference; privacy notice text.
+- [x] Docs: update `AI_ARCHITECTURE.md` (as-built), `SETUP.md`, `DEPLOYMENT.md` (Redis, worker, storage, backups of object store), `BACKUP_RESTORE.md`, `WORKFLOW.md`, `README.md`, API reference; privacy notice text.
 - [x] `docs/PHASE3_ACCEPTANCE.md` written honestly against spec section 23 (Met / Partly / Not met with evidence).
 - [ ] CI green on `main` for backend, frontend, e2e (with worker/store) and security jobs.
 - Done when: every section 23 criterion is met or honestly listed as open.

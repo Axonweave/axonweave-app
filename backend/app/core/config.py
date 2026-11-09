@@ -147,6 +147,9 @@ class Settings(BaseSettings):
     doc_ocr_dpi: int = Field(default=200, ge=72, le=400)
     doc_ocr_languages: str = "eng"
     scanner_backend: str = "none"  # "none" | "clamav" (fail-closed when clamav, D-71)
+    clamav_host: str = ""  # clamd host; empty with scanner_backend=clamav refuses uploads
+    clamav_port: int = Field(default=3310, ge=1, le=65535)
+    clamav_timeout_seconds: float = Field(default=30.0, gt=0)
 
     @field_validator(
         "llm_model_max_input_tokens",

@@ -8,8 +8,8 @@ store, security) was green on every PR merged for Phase 3 (#23 to #26); `main` i
 ## Overall
 Phase 3 is **functionally complete and tested on the fake LLM and, through scripts and the API, on the real Gemini
 provider**, but **not fully accepted**: the human faithfulness check has not been done, embeddings in the compose worker
-are blocked by its no-egress network, and the browser has not been used against real providers. Tally:
-**Met 26, Partly 6, Not met 0** (32 items).
+were fixed late (allow-listed proxy) and re-verified only at the provider-call level, and the browser has not been used against real providers. Tally:
+**Met 29, Partly 3, Not met 0** (32 items).
 
 ## Document management
 | Criterion | Rating | Evidence |
@@ -32,7 +32,7 @@ are blocked by its no-egress network, and the browser has not been used against 
 | Structure retained | Met | chunker tests (headings, bbox) |
 | Chunking | Met | `tests/ingestion/test_chunker*.py` |
 | Chunk metadata preserved | Met | `test_document_schema.py` |
-| Embeddings generated | Partly | real `gemini-embedding-001` verified from the API container (`rag_live_check.py`); the compose worker cannot reach the provider (`DOCUMENT_SECURITY.md` section 4) |
+| Embeddings generated | Met | real `gemini-embedding-001` (768 dims) verified from the API container (`rag_live_check.py`) and from the compose worker through the allow-listed egress proxy (`DOCUMENT_SECURITY.md` section 4) |
 | pgvector indexing | Met | `test_a_vector_of_the_wrong_length_is_rejected_by_the_column`; exact filtered cosine, no ANN by design |
 | Versions managed | Met | `test_reprocessing_rebuilds_chunks...`, `test_failed_reprocess_does_not_leave_a_searchable_version`; `scripts/reindex_documents.py` |
 
@@ -52,7 +52,7 @@ are blocked by its no-egress network, and the browser has not been used against 
 | Document-only / document-first / general modes | Met | `test_rag.py` mode tests |
 | Unsupported answers handled honestly | Partly | fixed reply with no LLM call tested; model-side behaviour in `document_first` is unscored by a person |
 | Citations reference retrieved content | Met | validated `[n]` mapping tests |
-| Citations open the correct location | Partly | link carries page and passage; highlight overlay unit-tested only for region filtering, **not checked on a real PDF in a browser** |
+| Citations open the correct location | Met | `e2e/library.spec.ts` "a cited PDF passage is highlighted on its page": a PDF built in code is uploaded, processed by the real worker, found via `/search`, opened with `?page=&source=`, and the highlight region is visible in the browser |
 
 ## Security
 | Criterion | Rating | Evidence |
@@ -80,12 +80,13 @@ are blocked by its no-egress network, and the browser has not been used against 
 | Storage down | `test_storage_not_configured_is_503_and_nothing_else_breaks` |
 | Embedder failing | `test_degrades_to_keyword_when_embedder_fails`, `test_without_embedder_completes_with_warning` |
 | Duplicate delivery | see above |
-| Large upload | `test_oversize_body_is_cut_off_by_content_length`, `test_s3_multipart_upload_streams_a_large_object` |
-| Many small uploads | `test_too_many_files` (count limit); no load test |
+| Large upload | `test_oversize_body_is_cut_off_by_content_length`, `test_s3_multipart_upload_streams_a_large_object`; `scripts/load_check.py`: a 20 MiB file uploaded in 3.4 s and was processed to `completed` |
+| Many small uploads | `test_too_many_files`; `scripts/load_check.py`: 18 small files accepted in 2.5 s, all `completed` after 8.6 s on the local stack (one worker) |
 
-No load or soak test was run; no timing or throughput numbers exist.
+Measured once on a developer machine with one worker; it is a smoke measurement, not a load or soak test (no concurrency sweep, no sustained run, no kill-the-worker run).
 
 ## Open items
-Human faithfulness check; worker egress for embeddings; ClamAV adapter; real-PDF browser check of highlighting; PDF OCR
-status label; `.env.example` retrieval placeholders (human paste, see `PHASE3_ENV_PLACEHOLDERS.md`); 29 `format:check`
-warnings; real load test.
+Human faithfulness check (needs a person); ClamAV adapter untested against a real daemon; PDF OCR status label (shows
+`extracting`); `.env.example` placeholders (the file is denied to Claude Code; human paste, see `PHASE3_ENV_PLACEHOLDERS.md`,
+now including the ClamAV names); a real concurrency/soak load test; real kill-the-worker and Redis-outage tests. The 28
+`format:check` warnings are Phase 1 files (likely Windows line endings; CI on Linux passes) and were not touched.

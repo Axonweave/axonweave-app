@@ -66,6 +66,30 @@ async function registerVerifyLogin(page: Page, email: string) {
   await expect(page).toHaveURL(/dashboard/, { timeout: 15000 });
 }
 
+/** A one-page PDF with real text, built in code (no copyrighted files, D-76). */
+function makePdf(text: string): Buffer {
+  const NL = String.fromCharCode(10);
+  const stream = `BT /F1 18 Tf 72 700 Td (${text}) Tj ET`;
+  const objs = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    `<< /Length ${stream.length} >>${NL}stream${NL}${stream}${NL}endstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let out = `%PDF-1.4${NL}`;
+  const offsets: number[] = [];
+  objs.forEach((o, k) => {
+    offsets.push(out.length);
+    out += `${k + 1} 0 obj${NL}${o}${NL}endobj${NL}`;
+  });
+  const xref = out.length;
+  out += `xref${NL}0 ${objs.length + 1}${NL}0000000000 65535 f ${NL}`;
+  offsets.forEach((o) => (out += `${String(o).padStart(10, "0")} 00000 n ${NL}`));
+  out += `trailer${NL}<< /Size ${objs.length + 1} /Root 1 0 R >>${NL}startxref${NL}${xref}${NL}%%EOF${NL}`;
+  return Buffer.from(out, "latin1");
+}
+
 test.describe("Library and document answers (desktop)", () => {
   test.describe.configure({ mode: "serial" });
   test.skip(({ isMobile }) => isMobile, "layout is covered by the component tests");
@@ -125,6 +149,32 @@ test.describe("Library and document answers (desktop)", () => {
     await expect(answer).not.toContainText("could not find enough");
   });
 
+  test("a cited PDF passage is highlighted on its page", async () => {
+    test.setTimeout(150000);
+    const pdfName = `cited-${stamp}.pdf`;
+    await page.goto("/library");
+    const input = page.getByLabel("Choose files to upload");
+    await expect(input).toBeEnabled({ timeout: 15000 }); // enabled once a workspace is known
+    await input.setInputFiles({
+      name: pdfName,
+      mimeType: "application/pdf",
+      buffer: makePdf("Mitochondria produce ATP through oxidative phosphorylation"),
+    });
+    const row = page.getByRole("listitem").filter({ hasText: pdfName });
+    await expect(row.getByText("Ready", { exact: true })).toBeVisible({ timeout: 90000 });
+    const href = await row.getByRole("link", { name: pdfName }).getAttribute("href");
+    const id = href!.split("/").pop()!;
+    const csrf = (await page.context().cookies()).find((c) => c.name === "csrf_token")?.value ?? "";
+    const found = await page.request.post(`${BACKEND}/api/v1/search`, {
+      headers: { "X-CSRF-Token": csrf },
+      data: { query: "mitochondria ATP", mode: "keyword", scope: { kind: "document", id } },
+    });
+    expect(found.ok()).toBeTruthy();
+    const hit = (await found.json()).data.results[0];
+    await page.goto(`/documents/${id}?page=${hit.page_number ?? 1}&source=${hit.chunk_id}`);
+    await expect(page.getByTestId("cited-region").first()).toBeVisible({ timeout: 30000 });
+  });
+
   test("a second user cannot open or see the document", async ({ browser }) => {
     const other = await (await browser.newContext()).newPage();
     try {
@@ -145,7 +195,7 @@ test.describe("Library and document answers (desktop)", () => {
     await page.goto("/library");
     await page.getByRole("button", { name: `Delete ${name}` }).click();
     await page.getByRole("button", { name: "Delete permanently" }).click();
-    await expect(page.getByText("No documents yet")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("link", { name, exact: true })).toHaveCount(0, { timeout: 15000 });
     const id = documentUrl.split("/").pop()!;
     const res = await page.request.get(`${BACKEND}/api/v1/documents/${id}`);
     expect(res.status()).toBe(404);
