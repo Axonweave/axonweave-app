@@ -17,12 +17,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { useToast } from "@/hooks/use-toast";
-import { aiApi, type Conversation } from "@/lib/api/ai";
+import { aiApi, type AnswerMode, type Conversation, type ConversationScope } from "@/lib/api/ai";
 import { RowActions } from "@/features/academic/row-actions";
 import { ChatInput } from "./chat-input";
 import { MessageView, type Rating } from "./message-view";
 import { useTutor } from "./tutor-context";
 import { useChat } from "./use-chat";
+import { ModePicker, ScopePicker } from "./scope-bar";
 import { Welcome } from "./welcome";
 
 const NEAR_BOTTOM_PX = 80;
@@ -33,9 +34,16 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
   const tutor = useTutor();
   const { status, models, modelId, setModelId, conversations } = tutor;
 
+  // Document scope: chosen before the first message, then fixed on the conversation (server-side).
+  const [scope, setScope] = useState<ConversationScope | null>(null);
+  const [mode, setMode] = useState<AnswerMode>("document_only");
+  const [lookupScope, setLookupScope] = useState<string>("general");
+
   const chat = useChat({
     conversationId,
     modelId,
+    scope: conversationId ? null : scope,
+    answerMode: (conversationId ? lookupScope !== "general" : scope !== null) ? mode : null,
     onConversationCreated: (c) => {
       conversations.prepend(c);
       router.replace(`/ai-tutor/${c.id}`);
@@ -50,6 +58,11 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
   // Title: from the loaded list, else fetched once (deep link to an older conversation).
   const known = conversations.items.find((c) => c.id === conversationId) ?? null;
   const current = known ?? (lookup?.id === conversationId ? lookup : null);
+  const scopeType = current?.scope_type ?? (conversationId ? "general" : null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLookupScope(scopeType ?? "general");
+  }, [scopeType]);
   useEffect(() => {
     if (!conversationId || known) return;
     let live = true;
@@ -271,6 +284,21 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
           </Button>
         )}
       </div>
+
+      {(!conversationId || lookupScope !== "general") && (
+        <div className="border-border flex flex-col gap-2 border-t px-3 py-2 sm:flex-row sm:items-center sm:gap-4">
+          {!conversationId ? (
+            <ScopePicker value={scope} onChange={setScope} disabled={chat.busy} />
+          ) : (
+            <p className="text-muted-foreground text-xs">
+              Answering from your {lookupScope === "document" ? "document" : "documents"}.
+            </p>
+          )}
+          {(conversationId ? lookupScope !== "general" : scope !== null) && (
+            <ModePicker value={mode} onChange={setMode} disabled={chat.busy} />
+          )}
+        </div>
+      )}
 
       <ChatInput
         value={draft}

@@ -1,9 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { aiApi, type ChatMessageRecord, type Conversation } from "@/lib/api/ai";
+import {
+  aiApi,
+  type AnswerMode,
+  type ChatMessageRecord,
+  type CitationRecord,
+  type Conversation,
+  type ConversationScope,
+} from "@/lib/api/ai";
 import { ApiRequestError } from "@/lib/api/client";
-import type { StreamEvent } from "./sse";
+import type { CitationView, StreamEvent } from "./sse";
 import { streamPost } from "./stream-client";
 
 export type ItemStatus = "pending" | "streaming" | "completed" | "failed" | "cancelled";
@@ -17,6 +24,8 @@ export interface ChatItem {
   content: string;
   status: ItemStatus;
   errorCode: string | null;
+  /** Sources of a document-grounded answer (empty for general answers). */
+  citations: CitationView[];
 }
 
 export interface ChatError {
@@ -36,7 +45,24 @@ let counter = 0;
 const nextKey = () => `local-${(counter += 1)}`;
 
 /** Server rows -> view items. Superseded answers (regenerated) and system/tool rows are hidden. */
-export function fromRecords(records: ChatMessageRecord[]): ChatItem[] {
+export function toCitationView(c: CitationRecord): CitationView {
+  return {
+    id: c.id,
+    rank: c.rank,
+    documentId: c.document_id,
+    documentName: c.document_name,
+    page: c.page_number,
+    slide: c.slide_number,
+    heading: c.section_heading,
+    snippet: c.snippet,
+    available: c.available,
+  };
+}
+
+export function fromRecords(
+  records: ChatMessageRecord[],
+  citations: Record<string, CitationView[]> = {},
+): ChatItem[] {
   return records
     .filter((m) => (m.role === "user" || m.role === "assistant") && m.superseded_at === null)
     .map((m) => ({
@@ -46,6 +72,7 @@ export function fromRecords(records: ChatMessageRecord[]): ChatItem[] {
       content: m.content,
       status: m.status,
       errorCode: m.error_code,
+      citations: citations[m.id] ?? [],
     }));
 }
 
@@ -65,12 +92,23 @@ function describe(e: unknown): ChatError {
 interface Options {
   conversationId: string | null;
   modelId: string | null;
+  /** Used only when this send creates the conversation: the scope is then stored server-side. */
+  scope?: ConversationScope | null;
+  /** Sent with each message of a scoped conversation; ignored by the server otherwise. */
+  answerMode?: AnswerMode | null;
   onConversationCreated: (conversation: Conversation) => void;
   /** Called when a send/regenerate finishes (title, ordering and usage may have changed). */
   onSettled: () => void;
 }
 
-export function useChat({ conversationId, modelId, onConversationCreated, onSettled }: Options) {
+export function useChat({
+  conversationId,
+  modelId,
+  scope = null,
+  answerMode = null,
+  onConversationCreated,
+  onSettled,
+}: Options) {
   const [items, setItems] = useState<ChatItem[]>([]);
   const [phase, setPhase] = useState<LoadPhase>("idle");
   const [busy, setBusy] = useState(false);
@@ -104,7 +142,23 @@ export function useChat({ conversationId, modelId, onConversationCreated, onSett
     try {
       const records = await aiApi.listMessages(id);
       if (epochRef.current !== epoch) return false;
-      setItems(fromRecords(records));
+      // Citations of document-grounded answers are stored server-side; a failure here must not
+      // hide the conversation, so it only costs the source list.
+      const grounded = records.filter(
+        (m) => m.role === "assistant" && m.status === "completed" && m.answer_mode,
+      );
+      const cites: Record<string, CitationView[]> = {};
+      await Promise.all(
+        grounded.map(async (m) => {
+          try {
+            cites[m.id] = (await aiApi.citations(m.id)).map(toCitationView);
+          } catch {
+            /* keep the answer without its source list */
+          }
+        }),
+      );
+      if (epochRef.current !== epoch) return false;
+      setItems(fromRecords(records, cites));
       setPhase("ready");
       return records.some(
         (m) =>
@@ -199,8 +253,25 @@ export function useChat({ conversationId, modelId, onConversationCreated, onSett
           } else if (ev.type === "delta") {
             buffer += ev.text;
             if (timer === null) timer = setTimeout(flush, 40);
+          } else if (ev.type === "citations") {
+            setItems((prev) =>
+              prev.map((i) => (i.key === draftKey ? { ...i, citations: ev.citations } : i)),
+            );
           } else if (ev.type === "completed" || ev.type === "cancelled") {
             terminal = ev.type;
+            if (ev.type === "completed" && typeof ev.content === "string") {
+              // The server validated the text (invalid [n] markers removed): replace the draft.
+              flush();
+              const finalText = ev.content;
+              const finalCites = ev.citations ?? null;
+              setItems((prev) =>
+                prev.map((i) =>
+                  i.key === draftKey
+                    ? { ...i, content: finalText, citations: finalCites ?? i.citations }
+                    : i,
+                ),
+              );
+            }
           } else if (ev.type === "failed") {
             terminal = "failed";
             setError({ code: ev.code, message: ev.message, retryable: true });
@@ -262,7 +333,7 @@ export function useChat({ conversationId, modelId, onConversationCreated, onSett
       let id = idRef.current;
       if (id === null) {
         try {
-          const conversation = await aiApi.createConversation(modelId);
+          const conversation = await aiApi.createConversation(modelId, scope);
           id = conversation.id;
           idRef.current = id;
           skipLoadFor.current = id;
@@ -279,7 +350,15 @@ export function useChat({ conversationId, modelId, onConversationCreated, onSett
       const draftKey = nextKey();
       setItems((prev) => [
         ...prev,
-        { key: userKey, id: null, role: "user", content, status: "completed", errorCode: null },
+        {
+          key: userKey,
+          id: null,
+          role: "user",
+          content,
+          status: "completed",
+          errorCode: null,
+          citations: [],
+        },
         {
           key: draftKey,
           id: null,
@@ -287,18 +366,24 @@ export function useChat({ conversationId, modelId, onConversationCreated, onSett
           content: "",
           status: "pending",
           errorCode: null,
+          citations: [],
         },
       ]);
       const ok = await consume(
         id,
         `/ai/conversations/${encodeURIComponent(id)}/messages`,
-        { content, stream: true, ...(modelId ? { model_id: modelId } : {}) },
+        {
+          content,
+          stream: true,
+          ...(modelId ? { model_id: modelId } : {}),
+          ...(answerMode ? { answer_mode: answerMode } : {}),
+        },
         draftKey,
         () => setItems((prev) => prev.filter((i) => i.key !== userKey && i.key !== draftKey)),
       );
       return ok;
     },
-    [consume, modelId],
+    [consume, modelId, scope, answerMode],
   );
 
   const regenerate = useCallback(
@@ -312,7 +397,15 @@ export function useChat({ conversationId, modelId, onConversationCreated, onSett
       setItems((prev) =>
         prev.map((i) =>
           i.id === messageId
-            ? { ...i, key: draftKey, id: null, content: "", status: "pending", errorCode: null }
+            ? {
+                ...i,
+                key: draftKey,
+                id: null,
+                content: "",
+                status: "pending",
+                errorCode: null,
+                citations: [],
+              }
             : i,
         ),
       );

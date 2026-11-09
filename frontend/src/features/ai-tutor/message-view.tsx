@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Bot, Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Citations } from "./citations";
 import { Markdown } from "./markdown";
 import type { ChatError, ChatItem } from "./use-chat";
 
@@ -105,6 +106,7 @@ export function MessageView({
             {item.content ? <Markdown content={item.content} /> : null}
           </div>
         )}
+        {item.citations.length > 0 && <Citations citations={item.citations} />}
 
         {incomplete && (
           <div

@@ -35,6 +35,7 @@ const primaryNav: NavItem[] = [
   { label: "Subjects", href: "/subjects", icon: BookOpen },
   { label: "Recent Activity", href: "/activity", icon: Clock },
   { label: "Archived Items", href: "/archived", icon: Archive },
+  { label: "Library", href: "/library", icon: Library },
   { label: "AI Tutor", href: "/ai-tutor", icon: BrainCircuit },
 ];
 
@@ -42,7 +43,6 @@ const comingSoonNav: NavItem[] = [
   { label: "Research Studio", href: "#", icon: FlaskConical, disabled: true },
   { label: "Assessments", href: "#", icon: ClipboardCheck, disabled: true },
   { label: "Revision", href: "#", icon: RotateCcw, disabled: true },
-  { label: "Library", href: "#", icon: Library, disabled: true },
   { label: "Favourites", href: "#", icon: Star, disabled: true },
 ];
 
@@ -62,6 +62,7 @@ export function isNavActive(pathname: string, href: string): boolean {
   if (href === "#") return false;
   if (href === "/subjects") return isSubjectPath(pathname);
   if (href === "/workspaces") return underPath(pathname, href) && !isSubjectPath(pathname);
+  if (href === "/library") return underPath(pathname, href) || underPath(pathname, "/documents");
   return underPath(pathname, href);
 }
 

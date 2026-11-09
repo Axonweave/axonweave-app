@@ -83,6 +83,8 @@ describe("toStreamEvent", () => {
       type: "completed",
       messageId: "a",
       finishReason: "stop",
+      content: null,
+      citations: null,
     });
     expect(
       toStreamEvent(

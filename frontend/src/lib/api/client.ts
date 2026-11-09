@@ -35,14 +35,12 @@ export function getCsrfToken(): string | null {
 
 const STATE_CHANGING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-async function request<T>(
-  path: string,
-  init: RequestInit = {},
-): Promise<ApiSuccess<T>> {
+async function request<T>(path: string, init: RequestInit = {}): Promise<ApiSuccess<T>> {
   const method = (init.method ?? "GET").toUpperCase();
 
   const headers = new Headers(init.headers);
-  headers.set("Content-Type", "application/json");
+  // A FormData body needs the browser to set the multipart boundary itself.
+  if (!(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
 
   if (STATE_CHANGING.has(method)) {
     const csrf = getCsrfToken();
@@ -78,8 +76,7 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(path: string, init?: RequestInit) =>
-    request<T>(path, { ...init, method: "GET" }),
+  get: <T>(path: string, init?: RequestInit) => request<T>(path, { ...init, method: "GET" }),
 
   post: <T>(path: string, body?: unknown, init?: RequestInit) =>
     request<T>(path, {
@@ -102,6 +99,8 @@ export const api = {
       body: body !== undefined ? JSON.stringify(body) : undefined,
     }),
 
-  delete: <T>(path: string, init?: RequestInit) =>
-    request<T>(path, { ...init, method: "DELETE" }),
+  postForm: <T>(path: string, body: FormData, init?: RequestInit) =>
+    request<T>(path, { ...init, method: "POST", body }),
+
+  delete: <T>(path: string, init?: RequestInit) => request<T>(path, { ...init, method: "DELETE" }),
 };

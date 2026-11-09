@@ -60,6 +60,19 @@ export class SseParser {
 
 // ── typed events (spec 12.3) ────────────────────────────────────────────────
 
+/** A source shown with an answer. `id` exists once the server has stored the citation. */
+export interface CitationView {
+  id: string | null;
+  rank: number;
+  documentId: string | null;
+  documentName: string;
+  page: number | null;
+  slide: number | null;
+  heading: string | null;
+  snippet: string | null;
+  available: boolean;
+}
+
 export type StreamEvent =
   | {
       type: "started";
@@ -70,7 +83,15 @@ export type StreamEvent =
     }
   | { type: "delta"; text: string }
   | { type: "usage"; inputTokens: number | null; outputTokens: number | null; source: string }
-  | { type: "completed"; messageId: string; finishReason: string }
+  | { type: "citations"; messageId: string; citations: CitationView[] }
+  | {
+      type: "completed";
+      messageId: string;
+      finishReason: string;
+      /** Validated final text and the citations actually used; the client replaces its draft. */
+      content?: string | null;
+      citations?: CitationView[] | null;
+    }
   | { type: "failed"; messageId: string; code: string; message: string }
   | { type: "cancelled"; messageId: string };
 
@@ -78,6 +99,29 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
 const num = (v: unknown): number | null => (typeof v === "number" ? v : null);
+
+function toCitations(v: unknown): CitationView[] | null {
+  if (!Array.isArray(v)) return null;
+  const out: CitationView[] = [];
+  for (const c of v) {
+    if (!isRecord(c)) continue;
+    const rank = num(c.rank);
+    const name = str(c.document_name);
+    if (rank === null || name === null) continue;
+    out.push({
+      id: str(c.id),
+      rank,
+      documentId: str(c.document_id),
+      documentName: name,
+      page: num(c.page_number),
+      slide: num(c.slide_number),
+      heading: str(c.section_heading),
+      snippet: str(c.snippet),
+      available: c.available !== false,
+    });
+  }
+  return out;
+}
 
 /** Validates one event. Unknown names and malformed payloads return null: ignored, never trusted. */
 export function toStreamEvent(raw: RawSseEvent): StreamEvent | null {
@@ -114,8 +158,19 @@ export function toStreamEvent(raw: RawSseEvent): StreamEvent | null {
     case "message.completed": {
       const messageId = str(json.message_id);
       return messageId
-        ? { type: "completed", messageId, finishReason: str(json.finish_reason) ?? "stop" }
+        ? {
+            type: "completed",
+            messageId,
+            finishReason: str(json.finish_reason) ?? "stop",
+            content: str(json.content),
+            citations: toCitations(json.citations),
+          }
         : null;
+    }
+    case "message.citations": {
+      const messageId = str(json.message_id);
+      const citations = toCitations(json.citations);
+      return messageId && citations ? { type: "citations", messageId, citations } : null;
     }
     case "message.failed": {
       const messageId = str(json.message_id);

@@ -46,6 +46,14 @@ export default function HelpPage() {
             .
           </li>
           <li>
+            Upload study documents in the{" "}
+            <Link href="/library" className={linkClass}>
+              Library
+            </Link>
+            . Once a document shows &quot;Ready&quot;, start an AI Tutor conversation scoped to it
+            to get answers with sources.
+          </li>
+          <li>
             Manage your profile, password and sessions in{" "}
             <Link href="/settings" className={linkClass}>
               Settings
