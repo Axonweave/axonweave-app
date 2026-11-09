@@ -34,3 +34,6 @@ celery==5.7.0
 redis==8.1.0
 # S3 client. Imported only in app/storage/s3_backend.py (a test enforces it).
 boto3==1.43.125
+
+# Multipart form parsing for document upload (Phase 3 M2). Version verified 2026-11-09.
+python-multipart==0.0.33

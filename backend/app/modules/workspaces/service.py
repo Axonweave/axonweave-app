@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import get_logger
 from app.models.user import User
 from app.models.workspace import Workspace
+from app.modules.documents.cleanup import enqueue_for_workspace
 from app.modules.workspaces.schemas import CreateWorkspaceRequest, UpdateWorkspaceRequest
 from app.repositories.activity_repository import ActivityRepository
 from app.repositories.workspace_repository import WorkspaceRepository
@@ -179,5 +180,6 @@ class WorkspacesService:
             entity_name=ws.name,
             workspace_id=None,
         )
+        await enqueue_for_workspace(self._db, ws.id)  # outbox rows first (D-66)
         await self._repo.delete(ws)
         logger.info("workspace_deleted", user_id=str(user.id), workspace_id=str(workspace_id))
