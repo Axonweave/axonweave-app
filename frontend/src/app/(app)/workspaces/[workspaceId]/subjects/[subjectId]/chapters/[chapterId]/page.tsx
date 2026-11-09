@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Archive, FolderInput, Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { LoadingSpinner } from "@/components/ui/loading";
@@ -138,6 +138,12 @@ export default function ChapterDetailPage() {
           )}
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/library?workspace=${workspaceId}&subject=${subjectId}&chapter=${chapterId}`}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Upload documents
+          </Link>
           <Button variant="outline" onClick={() => setDialog("edit")}>
             <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
             Edit

@@ -78,6 +78,7 @@ const item = (over: Partial<ChatItem>): ChatItem => ({
   content: "Answer",
   status: "completed",
   errorCode: null,
+  citations: [],
   ...over,
 });
 

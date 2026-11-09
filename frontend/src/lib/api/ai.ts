@@ -8,6 +8,12 @@ export type AiModel = S["ModelOut"];
 export type AiStatus = S["AiStatusOut"];
 export type UsageSummary = S["UsageSummaryOut"];
 export type UserPreferences = S["UserPreferencesOut"];
+export type CitationRecord = S["CitationOut"];
+export type AnswerMode = "document_only" | "document_first" | "general";
+export type ConversationScope = {
+  kind: "workspace" | "subject" | "folder" | "chapter" | "document";
+  id: string;
+};
 
 export interface Paged<T> {
   data: T[];
@@ -40,10 +46,15 @@ export const aiApi = {
   },
   getConversation: (id: string) =>
     api.get<Conversation>(`/ai/conversations/${enc(id)}`).then((r) => r.data),
-  createConversation: (modelId?: string | null) =>
+  createConversation: (modelId?: string | null, scope?: ConversationScope | null) =>
     api
-      .post<Conversation>("/ai/conversations", modelId ? { model_id: modelId } : {})
+      .post<Conversation>("/ai/conversations", {
+        ...(modelId ? { model_id: modelId } : {}),
+        ...(scope ? { scope } : {}),
+      })
       .then((r) => r.data),
+  citations: (messageId: string) =>
+    api.get<CitationRecord[]>(`/ai/messages/${enc(messageId)}/citations`).then((r) => r.data),
   renameConversation: (id: string, title: string) =>
     api.patch<Conversation>(`/ai/conversations/${enc(id)}`, { title }).then((r) => r.data),
   archiveConversation: (id: string) =>

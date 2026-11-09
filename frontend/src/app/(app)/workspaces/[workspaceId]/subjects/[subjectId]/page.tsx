@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Archive, FolderPlus, Pencil, Plus, Search, Sparkles, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { Input } from "@/components/ui/input";
@@ -256,6 +256,12 @@ export default function SubjectDetailPage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/library?workspace=${workspaceId}&subject=${subjectId}`}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Upload documents
+          </Link>
           <Button variant="outline" onClick={() => setDialog({ kind: "folder-new", parent: null })}>
             <FolderPlus className="mr-2 h-4 w-4" aria-hidden="true" />
             New folder
