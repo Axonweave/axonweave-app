@@ -24,10 +24,12 @@ export function DocumentDetail({
   documentId,
   highlightChunk,
   initialPage,
+  sourceId,
 }: {
   documentId: string;
   highlightChunk?: number;
   initialPage?: number;
+  sourceId?: string;
 }) {
   const [offset, setOffset] = useState(0);
   const [part, setPart] = useState<number | null>(null);
@@ -39,6 +41,10 @@ export function DocumentDetail({
     details.reload();
   });
   const ready = doc.data?.processing_status === "completed";
+  const source = useAsync(
+    () => (sourceId && ready ? documentsApi.source(documentId, sourceId) : Promise.resolve(null)),
+    [documentId, sourceId, ready],
+  );
   const pages = useAsync(
     () => (ready ? documentsApi.pages(documentId) : Promise.resolve([])),
     [documentId, ready],
@@ -141,7 +147,11 @@ export function DocumentDetail({
           <h2 id="pdf-original" className="text-lg font-semibold">
             Original
           </h2>
-          <PdfViewer documentId={documentId} initialPage={initialPage} />
+          <PdfViewer
+            documentId={documentId}
+            initialPage={initialPage}
+            regions={source.data?.regions ?? []}
+          />
         </section>
       )}
 

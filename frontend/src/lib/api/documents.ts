@@ -4,6 +4,7 @@ import type { components } from "@/types/api.generated";
 
 type S = components["schemas"];
 export type DocumentRecord = S["DocumentOut"];
+export type SourcePassage = S["SourcePassageOut"];
 export type UploadResult = S["UploadData"];
 export type ProcessingStatus = S["ProcessingStatusOut"];
 export type ProcessingDetails = S["ProcessingDetailsOut"];
@@ -76,6 +77,9 @@ export const documentsApi = {
   pages: (id: string) => api.get<PageInfo[]>(`/documents/${enc(id)}/pages`).then((r) => r.data),
   content: (id: string, opts: { page?: number; slide?: number; offset?: number } = {}) =>
     getPaged<ContentChunk>(`/documents/${enc(id)}/content${query({ limit: 20, ...opts })}`),
+
+  source: (id: string, chunkId: string) =>
+    api.get<SourcePassage>(`/documents/${enc(id)}/sources/${enc(chunkId)}`).then((r) => r.data),
 
   /** URL of the owner-only download/inline endpoints (cookie-authenticated; never a storage URL). */
   downloadUrl: (id: string) => `${API_BASE}/documents/${enc(id)}/download`,

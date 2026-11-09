@@ -136,6 +136,7 @@ class CitationOut(BaseModel):
     id: uuid.UUID
     message_id: uuid.UUID
     rank: int
+    chunk_id: uuid.UUID | None = None
     document_id: uuid.UUID | None
     document_name: str
     page_number: int | None

@@ -151,3 +151,21 @@ test.describe("Library and document answers (desktop)", () => {
     expect(res.status()).toBe(404);
   });
 });
+
+test.describe("Library (mobile)", () => {
+  test.skip(({ isMobile }) => !isMobile, "phone layout only");
+
+  test("the Library fits a phone screen and offers upload", async ({ page }) => {
+    await registerVerifyLogin(
+      page,
+      `library-m-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`,
+    );
+    await page.goto("/library");
+    await expect(page.getByText("No documents yet")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByLabel("Choose files to upload")).toBeAttached();
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+});

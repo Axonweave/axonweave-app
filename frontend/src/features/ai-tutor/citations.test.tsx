@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { Citations, locationLabel } from "./citations";
+import { Citations, documentHref, locationLabel } from "./citations";
 import { toStreamEvent, type CitationView } from "./sse";
 
 const cite = (over: Partial<CitationView> = {}): CitationView => ({
@@ -47,6 +47,11 @@ describe("Citations", () => {
     await userEvent.click(screen.getByText(/Biology notes/));
     expect(screen.getByText("<img src=x onerror=alert(1)>")).toBeInTheDocument();
     expect(document.querySelector("img")).toBeNull();
+  });
+
+  it("links to the cited page and passage", () => {
+    expect(documentHref(cite({ chunkId: "abc" }))).toBe("/documents/d1?page=3&source=abc");
+    expect(documentHref(cite({ page: null }))).toBe("/documents/d1");
   });
 
   it("labels slides", () => {

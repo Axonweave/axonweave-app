@@ -223,6 +223,7 @@ describe("privacy notice text (D-54)", () => {
   it("names the provider from configuration and says data leaves the server", () => {
     expect(noticeText(status)).toContain("Acme AI");
     expect(noticeText(status)).toMatch(/sent to/i);
+    expect(noticeText(status)).toMatch(/documents/i);
   });
 
   it("does not claim data is sent anywhere for the test provider", () => {

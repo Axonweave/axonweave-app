@@ -1545,6 +1545,8 @@ export interface components {
             message_id: string;
             /** Rank */
             rank: number;
+            /** Chunk Id */
+            chunk_id?: string | null;
             /** Document Id */
             document_id: string | null;
             /** Document Name */
@@ -2269,6 +2271,13 @@ export interface components {
              */
             stream: boolean;
         };
+        /** Region */
+        Region: {
+            /** Page */
+            page: number;
+            /** Bbox */
+            bbox: number[];
+        };
         /** RegisterRequest */
         RegisterRequest: {
             /** Full Name */
@@ -2487,6 +2496,11 @@ export interface components {
             section_heading: string | null;
             /** Content */
             content: string;
+            /**
+             * Regions
+             * @default []
+             */
+            regions: components["schemas"]["Region"][];
         };
         /** SourcePassageResponse */
         SourcePassageResponse: {
