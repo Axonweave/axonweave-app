@@ -1,22 +1,170 @@
+# Shared by the worker and beat (same codebase as the API). The API lists the same Phase 3 variables below.
+# There is no env_file: every variable must be passed through here.
+x-phase3-env: &phase3-env
+  STORAGE_BACKEND: ${STORAGE_BACKEND:-s3}
+  STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-http://objectstore:8333}
+  STORAGE_REGION: ${STORAGE_REGION:-us-east-1}
+  STORAGE_BUCKET: ${STORAGE_BUCKET:-axonweave-documents}
+  STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-axonweave_dev_access}
+  STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-axonweave_dev_secret_key}
+  STORAGE_FORCE_PATH_STYLE: ${STORAGE_FORCE_PATH_STYLE:-true}
+  STORAGE_SERVER_SIDE_ENCRYPTION: ${STORAGE_SERVER_SIDE_ENCRYPTION:-}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/1}
+  CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/2}
+  CELERY_TASK_SOFT_TIME_LIMIT_SECONDS: ${CELERY_TASK_SOFT_TIME_LIMIT_SECONDS:-240}
+  CELERY_TASK_HARD_TIME_LIMIT_SECONDS: ${CELERY_TASK_HARD_TIME_LIMIT_SECONDS:-300}
+  CELERY_MAX_RETRIES: ${CELERY_MAX_RETRIES:-3}
+  RATE_LIMIT_BACKEND: ${RATE_LIMIT_BACKEND:-redis}
+  EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-}
+  EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+  EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-768}
+  EMBEDDING_INDEX_VERSION: ${EMBEDDING_INDEX_VERSION:-1}
+  EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-32}
+  EMBEDDING_TIMEOUT_SECONDS: ${EMBEDDING_TIMEOUT_SECONDS:-30}
+  DOC_MAX_FILE_BYTES: ${DOC_MAX_FILE_BYTES:-26214400}
+  DOC_MAX_FILES_PER_REQUEST: ${DOC_MAX_FILES_PER_REQUEST:-5}
+  DOC_MAX_DOCUMENTS_PER_USER: ${DOC_MAX_DOCUMENTS_PER_USER:-200}
+  DOC_MAX_TOTAL_BYTES_PER_USER: ${DOC_MAX_TOTAL_BYTES_PER_USER:-1073741824}
+  DOC_MAX_PAGES: ${DOC_MAX_PAGES:-500}
+  DOC_MAX_EXTRACTED_CHARS: ${DOC_MAX_EXTRACTED_CHARS:-2000000}
+  DOC_ZIP_MAX_ENTRIES: ${DOC_ZIP_MAX_ENTRIES:-2000}
+  DOC_ZIP_MAX_UNCOMPRESSED_BYTES: ${DOC_ZIP_MAX_UNCOMPRESSED_BYTES:-209715200}
+  DOC_ZIP_MAX_RATIO: ${DOC_ZIP_MAX_RATIO:-100}
+  DOC_IMAGE_MAX_PIXELS: ${DOC_IMAGE_MAX_PIXELS:-50000000}
+  DOC_OCR_ENABLED: ${DOC_OCR_ENABLED:-true}
+  DOC_OCR_DPI: ${DOC_OCR_DPI:-200}
+  DOC_OCR_LANGUAGES: ${DOC_OCR_LANGUAGES:-eng}
+  SCANNER_BACKEND: ${SCANNER_BACKEND:-none}
+
+x-core-env: &core-env
+  APP_ENV: ${APP_ENV:-development}
+  APP_SECRET_KEY: ${APP_SECRET_KEY:-change_me_in_production_use_32_plus_chars}
+  DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://axonweave_app:axonweave_app_dev_password@postgres:5432/axonweave}
+  DATABASE_MIGRATION_URL: ${DATABASE_MIGRATION_URL:-postgresql+psycopg://axonweave_owner:${DB_OWNER_PASSWORD:-axonweave_owner_dev_password}@postgres:5432/axonweave}
+
 services:
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:0.8.7-pg16
     restart: unless-stopped
     environment:
       POSTGRES_DB: axonweave
       POSTGRES_USER: axonweave_owner
       POSTGRES_PASSWORD: ${DB_OWNER_PASSWORD:-axonweave_owner_dev_password}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # New volume name on purpose: the old alpine-based volume is not reusable by the Debian pgvector
+      # image (different libc collation). The old volume is left untouched; see docs/SETUP.md.
+      - pgvector_data:/var/lib/postgresql/data
       - ./infrastructure/docker/init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
       - ./infrastructure/docker/init-test-db.sh:/docker-entrypoint-initdb.d/02-init-test-db.sh:ro
     ports:
       - "5432:5432"
+    networks: [default, internal]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U axonweave_owner -d axonweave"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]   # broker and limiter only; nothing to persist
+    networks: [default, internal]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  objectstore:
+    # S3-compatible emulator (D-63). Tag verified 2026-11-06 (SeaweedFS 4.50).
+    image: chrislusf/seaweedfs:4.50
+    restart: unless-stopped
+    command: ["server", "-dir=/data", "-s3", "-s3.port=8333", "-ip.bind=0.0.0.0"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-axonweave_dev_access}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-axonweave_dev_secret_key}
+    volumes:
+      - objectstore_data:/data
+    ports:
+      - "127.0.0.1:8333:8333"   # S3 API for local debugging only
+    networks: [default, internal]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:9333/cluster/status || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  storage-init:
+    # One-shot: creates the private bucket if missing (idempotent), then exits.
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: api
+    restart: "no"
+    environment:
+      <<: [*phase3-env, *core-env]
+    command: ["python", "scripts/ensure_bucket.py"]
+    volumes:
+      - ./backend:/app:ro   # development: live source; a production image bakes the code in
+    depends_on:
+      objectstore:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: worker
+    restart: unless-stopped
+    environment:
+      <<: [*phase3-env, *core-env]
+    # Only the internal network: no route to the internet (D-70). M4 adds a controlled egress path
+    # for the embedding provider; until then the worker needs nothing external.
+    networks: [internal]
+    volumes:
+      - ./backend:/app:ro   # development: live source; a production image bakes the code in
+    read_only: true
+    tmpfs:
+      - /scratch:size=512m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1g
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      objectstore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.ingestion.worker:celery_app inspect ping -d celery@$$HOSTNAME -t 5 || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: worker
+    restart: unless-stopped
+    command: ["celery", "-A", "app.ingestion.worker:celery_app", "beat", "--loglevel=INFO", "--schedule=/scratch/celerybeat-schedule"]
+    environment:
+      <<: [*phase3-env, *core-env]
+    networks: [internal]
+    volumes:
+      - ./backend:/app:ro   # development: live source; a production image bakes the code in
+    read_only: true
+    tmpfs:
+      - /scratch:size=16m,mode=1777
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      redis:
+        condition: service_healthy
 
   mailpit:
     image: axllent/mailpit:latest
@@ -34,21 +182,23 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: api
     restart: unless-stopped
     environment:
+      <<: *phase3-env
       APP_ENV: ${APP_ENV:-development}
       APP_SECRET_KEY: ${APP_SECRET_KEY:-change_me_in_production_use_32_plus_chars}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://axonweave_app:axonweave_app_dev_password@postgres:5432/axonweave}
-      DATABASE_MIGRATION_URL: ${DATABASE_MIGRATION_URL:-postgresql+psycopg://axonweave_owner:axonweave_owner_dev_password@postgres:5432/axonweave}
-      DATABASE_TEST_URL: ${DATABASE_TEST_URL:-postgresql+psycopg://axonweave_owner:axonweave_owner_dev_password@postgres:5432/axonweave_test}
+      DATABASE_MIGRATION_URL: ${DATABASE_MIGRATION_URL:-postgresql+psycopg://axonweave_owner:${DB_OWNER_PASSWORD:-axonweave_owner_dev_password}@postgres:5432/axonweave}
+      DATABASE_TEST_URL: ${DATABASE_TEST_URL:-postgresql+psycopg://axonweave_owner:${DB_OWNER_PASSWORD:-axonweave_owner_dev_password}@postgres:5432/axonweave_test}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
       TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-false}
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-mailpit}
-      SMTP_HOST: ${SMTP_HOST:-mailpit}
-      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_HOST: mailpit  # service name; a host-side .env value (localhost) is unreachable from the container
+      SMTP_PORT: 1025
       # AI (Phase 2). Everything is optional; with LLM_PROVIDER empty the app runs and AI answers 503.
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       FAKE_LLM_CHUNK_DELAY_SECONDS: ${FAKE_LLM_CHUNK_DELAY_SECONDS:-0}
@@ -97,6 +247,13 @@ services:
       backend:
         condition: service_healthy
 
+networks:
+  default: {}
+  # No external route: the worker lives here (D-70).
+  internal:
+    internal: true
+
 volumes:
-  postgres_data:
+  pgvector_data:
+  objectstore_data:
   mailpit_data:

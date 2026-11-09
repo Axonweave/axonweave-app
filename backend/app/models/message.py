@@ -44,6 +44,16 @@ class Message(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             name="ck_messages_usage_source",
         ),
         CheckConstraint("sequence_number > 0", name="ck_messages_sequence_positive"),
+        # Scope and answer mode actually used for this answer (D-67); NULL for non-RAG messages.
+        CheckConstraint(
+            "scope_type IS NULL OR scope_type IN "
+            "('general', 'workspace', 'subject', 'folder', 'chapter', 'document')",
+            name="ck_messages_scope_type",
+        ),
+        CheckConstraint(
+            "answer_mode IS NULL OR answer_mode IN ('document_only', 'document_first', 'general')",
+            name="ck_messages_answer_mode",
+        ),
         UniqueConstraint("conversation_id", "sequence_number", name="uq_messages_conv_sequence"),
         UniqueConstraint("id", "user_id", name="uq_messages_id_user"),
         # One in-flight assistant generation per conversation (D-44), enforced by the database.
@@ -71,6 +81,9 @@ class Message(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     usage_source: Mapped[str | None] = mapped_column(String(24), nullable=True)
     finish_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
     error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    scope_type: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    scope_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    answer_mode: Mapped[str | None] = mapped_column(String(24), nullable=True)
     regenerates_message_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("messages.id", ondelete="SET NULL"),

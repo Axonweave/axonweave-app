@@ -1,7 +1,7 @@
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, Numeric, String
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, Numeric, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -31,6 +31,9 @@ class AiUsageRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             "usage_source IS NULL OR "
             "usage_source IN ('provider_reported', 'estimated', 'unavailable')",
             name="ck_ai_usage_source",
+        ),
+        CheckConstraint(
+            "request_kind IN ('chat', 'embedding', 'generation')", name="ck_ai_usage_request_kind"
         ),
         CheckConstraint(
             "request_status IN ('success', 'failed', 'cancelled')", name="ck_ai_usage_status"
@@ -64,6 +67,9 @@ class AiUsageRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     estimated_cost: Mapped[Decimal | None] = mapped_column(Numeric(14, 8), nullable=True)
     currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     pricing_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    request_kind: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="chat", server_default=text("'chat'")
+    )
     request_status: Mapped[str] = mapped_column(String(16), nullable=False)
     error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)

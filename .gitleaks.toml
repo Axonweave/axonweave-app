@@ -9,3 +9,9 @@ useDefault = true
 description = "CI-only throwaway test key"
 paths = ['''^\.github/workflows/ci\.yml$''']
 regexes = ['''ci_test_secret_key_at_least_32_characters_long''']
+
+# A storage contract test compares two SHA-256 hex digests; the high-entropy hex trips the generic
+# rule. It is test data computed at run time, not a credential.
+[[allowlists]]
+description = "Storage contract test compares computed digests"
+paths = ['''^backend/tests/storage/test_storage\.py$''']

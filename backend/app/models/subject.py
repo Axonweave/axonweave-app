@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text, text
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 class Subject(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "subjects"
     __table_args__ = (
+        # Target for composite FKs from documents (Phase 3): a subject belongs to one workspace.
+        UniqueConstraint("id", "workspace_id", name="uq_subjects_id_workspace"),
         # D-11: unique name per workspace among non-archived rows (case-insensitive)
         Index(
             "ix_subjects_workspace_name_unique",
