@@ -9,6 +9,8 @@ vi.mock("next/link", () => ({
     <a href={href}>{children}</a>
   ),
 }));
+const searchParams = { value: new URLSearchParams() };
+vi.mock("next/navigation", () => ({ useSearchParams: () => searchParams.value }));
 vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: vi.fn() }) }));
 vi.mock("@/lib/api/workspaces", () => ({
   workspacesApi: { list: vi.fn().mockResolvedValue({ data: [{ id: "w1", name: "Uni" }] }) },
@@ -53,6 +55,7 @@ const doc = (over: Partial<DocumentRecord> = {}): DocumentRecord =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  searchParams.value = new URLSearchParams();
 });
 
 describe("Library", () => {
@@ -130,6 +133,23 @@ describe("Library", () => {
       expect(api.upload).toHaveBeenCalledWith(
         [file],
         expect.objectContaining({ workspace_id: "w1" }),
+      ),
+    );
+  });
+});
+
+describe("upload placement from the URL", () => {
+  it("pre-selects the subject and chapter it was opened from", async () => {
+    searchParams.value = new URLSearchParams("workspace=w1&subject=s1&chapter=c1");
+    api.list.mockResolvedValue({ data: [], total: 0 });
+    api.upload.mockResolvedValue({ documents: [doc()], rejected: [] });
+    render(<Library />);
+    const file = new File(["hi"], "n.txt", { type: "text/plain" });
+    await userEvent.upload(await screen.findByLabelText("Choose files to upload"), file);
+    await waitFor(() =>
+      expect(api.upload).toHaveBeenCalledWith(
+        [file],
+        expect.objectContaining({ workspace_id: "w1", subject_id: "s1", chapter_id: "c1" }),
       ),
     );
   });

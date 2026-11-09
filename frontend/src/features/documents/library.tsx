@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { FileText, RotateCw, Trash2 } from "lucide-react";
 import { AsyncSection } from "@/components/ui/async-section";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,13 @@ export function deleteWarning(doc: DocumentRecord): string {
 
 export function Library() {
   const { toast } = useToast();
+  const params = useSearchParams();
+  // Set by "Upload documents" on subject and chapter pages.
+  const placement = {
+    workspace_id: params.get("workspace") ?? undefined,
+    subject_id: params.get("subject") ?? undefined,
+    chapter_id: params.get("chapter") ?? undefined,
+  };
   const [offset, setOffset] = useState(0);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
@@ -66,7 +74,7 @@ export function Library() {
 
   return (
     <div className="space-y-6">
-      <UploadZone onUploaded={reload} />
+      <UploadZone onUploaded={reload} defaultPlacement={placement} />
       <div className="flex flex-col gap-3 sm:flex-row">
         <input
           type="search"

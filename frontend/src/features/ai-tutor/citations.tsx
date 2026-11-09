@@ -46,7 +46,10 @@ export function Citations({ citations }: { citations: CitationView[] }) {
                   </p>
                 )}
                 {c.available && c.documentId && (
-                  <Link href={`/documents/${c.documentId}`} className="text-primary underline">
+                  <Link
+                    href={`/documents/${c.documentId}${c.page ? `?page=${c.page}` : ""}`}
+                    className="text-primary underline"
+                  >
                     Open document
                   </Link>
                 )}

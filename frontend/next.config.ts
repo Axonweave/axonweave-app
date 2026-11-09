@@ -10,6 +10,8 @@ const cspDirectives = [
   isDev ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'" : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'", // inline styles needed for Tailwind
   "img-src 'self' data: blob:",
+  // pdf.js runs its parser in a same-origin worker (D-72); nothing else gains worker access.
+  "worker-src 'self' blob:",
   "font-src 'self'",
   `connect-src 'self' ${backendUrl}`,
   "frame-ancestors 'none'",
@@ -50,7 +52,7 @@ const nextConfig: NextConfig = {
       },
       {
         // No-cache on all protected (dashboard) pages — back button after logout must not show data
-        source: "/(dashboard|workspaces|subjects|settings)(.*)",
+        source: "/(dashboard|workspaces|subjects|settings|library|documents|ai-tutor)(.*)",
         headers: [
           { key: "Cache-Control", value: "no-store, no-cache, must-revalidate" },
           { key: "Pragma", value: "no-cache" },

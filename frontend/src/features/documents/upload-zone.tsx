@@ -32,6 +32,8 @@ export function UploadZone({ onUploaded, defaultPlacement }: Props) {
   const wsList = workspaces.data ?? [];
   const effectiveWorkspace =
     workspaceId || wsList.find((w) => w.is_default)?.id || wsList[0]?.id || "";
+  // Files cannot be chosen before a workspace is known (the upload needs one).
+  const ready = !workspaces.loading && effectiveWorkspace !== "";
   const subjects = useAsync(
     () =>
       effectiveWorkspace
@@ -149,9 +151,10 @@ export function UploadZone({ onUploaded, defaultPlacement }: Props) {
           accept={ACCEPT}
           className="sr-only"
           aria-label="Choose files to upload"
+          disabled={!ready}
           onChange={(e) => void send(Array.from(e.target.files ?? []))}
         />
-        <Button type="button" disabled={busy} onClick={() => input.current?.click()}>
+        <Button type="button" disabled={busy || !ready} onClick={() => input.current?.click()}>
           {busy ? "Uploading…" : "Choose files"}
         </Button>
       </div>

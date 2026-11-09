@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Library } from "@/features/documents/library";
 
 export default function LibraryPage() {
@@ -10,7 +11,9 @@ export default function LibraryPage() {
           Tutor can answer from them. Only you can see them.
         </p>
       </div>
-      <Library />
+      <Suspense fallback={null}>
+        <Library />
+      </Suspense>
     </div>
   );
 }

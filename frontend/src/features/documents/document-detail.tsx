@@ -10,6 +10,7 @@ import { useAsync } from "@/hooks/use-async";
 import { formatDate } from "@/lib/activity";
 import { documentsApi, errorText } from "@/lib/api/documents";
 import { StatusBadge, formatBytes } from "./status-badge";
+import { PdfViewer } from "./pdf-viewer";
 import { useStatusPolling } from "./use-status-polling";
 
 const PAGE_SIZE = 20;
@@ -22,9 +23,11 @@ const PAGE_SIZE = 20;
 export function DocumentDetail({
   documentId,
   highlightChunk,
+  initialPage,
 }: {
   documentId: string;
   highlightChunk?: number;
+  initialPage?: number;
 }) {
   const [offset, setOffset] = useState(0);
   const [part, setPart] = useState<number | null>(null);
@@ -132,6 +135,15 @@ export function DocumentDetail({
           </div>
         )}
       </AsyncSection>
+
+      {ready && d?.file_type === "pdf" && (
+        <section aria-labelledby="pdf-original" className="space-y-2">
+          <h2 id="pdf-original" className="text-lg font-semibold">
+            Original
+          </h2>
+          <PdfViewer documentId={documentId} initialPage={initialPage} />
+        </section>
+      )}
 
       {ready && (
         <AsyncSection

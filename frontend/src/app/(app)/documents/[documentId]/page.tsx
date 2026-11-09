@@ -1,11 +1,26 @@
 "use client";
 
+import { Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { DocumentDetail } from "@/features/documents/document-detail";
 
-export default function DocumentPage() {
+function DocumentContent() {
   const { documentId } = useParams<{ documentId: string }>();
-  const chunk = useSearchParams().get("chunk");
-  const parsed = chunk !== null && /^\d+$/.test(chunk) ? Number(chunk) : undefined;
-  return <DocumentDetail documentId={documentId} highlightChunk={parsed} />;
+  const params = useSearchParams();
+  const num = (v: string | null) => (v !== null && /^\d+$/.test(v) ? Number(v) : undefined);
+  return (
+    <DocumentDetail
+      documentId={documentId}
+      highlightChunk={num(params.get("chunk"))}
+      initialPage={num(params.get("page"))}
+    />
+  );
+}
+
+export default function DocumentPage() {
+  return (
+    <Suspense fallback={null}>
+      <DocumentContent />
+    </Suspense>
+  );
 }

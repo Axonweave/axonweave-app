@@ -30,7 +30,7 @@ describe("Citations", () => {
     expect(screen.getByText("Chloroplasts convert light.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open document" })).toHaveAttribute(
       "href",
-      "/documents/d1",
+      "/documents/d1?page=3",
     );
   });
 
