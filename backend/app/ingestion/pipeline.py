@@ -29,6 +29,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import Settings
+from app.embeddings.errors import EmbeddingError
 from app.ingestion import errors
 from app.ingestion.chunker import ChunkDraft, ChunkSettings, chunk_blocks
 from app.ingestion.extractors import extract
@@ -61,7 +62,9 @@ _CHUNK = 64 * 1024
 class Embedder(Protocol):
     """Hook for M4. Given chunk drafts, return one vector each (and the model that made them)."""
 
-    async def embed(self, drafts: list[ChunkDraft]) -> tuple[list[list[float]], str]: ...
+    async def embed_documents(
+        self, user_id: uuid.UUID, texts: list[str]
+    ) -> tuple[list[list[float]], str]: ...
 
 
 class JobCancelledError(Exception):
@@ -176,7 +179,13 @@ async def _finish_failed(
         await db.commit()
 
 
-def _build_rows(drafts: list[ChunkDraft], ocr_confidence: float | None) -> list[dict[str, object]]:
+def _build_rows(
+    drafts: list[ChunkDraft],
+    ocr_confidence: float | None,
+    vectors: list[list[float]] | None = None,
+    model: str | None = None,
+    dimensions: int | None = None,
+) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for index, d in enumerate(drafts):
         rows.append(
@@ -194,6 +203,9 @@ def _build_rows(drafts: list[ChunkDraft], ocr_confidence: float | None) -> list[
                     if d.from_ocr and ocr_confidence is not None
                     else None
                 ),
+                "embedding": vectors[index] if vectors else None,
+                "embedding_model": model if vectors else None,
+                "embedding_dimensions": dimensions if vectors else None,
             }
         )
     return rows
@@ -208,6 +220,8 @@ async def _write(
     extraction: Extraction,
     drafts: list[ChunkDraft],
     words: int,
+    vectors: list[list[float]] | None = None,
+    embedding_model: str | None = None,
 ) -> int:
     """The only stage that changes chunks: one transaction, delete-and-rebuild (D-68)."""
     async with deps.session_factory() as db:
@@ -230,7 +244,13 @@ async def _write(
                 "folder_id": doc.folder_id,
                 "chapter_id": doc.chapter_id,
             },
-            rows=_build_rows(drafts, extraction.ocr_mean_confidence),
+            rows=_build_rows(
+                drafts,
+                extraction.ocr_mean_confidence,
+                vectors,
+                embedding_model,
+                deps.settings.embedding_dimensions,
+            ),
             index_version=deps.settings.embedding_index_version,
         )
         mean = extraction.ocr_mean_confidence
@@ -244,7 +264,7 @@ async def _write(
             page_count=extraction.page_count,
             slide_count=extraction.slide_count,
             word_count=words,
-            warnings=list(extraction.warnings),
+            warnings=list(extraction.warnings) + ([] if vectors else ["EMBEDDINGS_UNAVAILABLE"]),
             pipeline_version=PIPELINE_VERSION,
             index_version=deps.settings.embedding_index_version,
         )
@@ -332,7 +352,14 @@ async def run_job(
             raise ExtractionError("NO_TEXT_FOUND", "No text could be extracted from the document.")
         await _check_cancel(deps, job_id)
 
-        # M4 plugs the embedding stage in here (before the write transaction, D-68).
+        vectors: list[list[float]] | None = None
+        embedding_model: str | None = None
+        if deps.embedder is not None:
+            await _set_status(deps, job_id, user_id, version_id, "embedding", "embedding")
+            vectors, embedding_model = await deps.embedder.embed_documents(
+                user_id, [d.text for d in drafts]
+            )
+            await _check_cancel(deps, job_id)
         await _set_status(deps, job_id, user_id, version_id, "indexing", "indexing")
         chunk_count = await _write(
             deps,
@@ -342,6 +369,8 @@ async def run_job(
             extraction=extraction,
             drafts=drafts,
             words=words,
+            vectors=vectors,
+            embedding_model=embedding_model,
         )
     except JobCancelledError:
         await _finish_failed(deps, job_id, user_id, version_id, "CANCELLED", status="cancelled")
@@ -352,6 +381,10 @@ async def run_job(
     except UploadRejected as exc:
         return await _fail(deps, job_id, user_id, version_id, exc.code, started)
     except StorageNotFoundError as exc:
+        return await _fail(deps, job_id, user_id, version_id, exc.code, started)
+    except EmbeddingError as exc:
+        if exc.transient:
+            return await _transient(deps, job_id, user_id, version_id, exc.code, started)
         return await _fail(deps, job_id, user_id, version_id, exc.code, started)
     except StorageError as exc:
         return await _transient(deps, job_id, user_id, version_id, exc.code, started)

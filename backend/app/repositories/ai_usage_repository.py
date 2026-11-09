@@ -60,6 +60,8 @@ class AiUsageRepository:
                 select(func.count(AiUsageRecord.id)).where(
                     AiUsageRecord.user_id == user_id,
                     AiUsageRecord.created_at >= utc_day_start(),
+                    # Embedding calls count toward the token quota, not the message quota (D-69).
+                    AiUsageRecord.request_kind != "embedding",
                 )
             )
         ).scalar_one()

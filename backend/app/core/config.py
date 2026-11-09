@@ -115,6 +115,15 @@ class Settings(BaseSettings):
     embedding_index_version: int = Field(default=1, ge=1)
     embedding_batch_size: int = Field(default=32, ge=1, le=256)
     embedding_timeout_seconds: float = Field(default=30, gt=0)
+    embedding_max_retries: int = Field(default=3, ge=0, le=10)
+    # Retrieval (D-73). Scores are cosine similarity (0..1) for the verified model; calibrated in
+    # docs/RETRIEVAL_EVALUATION.md, never guessed.
+    retrieval_top_k: int = Field(default=8, ge=1, le=50)
+    retrieval_candidates: int = Field(default=40, ge=5, le=200)
+    retrieval_min_vector_score: float = Field(default=0.55, ge=0.0, le=1.0)
+    retrieval_context_token_budget: int = Field(default=4000, ge=200)
+    retrieval_rrf_k: int = Field(default=60, ge=1)
+    search_requests_per_minute_per_user: int = Field(default=30, ge=1)
 
     doc_max_file_bytes: int = Field(default=25 * 1024 * 1024, ge=1)
     doc_max_files_per_request: int = Field(default=5, ge=1)
