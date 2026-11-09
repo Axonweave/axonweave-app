@@ -120,6 +120,7 @@ class Settings(BaseSettings):
     doc_max_files_per_request: int = Field(default=5, ge=1)
     doc_max_documents_per_user: int = Field(default=200, ge=1)
     doc_max_total_bytes_per_user: int = Field(default=1024**3, ge=1)
+    doc_uploads_per_minute_per_user: int = Field(default=20, ge=1)
     doc_max_pages: int = Field(default=500, ge=1)
     doc_max_extracted_chars: int = Field(default=2_000_000, ge=1)
     doc_zip_max_entries: int = Field(default=2000, ge=1)

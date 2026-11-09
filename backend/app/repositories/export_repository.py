@@ -11,6 +11,7 @@ from app.models.activity_log import ActivityLog
 from app.models.ai_usage_record import AiUsageRecord
 from app.models.chapter import Chapter
 from app.models.conversation import Conversation
+from app.models.document import Document
 from app.models.folder import Folder
 from app.models.message import Message, MessageFeedback
 from app.models.subject import Subject
@@ -262,4 +263,35 @@ class ExportRepository:
                 "duration_ms": r.duration_ms,
             }
             for r in rows
+        ]
+
+    async def documents(self, user_id: uuid.UUID) -> list[dict[str, Any]]:
+        """Metadata only (D-66): no file bytes, no extracted text, no storage key, no checksum."""
+        rows = (
+            (
+                await self._db.execute(
+                    select(Document)
+                    .where(Document.user_id == user_id)
+                    .order_by(Document.created_at.asc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return [
+            {
+                "id": str(d.id),
+                "workspace_id": str(d.workspace_id),
+                "subject_id": str(d.subject_id) if d.subject_id else None,
+                "folder_id": str(d.folder_id) if d.folder_id else None,
+                "chapter_id": str(d.chapter_id) if d.chapter_id else None,
+                "display_name": d.display_name,
+                "original_filename": d.original_filename,
+                "file_type": d.file_type,
+                "file_size": d.file_size,
+                "processing_status": d.processing_status,
+                "created_at": _iso(d.created_at),
+                "archived_at": _iso(d.archived_at),
+            }
+            for d in rows
         ]

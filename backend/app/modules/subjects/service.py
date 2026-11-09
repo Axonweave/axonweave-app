@@ -4,6 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.subject import Subject
+from app.modules.documents.cleanup import enqueue_for_subject
 from app.repositories.activity_repository import ActivityRepository
 from app.repositories.subject_repository import SubjectRepository
 from app.repositories.workspace_repository import WorkspaceRepository
@@ -228,5 +229,6 @@ class SubjectService:
             entity_name=subject.name,
             workspace_id=workspace_id,
         )
+        await enqueue_for_subject(self._db, subject.id)  # outbox rows first (D-66)
         await self._subjects.delete(subject)
         await self._db.commit()

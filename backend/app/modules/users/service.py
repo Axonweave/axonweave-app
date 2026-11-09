@@ -18,6 +18,7 @@ from app.core.security_logging import (
 )
 from app.models.session_model import Session
 from app.models.user import User
+from app.modules.documents.cleanup import enqueue_for_user
 from app.modules.users.schemas import (
     ChangeEmailRequest,
     ChangePasswordRequest,
@@ -214,6 +215,7 @@ class UsersService:
             "activity": await self._export.activity(user.id),
             "ai_conversations": await self._export.ai_conversations(user.id),
             "ai_usage": await self._export.ai_usage(user.id),
+            "documents": await self._export.documents(user.id),
         }
 
     # ── Account deletion ──────────────────────────────────────────────────────
@@ -230,7 +232,9 @@ class UsersService:
         await self._db.flush()
         log_account_deletion_requested(str(user.id), ip)
 
-        # Synchronous deletion (Phase 1 — no background job yet)
+        # Synchronous deletion (Phase 1 — no background job yet). Document objects go through the
+        # storage_cleanup outbox in the same transaction (D-66).
+        await enqueue_for_user(self._db, user.id)
         await self._db.delete(user)
         await self._db.flush()
         logger.info(
