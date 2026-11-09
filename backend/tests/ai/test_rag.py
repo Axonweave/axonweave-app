@@ -343,3 +343,80 @@ async def _first_chunk(document_id: Any) -> Any:
                 select(DocumentChunk.id).where(DocumentChunk.document_id == document_id)
             )
         ).scalar_one()
+
+
+class TestEdgeCases:
+    async def test_contradictory_passages_are_both_offered_and_both_cited(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        ai: AiHarness,
+        fake: FakeProvider,
+        alice: Actor,
+    ):
+        lib = await library(db_session, alice)
+        a = "Photosynthesis happens in chloroplasts and needs light energy, according to notes A."
+        b = "Photosynthesis happens in mitochondria and needs light energy, according to notes B."
+        await add_doc(db_session, lib, "notes-a", [a])
+        await add_doc(db_session, lib, "notes-b", [b])
+        cid = await new_conversation(
+            client, alice, scope={"kind": "workspace", "id": str(lib.ws.id)}
+        )
+        fake.reply = "The notes disagree: one says chloroplasts [1], the other mitochondria [2]."
+        resp = await send(client, alice, cid, "where does photosynthesis happen light energy")
+        data = resp.json()["data"]
+        assert sorted(c["rank"] for c in data["citations"]) == [1, 2]
+        assert {c["document_name"] for c in data["citations"]} == {"notes-a", "notes-b"}
+        turn = fake.calls[-1].messages[-1].content
+        assert "<<<SOURCE 1" in turn and "<<<SOURCE 2" in turn
+        assert "disagree" in (fake.calls[-1].system_prompt or "")
+
+    async def test_failed_stream_keeps_sources_event_but_stores_no_citations(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        ai: AiHarness,
+        fake: FakeProvider,
+        alice: Actor,
+    ):
+        lib = await library(db_session, alice)
+        doc = await add_doc(db_session, lib, "bio", [PHOTO])
+        cid = await scoped_chat(client, alice, doc)
+        fake.reply = "Chloroplasts convert light [1] and more text to stream out."
+        fake.fail_after_chunks = 1
+        resp = await send(
+            client, alice, cid, "photosynthesis chloroplasts light energy", stream=True
+        )
+        frames = parse_sse(resp.text)
+        assert "message.citations" in names(frames) and names(frames)[-1] == "message.failed"
+        mid = next(d["message_id"] for n, d in frames if n == "message.started")
+        listed = await call(client, alice, "GET", f"/messages/{mid}/citations")
+        assert listed.status_code == 200 and listed.json()["data"] == []
+
+    async def test_cancelled_stream_stores_no_citations(
+        self,
+        client: AsyncClient,
+        db_session: AsyncSession,
+        ai: AiHarness,
+        fake: FakeProvider,
+        alice: Actor,
+    ):
+        import asyncio
+
+        from tests.ai.test_ai_streaming import streaming_message_id, wait_for
+
+        lib = await library(db_session, alice)
+        doc = await add_doc(db_session, lib, "bio", [PHOTO])
+        cid = await scoped_chat(client, alice, doc)
+        fake.reply = "Chloroplasts [1] " + "abcdefgh" * 60
+        fake.chunk_delay = 0.05
+        task = asyncio.create_task(
+            send(client, alice, cid, "photosynthesis chloroplasts light energy", stream=True)
+        )
+        mid = await wait_for(lambda: streaming_message_id(alice.user.id))
+        await asyncio.sleep(0.2)
+        await call(client, alice, "POST", f"/conversations/{cid}/messages/{mid}/cancel")
+        frames = parse_sse((await task).text)
+        assert names(frames)[-1] == "message.cancelled"
+        listed = await call(client, alice, "GET", f"/messages/{mid}/citations")
+        assert listed.json()["data"] == []
