@@ -302,6 +302,9 @@ class TestCitationEndpoints:
         chunk_id = await _first_chunk(doc.id)
         src = await _call(client, alice, "GET", f"/documents/{doc.id}/sources/{chunk_id}")
         assert src.status_code == 200 and "Photosynthesis" in src.json()["data"]["content"]
+        assert isinstance(src.json()["data"]["regions"], list)
+        cited = (await _call(client, alice, "GET", f"/citations/{cite_id}")).json()["data"]
+        assert cited["chunk_id"] is not None
         for path in (
             f"/citations/{cite_id}",
             f"/ai/messages/{message_id}/citations",
@@ -325,7 +328,7 @@ class TestCitationEndpoints:
         got = (await _call(client, alice, "GET", f"/citations/{cite_id}")).json()["data"]
         assert got["available"] is False and got["snippet"] is None
         assert got["section_heading"] is None and got["document_name"] == "bio"
-        assert got["page_number"] == 1 and got["document_id"] is None
+        assert got["page_number"] == 1 and got["document_id"] is None and got["chunk_id"] is None
 
 
 def _usage_session() -> Any:

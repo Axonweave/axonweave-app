@@ -112,7 +112,7 @@ export function noticeText(status: AiStatus): string {
     return `This server is using a test provider (${status.provider_display_name ?? "test"}). It is not a real AI: replies are generated locally for testing and nothing is sent to an outside service.`;
   }
   const name = status.provider_display_name ?? "the configured AI provider";
-  return `To answer you, the text of your messages and the earlier messages in the conversation are sent to ${name}, an external service. Do not share passwords or other secrets. Your conversations are stored in your Axonweave account and only you can see them.`;
+  return `To answer you, the text of your messages and the earlier messages in the conversation are sent to ${name}, an external service. Do not share passwords or other secrets. If you ask about your documents, the matching passages are sent too, and the text of documents you upload is sent to an embedding service so it can be searched. Your conversations and documents are stored in your Axonweave account and only you can see them.`;
 }
 
 export function NoticeDialog({

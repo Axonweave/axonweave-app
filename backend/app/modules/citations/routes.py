@@ -10,6 +10,24 @@ from app.modules.citations.service import CitationService
 router = APIRouter(tags=["citations"])
 
 
+def _regions(raw: object) -> list["Region"]:
+    """Stored block rectangles, defensively validated (they come from our own extractor)."""
+    out: list[Region] = []
+    for item in raw if isinstance(raw, list) else []:
+        try:
+            page, box = int(item["page"]), [float(v) for v in item["bbox"]]
+        except (KeyError, TypeError, ValueError):
+            continue
+        if page >= 1 and len(box) == 4:
+            out.append(Region(page=page, bbox=box))
+    return out
+
+
+class Region(BaseModel):
+    page: int
+    bbox: list[float]  # x0, y0, x1, y1 in PDF points, origin top-left
+
+
 class SourcePassageOut(BaseModel):
     chunk_id: uuid.UUID
     document_id: uuid.UUID
@@ -19,6 +37,7 @@ class SourcePassageOut(BaseModel):
     slide_number: int | None
     section_heading: str | None
     content: str
+    regions: list[Region] = []
 
 
 class SourcePassageResponse(BaseModel):
@@ -51,5 +70,6 @@ async def get_source_passage(
             slide_number=chunk.slide_number,
             section_heading=chunk.section_heading,
             content=chunk.content,
+            regions=_regions(chunk.bboxes),
         )
     )

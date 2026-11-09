@@ -64,6 +64,7 @@ export class SseParser {
 export interface CitationView {
   id: string | null;
   rank: number;
+  chunkId?: string | null;
   documentId: string | null;
   documentName: string;
   page: number | null;
@@ -111,6 +112,7 @@ function toCitations(v: unknown): CitationView[] | null {
     out.push({
       id: str(c.id),
       rank,
+      chunkId: str(c.chunk_id),
       documentId: str(c.document_id),
       documentName: name,
       page: num(c.page_number),

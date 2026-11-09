@@ -17,6 +17,16 @@ interface PdfDoc {
   destroy: () => Promise<void>;
 }
 
+/** A passage rectangle: PDF points, origin top-left (as stored by the extractor). */
+export interface Region {
+  page: number;
+  bbox: number[];
+}
+
+export function regionsOnPage(regions: Region[], page: number): Region[] {
+  return regions.filter((r) => r.page === page && r.bbox.length === 4);
+}
+
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 3;
 
@@ -45,9 +55,11 @@ export async function findPages(doc: TextSource, term: string) {
 export function PdfViewer({
   documentId,
   initialPage = 1,
+  regions = [],
 }: {
   documentId: string;
   initialPage?: number;
+  regions?: Region[];
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [doc, setDoc] = useState<PdfDoc | null>(null);
@@ -214,7 +226,23 @@ export function PdfViewer({
         </p>
       )}
       <div className="border-border max-h-[70vh] overflow-auto rounded-md border">
-        <canvas ref={canvas} aria-label={`Page ${page} of the document`} role="img" />
+        <div className="relative inline-block">
+          <canvas ref={canvas} aria-label={`Page ${page} of the document`} role="img" />
+          {regionsOnPage(regions, page).map((r, i) => (
+            <div
+              key={i}
+              data-testid="cited-region"
+              aria-hidden="true"
+              className="pointer-events-none absolute rounded-sm bg-yellow-300/40 ring-1 ring-yellow-500"
+              style={{
+                left: r.bbox[0] * zoom,
+                top: r.bbox[1] * zoom,
+                width: (r.bbox[2] - r.bbox[0]) * zoom,
+                height: (r.bbox[3] - r.bbox[1]) * zoom,
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

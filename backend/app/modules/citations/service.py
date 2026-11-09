@@ -26,6 +26,7 @@ def redact_if_unavailable(citation: MessageCitation) -> MessageCitation:
         citation.available = False
         citation.snippet = None
         citation.section_heading = None
+        citation.chunk_id = None
     return citation
 
 
