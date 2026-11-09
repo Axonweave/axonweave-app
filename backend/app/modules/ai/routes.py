@@ -19,6 +19,8 @@ from app.modules.ai.schemas import (
     AiStatusResponse,
     CapabilitiesOut,
     CapabilitiesResponse,
+    CitationListResponse,
+    CitationOut,
     ConversationListResponse,
     ConversationOut,
     ConversationResponse,
@@ -51,6 +53,7 @@ from app.modules.ai.service import (
     ModelService,
     UsageService,
 )
+from app.modules.citations.service import CitationService
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -65,7 +68,10 @@ async def create_conversation(
     data: CreateConversationRequest, current_user: ActiveUser, db: DbSession, runtime: Runtime
 ) -> ConversationResponse:
     conv = await ConversationService(db, runtime).create(
-        user=current_user, title=data.title, model_id=data.model_id
+        user=current_user,
+        title=data.title,
+        model_id=data.model_id,
+        scope=(data.scope.kind, data.scope.id) if data.scope else None,
     )
     return ConversationResponse(data=ConversationOut.model_validate(conv))
 
@@ -175,6 +181,7 @@ def _result_response(result: GenerationResult) -> SendMessageResponse:
             conversation_id=result.conversation.id,
             user_message=MessageOut.model_validate(result.user_message),
             message=MessageOut.model_validate(result.assistant_message),
+            citations=[CitationOut.model_validate(c) for c in result.citations],
             usage=UsageOut(
                 input_tokens=usage.input_tokens,
                 output_tokens=usage.output_tokens,
@@ -227,6 +234,7 @@ async def send_message(
             conversation_id=conversation_id,
             content=data.content,
             model_id=data.model_id,
+            answer_mode=data.answer_mode,
         )
         return await _stream(service, runtime, factory, current_user, prepared, started)
     result = await service.send_message(
@@ -234,6 +242,7 @@ async def send_message(
         conversation_id=conversation_id,
         content=data.content,
         model_id=data.model_id,
+        answer_mode=data.answer_mode,
     )
     return JSONResponse(status_code=201, content=jsonable_encoder(_result_response(result)))
 
@@ -368,3 +377,11 @@ async def capabilities(current_user: ActiveUser, runtime: Runtime) -> Capabiliti
     return CapabilitiesResponse(
         data=CapabilitiesOut.model_validate(ModelService(runtime).capabilities())
     )
+
+
+@router.get("/messages/{message_id}/citations", response_model=CitationListResponse)
+async def message_citations(
+    message_id: uuid.UUID, current_user: ActiveUser, db: DbSession
+) -> CitationListResponse:
+    rows = await CitationService(db).for_message(user_id=current_user.id, message_id=message_id)
+    return CitationListResponse(data=[CitationOut.model_validate(r) for r in rows])

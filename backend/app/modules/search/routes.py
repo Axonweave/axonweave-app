@@ -7,9 +7,7 @@ from pydantic import BaseModel, Field, model_validator
 from app.core.config import Settings, get_settings
 from app.core.dependencies import ActiveUser, DbSession
 from app.core.rate_limit import RateLimiter, get_rate_limiter
-from app.database.connection import AsyncSessionLocal
-from app.embeddings.registry import embedding_configured, get_embedding_provider
-from app.embeddings.service import EmbeddingService
+from app.retrieval.embedder import make_query_embedder
 from app.retrieval.scope import ScopeKind, ScopeResolver
 from app.retrieval.searcher import QueryEmbedder, Searcher
 
@@ -66,12 +64,7 @@ def get_query_embedder(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> QueryEmbedder | None:
     """None when no embedding provider is configured: search then answers keyword-only."""
-    if not embedding_configured(settings):
-        return None
-    try:
-        return EmbeddingService(AsyncSessionLocal, get_embedding_provider(settings), settings)
-    except Exception:
-        return None
+    return make_query_embedder(settings)
 
 
 @router.post("", response_model=SearchResponse)

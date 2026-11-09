@@ -22,8 +22,8 @@ import random
 import re
 import time
 import uuid
-from collections.abc import AsyncIterator
-from dataclasses import dataclass
+from collections.abc import AsyncIterator, Sequence
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
@@ -54,7 +54,14 @@ from app.ai.orchestration.context import (
     ConversationHistory,
 )
 from app.ai.orchestration.runtime import AiRuntime
+from app.ai.prompts.rag import DOCUMENT_FIRST_KEY, DOCUMENT_ONLY_KEY
 from app.ai.prompts.registry import PromptDefinition, active_prompt
+from app.ai.rag import (
+    INSUFFICIENT_REPLY,
+    build_query,
+    build_user_turn,
+    validate_citations,
+)
 from app.ai.sync import sync_models
 from app.ai.types import (
     LLMMessage,
@@ -72,11 +79,17 @@ from app.core.rate_limit import RateLimiter, get_rate_limiter
 from app.models.conversation import Conversation
 from app.models.llm_provider import LLMModel
 from app.models.message import Message
+from app.models.message_citation import MessageCitation
 from app.models.user import User
 from app.repositories.ai_catalog_repository import AiCatalogRepository
 from app.repositories.ai_conversation_repository import AiConversationRepository
 from app.repositories.ai_message_repository import AiMessageRepository
 from app.repositories.ai_usage_repository import AiUsageRepository
+from app.repositories.message_citation_repository import MessageCitationRepository
+from app.repositories.retrieval_repository import ChunkHit
+from app.retrieval.embedder import make_query_embedder
+from app.retrieval.scope import ResolvedScope, ScopeResolver
+from app.retrieval.searcher import Searcher
 
 logger = get_logger(__name__)
 
@@ -107,6 +120,7 @@ class Prepared:
     catalog_model: LLMModel
     system_prompt: str
     prompt_version: int
+    answer_mode: str = "general"
 
 
 @dataclass
@@ -115,6 +129,7 @@ class GenerationResult:
     user_message: Message
     assistant_message: Message
     usage: Usage
+    citations: list[MessageCitation] = field(default_factory=list)
 
 
 class AiService:
@@ -136,10 +151,20 @@ class AiService:
     # ── non-streaming entry points ───────────────────────────────────────────
 
     async def send_message(
-        self, *, user: User, conversation_id: uuid.UUID, content: str, model_id: str | None
+        self,
+        *,
+        user: User,
+        conversation_id: uuid.UUID,
+        content: str,
+        model_id: str | None,
+        answer_mode: str | None = None,
     ) -> GenerationResult:
         prepared = await self.prepare(
-            user=user, conversation_id=conversation_id, content=content, model_id=model_id
+            user=user,
+            conversation_id=conversation_id,
+            content=content,
+            model_id=model_id,
+            answer_mode=answer_mode,
         )
         return await self.run_generation(user=user, prepared=prepared)
 
@@ -193,7 +218,13 @@ class AiService:
         return locked
 
     async def prepare(
-        self, *, user: User, conversation_id: uuid.UUID, content: str, model_id: str | None
+        self,
+        *,
+        user: User,
+        conversation_id: uuid.UUID,
+        content: str,
+        model_id: str | None,
+        answer_mode: str | None = None,
     ) -> Prepared:
         conversation = await self._owned_active_conversation(user, conversation_id)
         if model_id:
@@ -210,7 +241,8 @@ class AiService:
 
         await self._enforce_limits(user.id)
         catalog_model = await self._catalog_model(model)
-        prompt = active_prompt(PROMPT_KEY)
+        mode = _effective_mode(conversation, answer_mode)
+        prompt = active_prompt(_prompt_key(mode))
 
         locked = await self._lock_for_generation(user.id, conversation_id)
         try:
@@ -227,7 +259,7 @@ class AiService:
                 completed_at=datetime.now(UTC),
             )
             assistant_message = await self._add_pending_assistant(
-                locked, user, sequence + 1, model, prompt, regenerates=None
+                locked, user, sequence + 1, model, prompt, regenerates=None, answer_mode=mode
             )
         except IntegrityError:
             # The partial unique index: another generation is already active here (D-43).
@@ -246,6 +278,7 @@ class AiService:
             catalog_model=catalog_model,
             system_prompt=prompt.content,
             prompt_version=prompt.version,
+            answer_mode=mode,
         )
 
     async def _add_pending_assistant(
@@ -257,7 +290,9 @@ class AiService:
         prompt: PromptDefinition,
         *,
         regenerates: uuid.UUID | None,
+        answer_mode: str = "general",
     ) -> Message:
+        scoped = answer_mode != "general"
         return await self._messages.add(
             conversation_id=conversation.id,
             user_id=user.id,
@@ -269,6 +304,9 @@ class AiService:
             prompt_key=prompt.prompt_key,
             prompt_version=prompt.version,
             regenerates_message_id=regenerates,
+            scope_type=conversation.scope_type if scoped else None,
+            scope_id=conversation.scope_id if scoped else None,
+            answer_mode=answer_mode if scoped else None,
         )
 
     def _model_for_regenerate(self, requested: str | None, target: Message) -> ModelConfig:
@@ -301,7 +339,8 @@ class AiService:
 
         await self._enforce_limits(user.id)
         catalog_model = await self._catalog_model(model)
-        prompt = active_prompt(PROMPT_KEY)
+        mode = _effective_mode(conversation, target.answer_mode)
+        prompt = active_prompt(_prompt_key(mode))
 
         locked = await self._lock_for_generation(user.id, conversation_id)
         await self._db.refresh(target)  # re-read under the lock: a concurrent click may have won
@@ -323,7 +362,7 @@ class AiService:
             )
             target.superseded_at = datetime.now(UTC)
             assistant_message = await self._add_pending_assistant(
-                locked, user, sequence, model, prompt, regenerates=target.id
+                locked, user, sequence, model, prompt, regenerates=target.id, answer_mode=mode
             )
         except IntegrityError:
             await self._db.rollback()
@@ -339,6 +378,7 @@ class AiService:
             catalog_model=catalog_model,
             system_prompt=prompt.content,
             prompt_version=prompt.version,
+            answer_mode=mode,
         )
 
     async def _enforce_limits(self, user_id: uuid.UUID) -> None:
@@ -370,6 +410,21 @@ class AiService:
     # ── step 2: context + provider ───────────────────────────────────────────
 
     async def build_context(self, *, user: User, prepared: Prepared) -> ContextResult:
+        sources: tuple[ChunkHit, ...] = ()
+        new_message = prepared.user_message.content
+        if prepared.answer_mode != "general":
+            sources = await self._retrieve(user, prepared)
+            if not sources and prepared.answer_mode == "document_only":
+                return ContextResult(
+                    system_prompt=prepared.system_prompt,
+                    messages=[],
+                    estimated=True,
+                    dropped_messages=0,
+                    input_tokens=0,
+                    canned_reply=INSUFFICIENT_REPLY,
+                )
+            if sources:
+                new_message = build_user_turn(new_message, sources)
         provider = self._runtime.provider()
         model = prepared.model
         settings = self._settings
@@ -388,15 +443,37 @@ class AiService:
             budget_tokens=max(budget, 1),
             counter=counter,
         )
-        return await manager.build(
+        result = await manager.build(
             ContextRequest(
                 conversation_id=prepared.conversation.id,
                 user_id=user.id,
-                new_message=prepared.user_message.content,
+                new_message=new_message,
                 before_sequence=prepared.user_message.sequence_number,
             ),
             system_prompt=prepared.system_prompt,
         )
+        return replace(result, sources=sources)
+
+    async def _retrieve(self, user: User, prepared: Prepared) -> tuple[ChunkHit, ...]:
+        """Retrieval for a scoped conversation. The scope comes from the stored conversation and is
+        re-verified against the owner on every request (D-75, rule 13)."""
+        conv = prepared.conversation
+        scope: ResolvedScope = await ScopeResolver(self._db).resolve(
+            user.id,
+            conv.scope_type,
+            conv.scope_id,  # type: ignore[arg-type]
+        )
+        previous = await self._messages.previous_user_message(
+            conversation_id=conv.id,
+            user_id=user.id,
+            before_sequence=prepared.user_message.sequence_number,
+        )
+        query = build_query(
+            prepared.user_message.content, previous.content if previous is not None else None
+        )
+        searcher = Searcher(self._db, self._settings, make_query_embedder(self._settings))
+        result = await searcher.search(scope, query, mode="hybrid")
+        return tuple(result.hits)
 
     def make_request(
         self, prepared: Prepared, system_prompt: str, messages: list[LLMMessage]
@@ -471,12 +548,15 @@ class AiService:
             catalog_model=catalog_model,
             system_prompt=snapshot.system_prompt,
             prompt_version=snapshot.prompt_version,
+            answer_mode=snapshot.answer_mode,
         )
 
     async def run_generation(self, *, user: User, prepared: Prepared) -> GenerationResult:
         started = time.monotonic()
         try:
             context = await self.build_context(user=user, prepared=prepared)
+            if context.canned_reply is not None:
+                return await self.finalize_canned(prepared, context.canned_reply)
             request = self.make_request(prepared, context.system_prompt, context.messages)
             response = await self._call_with_retries(request)
         except asyncio.CancelledError:
@@ -493,7 +573,7 @@ class AiService:
             error = LLMBadResponseError()
             await self.finalize_failure(prepared, error, started)
             raise error from None
-        return await self.finalize_success(prepared, response, started)
+        return await self.finalize_success(prepared, response, started, sources=context.sources)
 
     async def _call_with_retries(self, request: LLMRequest) -> LLMResponse:
         """Retry only transient failures, before any output exists (D-50)."""
@@ -538,12 +618,21 @@ class AiService:
     # ── step 3: store the outcome ────────────────────────────────────────────
 
     async def finalize_success(
-        self, prepared: Prepared, response: LLMResponse, started: float
+        self,
+        prepared: Prepared,
+        response: LLMResponse,
+        started: float,
+        *,
+        sources: Sequence[ChunkHit] = (),
     ) -> GenerationResult:
         usage = response.usage
         assistant = prepared.assistant_message
         now = datetime.now(UTC)
-        assistant.content = response.content
+        content = response.content
+        used: list[int] = []
+        if sources:  # the model's [n] markers are never trusted (D-75)
+            content, used = validate_citations(content, len(sources))
+        assistant.content = content
         assistant.status = "completed"
         assistant.finish_reason = response.finish_reason.value
         assistant.input_tokens = usage.input_tokens
@@ -553,6 +642,11 @@ class AiService:
         assistant.completed_at = now
         await self._record_usage(prepared, usage, "success", None, started, response)
         prepared.conversation.last_message_at = now
+        citations = await MessageCitationRepository(self._db).add_for_message(
+            user_id=prepared.conversation.user_id,
+            message_id=assistant.id,
+            ranked=[(n, sources[n - 1]) for n in used],
+        )
         await self._commit_outcome(prepared, fail_if_gone=True)
         logger.info(
             "ai_generation_completed",
@@ -569,6 +663,26 @@ class AiService:
             user_message=prepared.user_message,
             assistant_message=assistant,
             usage=usage,
+            citations=citations,
+        )
+
+    async def finalize_canned(self, prepared: Prepared, reply: str) -> GenerationResult:
+        """Fixed insufficient-evidence answer: the model is not called and no usage is recorded."""
+        assistant = prepared.assistant_message
+        now = datetime.now(UTC)
+        assistant.content = reply
+        assistant.status = "completed"
+        assistant.finish_reason = "insufficient_evidence"
+        assistant.usage_source = Usage().source.value
+        assistant.completed_at = now
+        prepared.conversation.last_message_at = now
+        await self._commit_outcome(prepared, fail_if_gone=True)
+        logger.info("ai_generation_no_evidence", message_id=str(assistant.id))
+        return GenerationResult(
+            conversation=prepared.conversation,
+            user_message=prepared.user_message,
+            assistant_message=assistant,
+            usage=Usage(),
         )
 
     async def finalize_failure(
@@ -662,6 +776,19 @@ class AiService:
             duration_ms=int((time.monotonic() - started) * 1000),
             provider_request_id=response.provider_request_id if response else None,
         )
+
+
+def _effective_mode(conversation: Conversation, requested: str | None) -> str:
+    """General conversations never retrieve; scoped ones default to the strictest mode."""
+    if conversation.scope_type == "general":
+        return "general"
+    return requested or "document_only"
+
+
+def _prompt_key(mode: str) -> str:
+    return {"document_only": DOCUMENT_ONLY_KEY, "document_first": DOCUMENT_FIRST_KEY}.get(
+        mode, PROMPT_KEY
+    )
 
 
 def _backoff_delay(exc: LLMError, attempt: int) -> float:

@@ -34,6 +34,7 @@ from app.repositories.chapter_repository import ChapterRepository
 from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.folder_repository import FolderRepository
+from app.repositories.message_citation_repository import MessageCitationRepository
 from app.repositories.processing_job_repository import ProcessingJobRepository
 from app.repositories.subject_repository import SubjectRepository
 from app.repositories.workspace_repository import WorkspaceRepository
@@ -285,6 +286,9 @@ class DocumentService:
         await self.get_owned(user_id=user_id, document_id=document_id)
         # Outbox rows and the delete share one transaction (D-66).
         await cleanup.enqueue_for_document(self._db, document_id=document_id, user_id=user_id)
+        await MessageCitationRepository(self._db).mark_document_unavailable(
+            user_id=user_id, document_id=document_id
+        )
         await self._docs.delete_owned(document_id=document_id, user_id=user_id)
         await self._db.commit()
         logger.info("document_deleted", user_id=str(user_id), document_id=str(document_id))

@@ -4,6 +4,7 @@ from app.modules.ai.routes import router as ai_router
 from app.modules.auth.email_routes import router as email_auth_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.chapters.routes import router as chapters_router
+from app.modules.citations.routes import router as citations_router
 from app.modules.dashboard.routes import router as dashboard_router
 from app.modules.documents.routes import router as documents_router
 from app.modules.folders.routes import router as folders_router
@@ -24,3 +25,4 @@ router.include_router(dashboard_router)
 router.include_router(ai_router)
 router.include_router(documents_router)
 router.include_router(search_router)
+router.include_router(citations_router)

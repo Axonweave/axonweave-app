@@ -25,6 +25,7 @@ from app.ai.errors import LLMContextTooLongError, LLMError
 from app.ai.types import LLMMessage, Role
 from app.core.logging import get_logger
 from app.repositories.ai_message_repository import AiMessageRepository
+from app.repositories.retrieval_repository import ChunkHit
 
 logger = get_logger(__name__)
 
@@ -61,6 +62,8 @@ class ContextResult:
     estimated: bool  # True when sizes are character estimates rather than provider counts
     dropped_messages: int
     input_tokens: int  # the figure that was compared with the budget
+    sources: tuple[ChunkHit, ...] = ()  # retrieved chunks, rank = position + 1 (RAG)
+    canned_reply: str | None = None  # answer without calling the model (no evidence)
 
 
 class ContextSource(Protocol):

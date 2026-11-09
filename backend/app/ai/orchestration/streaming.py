@@ -29,6 +29,7 @@ from app.ai.orchestration.runtime import AiRuntime
 from app.ai.orchestration.service import AiService, Prepared
 from app.ai.types import LLMResponse, StreamDelta, StreamEnd, Usage
 from app.core.logging import get_logger
+from app.repositories.retrieval_repository import ChunkHit
 
 logger = get_logger(__name__)
 
@@ -48,6 +49,18 @@ SSE_PING = b": ping\n\n"
 def sse_event(event: str, data: dict[str, Any]) -> bytes:
     """One SSE frame. `json.dumps` escapes newlines, so model text can never break the framing."""
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n".encode()
+
+
+def source_payload(rank: int, hit: ChunkHit) -> dict[str, Any]:
+    return {
+        "rank": rank,
+        "document_id": str(hit.document_id),
+        "document_name": hit.document_name,
+        "page_number": hit.page_number,
+        "slide_number": hit.slide_number,
+        "section_heading": hit.section_heading,
+        "snippet": hit.content[:300],
+    }
 
 
 # ── registry ─────────────────────────────────────────────────────────────────
@@ -204,6 +217,36 @@ class StreamRunner:
                     },
                 )
             )
+            if context.canned_reply is not None:
+                reply = context.canned_reply
+                emit(sse_event("message.citations", {"message_id": message_id, "citations": []}))
+                emit(sse_event("message.delta", {"delta": reply}))
+                await service.finalize_canned(prepared, reply)
+                emit(
+                    sse_event(
+                        "message.completed",
+                        {
+                            "message_id": message_id,
+                            "finish_reason": "insufficient_evidence",
+                            "content": reply,
+                            "citations": [],
+                        },
+                    )
+                )
+                return
+            if context.sources:  # the retrieved sources go out before the first delta (D-75)
+                emit(
+                    sse_event(
+                        "message.citations",
+                        {
+                            "message_id": message_id,
+                            "citations": [
+                                source_payload(n, hit)
+                                for n, hit in enumerate(context.sources, start=1)
+                            ],
+                        },
+                    )
+                )
             async for event in service.stream_with_retries(request):
                 if isinstance(event, StreamDelta):
                     parts.append(event.text)
@@ -230,7 +273,9 @@ class StreamRunner:
                 usage=end.usage,
                 provider_request_id=end.provider_request_id,
             )
-            result = await service.finalize_success(prepared, response, started)
+            result = await service.finalize_success(
+                prepared, response, started, sources=context.sources
+            )
         except asyncio.CancelledError:
             reason = handle.cancel_reason or "cancelled"
             await asyncio.shield(
@@ -269,12 +314,26 @@ class StreamRunner:
                 },
             )
         )
-        emit(
-            sse_event(
-                "message.completed",
-                {"message_id": message_id, "finish_reason": end.finish_reason.value},
-            )
-        )
+        completed: dict[str, Any] = {
+            "message_id": message_id,
+            "finish_reason": end.finish_reason.value,
+        }
+        if context.sources:  # validated text and the citations actually used; client replaces
+            completed["content"] = result.assistant_message.content
+            completed["citations"] = [
+                {
+                    "id": str(c.id),
+                    "rank": c.rank,
+                    "document_id": str(c.document_id) if c.document_id else None,
+                    "document_name": c.document_name,
+                    "page_number": c.page_number,
+                    "slide_number": c.slide_number,
+                    "section_heading": c.section_heading,
+                    "snippet": c.snippet,
+                }
+                for c in result.citations
+            ]
+        emit(sse_event("message.completed", completed))
 
     @staticmethod
     async def _fail(
