@@ -1,4 +1,4 @@
-"""One real-provider RAG run through the API (Phase 3 M5). Prints metrics, never document or answer text.
+"""One real-provider RAG run through the API (Phase 3 M5). Prints metrics, never text.
 
 Creates a throwaway user and document in the CURRENT database, indexes the document with the real
 embedder, asks a grounded and an off-topic question through the HTTP API (real LLM), then deletes
