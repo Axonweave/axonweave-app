@@ -96,3 +96,8 @@ output_tokens, reasoning_tokens, total_tokens, usage_source, estimated_cost, cur
 A failed or cancelled generation keeps its row (`status` failed or cancelled, partial content kept) and writes a usage
 record with the matching `request_status`; it is never reported as a success. Retries (max 2, transient errors only) happen
 only before the first streamed token.
+
+## Phase 3 endpoints (documents and RAG)
+Upload and manage: `POST /documents` (multipart), `GET /documents`, `GET|PATCH|DELETE /documents/{id}`, `POST /documents/{id}/archive|restore|retry|reprocess|cancel`, `GET /documents/{id}/status|processing|pages|content|download|inline`.
+Search and sources: `POST /search`, `GET /documents/{id}/sources/{chunk_id}` (text and `regions`), `GET /citations/{id}`, `GET /ai/messages/{id}/citations`.
+Conversations accept `scope` (`{kind, id}`) and `answer_mode`; streamed answers emit `message.citations` before the first `message.delta`. The authoritative list is `/docs` (OpenAPI).

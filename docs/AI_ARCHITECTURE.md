@@ -384,3 +384,10 @@ The design above was implemented as written, with these additions and notes:
 
 Related documents: `docs/AI_SECURITY.md`, `docs/AI_API_REFERENCE.md`, `docs/CONVERSATION_MANAGEMENT.md`, `docs/USAGE_AND_COST_TRACKING.md`, `docs/LLM_PROVIDER_INTEGRATION.md`
 (which expands section 15), `docs/AI_TESTING.md`, `docs/AI_EVALUATION.md`.
+
+## As built in Phase 3
+Scoped conversations call `build_context`, which retrieves via `ScopeResolver`/`Searcher` (hybrid RRF, threshold 0.55,
+token budget) and, in `document_only` with no evidence, returns a fixed reply without an LLM call. Passages are escaped
+into `<<<SOURCE n | name | loc>>>` blocks in the user turn; the system prompt is a versioned `rag_*` prompt. The backend
+strips invalid `[n]` markers and stores `message_citations` for markers actually used; `message.citations` is sent before the
+first delta. Failed or cancelled streams store no citations. See `DOCUMENT_ARCHITECTURE.md`, `RAG_EVALUATION.md`.

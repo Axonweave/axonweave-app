@@ -80,3 +80,10 @@ Cleanup afterwards: `DROP DATABASE axonweave_restore_test` and the dump removed 
 - No scheduled backups, retention policy, off-site copy or encryption exist. Those are deployment
   work (see `docs/DEPLOYMENT.md`).
 - Point-in-time recovery (WAL archiving) is not set up; recovery granularity is the last dump.
+
+## Phase 3: object store
+Documents live in the object store, metadata, chunks and vectors in PostgreSQL. Back up both at the same point in time.
+After restoring only the database, rows can point at missing objects (downloads fail, text and search still work); after
+restoring only the object store, orphan objects are harmless but unreferenced. Deleted documents queue object removal in
+`storage_cleanup`; do not restore a bucket snapshot older than the database without re-running cleanup review. Vectors can be
+rebuilt with `scripts/reindex_documents.py` if a different embedding model is chosen.

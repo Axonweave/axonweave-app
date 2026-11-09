@@ -72,3 +72,11 @@ docker compose exec backend alembic heads          # exactly one head
 
 Use `docs/BACKUP_RESTORE.md` (custom-format `pg_dump`, `pg_restore`, verification steps). The old
 plain-SQL `gzip | psql` instructions that used to be here were never run and have been removed.
+
+## Phase 3: documents and RAG
+Run in production: API, **worker** (own image target with OCR binaries, non-root, read-only root, tmpfs scratch, memory
+limit, no internet route), **beat**, **Redis**, PostgreSQL with the pgvector extension, and a **private** S3-compatible bucket
+(no public access, no pre-signed URLs). Set `APP_ENV=production`: fake embedder and in-memory storage refuse to start.
+The worker needs a controlled egress to the embedding provider if embeddings are used (not yet built). Back up the object
+store together with the database (see `BACKUP_RESTORE.md`). The app runs without Redis, worker, storage or embedder; only
+document endpoints answer 503.

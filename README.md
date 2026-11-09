@@ -142,6 +142,8 @@ handlers and no SQL outside repositories.
 | `docs/TASKS_Phase1.md` | Task board and the Phase 1b closeout |
 | `docs/PHASE1_ACCEPTANCE.md` | Spec section 22, item by item, with evidence |
 | `docs/PHASE2_SPEC.md`, `docs/TASKS_Phase2.md` | Phase 2 requirements and task board |
+| `docs/PHASE3_SPEC.md`, `docs/TASKS_Phase3.md` | Phase 3 requirements and task board |
+| `docs/PHASE3_ACCEPTANCE.md`, `docs/DOCUMENT_SECURITY.md` | Phase 3 status and security review |
 | `docs/PHASE2_ACCEPTANCE.md` | Phase 2 spec section 23, item by item, with evidence |
 | `docs/AI_ARCHITECTURE.md` | AI design: providers, orchestration, context, streaming, data model |
 | `docs/LLM_PROVIDER_INTEGRATION.md` | Configuring a provider; adding Qwen or Llama |
