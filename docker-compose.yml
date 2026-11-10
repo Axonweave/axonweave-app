@@ -247,9 +247,8 @@ services:
       SMTP_HOST: mailpit  # service name; a host-side .env value (localhost) is unreachable from the container
       SMTP_PORT: 1025
       # AI (Phase 2). Everything is optional; with LLM_PROVIDER empty the app runs and AI answers 503.
-      LLM_PROVIDER: ${LLM_PROVIDER:-}
-      FAKE_LLM_CHUNK_DELAY_SECONDS: ${FAKE_LLM_CHUNK_DELAY_SECONDS:-0}
-      LLM_DEFAULT_MODEL: ${LLM_DEFAULT_MODEL:-}
+      LLM_PROVIDER: gemini
+      LLM_DEFAULT_MODEL: gemini-2.5-flash 
       LLM_ALLOWED_MODELS: ${LLM_ALLOWED_MODELS:-}
       LLM_MODEL_MAX_INPUT_TOKENS: ${LLM_MODEL_MAX_INPUT_TOKENS:-}
       LLM_MODEL_MAX_OUTPUT_TOKENS: ${LLM_MODEL_MAX_OUTPUT_TOKENS:-}
