@@ -152,10 +152,15 @@ function waitForChecks(pr) {
   // `gh pr checks --watch --fail-fast` exits non-zero if any check fails.
   // Give GitHub a moment to register the workflow runs first.
   spawnSync(isWin ? "timeout" : "sleep", isWin ? ["/t", "20", "/nobreak"] : ["20"], { shell: isWin });
-  const noChecks = gh("pr", "checks", pr, "--required");
-  if (/no checks reported|no required checks/i.test(noChecks.out)) {
-    log("No checks reported. Treating as NOT green for safety.");
-    return { green: false, out: noChecks.out };
+  // No --required: the repo has no required checks, so that flag always reports none.
+  let seen = gh("pr", "checks", pr);
+  for (let i = 0; i < 9 && /no checks reported/i.test(seen.out); i++) {
+    spawnSync(isWin ? "timeout" : "sleep", isWin ? ["/t", "20", "/nobreak"] : ["20"], { shell: isWin });
+    seen = gh("pr", "checks", pr);
+  }
+  if (/no checks reported/i.test(seen.out)) {
+    log("No checks reported after 3 minutes. Treating as NOT green for safety.");
+    return { green: false, out: seen.out };
   }
   const r = gh("pr", "checks", pr, "--watch", "--fail-fast");
   return { green: r.code === 0, out: r.out };
