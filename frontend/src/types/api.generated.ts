@@ -1274,6 +1274,95 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/study/generators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Generators */
+        get: operations["list_generators_api_v1_study_generators_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/generations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Generations */
+        get: operations["list_generations_api_v1_study_generations_get"];
+        put?: never;
+        /**
+         * Create Generation
+         * @description 202 for a new job; 200 with `existing: true` when an identical request is already running.
+         */
+        post: operations["create_generation_api_v1_study_generations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/generations/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Generation */
+        get: operations["get_generation_api_v1_study_generations__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/generations/{job_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Generation */
+        post: operations["cancel_generation_api_v1_study_generations__job_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Material */
+        get: operations["get_material_api_v1_study_materials__material_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1934,6 +2023,105 @@ export interface components {
              */
             email: string;
         };
+        /** GenerationJobListResponse */
+        GenerationJobListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["GenerationJobOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** GenerationJobOut */
+        GenerationJobOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Generation Type */
+            generation_type: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "retrieving_sources" | "generating" | "validating" | "saving" | "completed" | "failed" | "cancelled";
+            /** Progress */
+            progress: number;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message?: string | null;
+            /** Study Material Id */
+            study_material_id: string | null;
+            /** Cancel Requested */
+            cancel_requested: boolean;
+            /** Source Stats */
+            source_stats: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Completed At */
+            completed_at: string | null;
+            /**
+             * Existing
+             * @default false
+             */
+            existing: boolean;
+        };
+        /** GenerationJobResponse */
+        GenerationJobResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["GenerationJobOut"];
+        };
+        /** GenerationRequest */
+        GenerationRequest: {
+            /** Generation Type */
+            generation_type: string;
+            source: components["schemas"]["SourceSpec"];
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            };
+        };
+        /** GeneratorListResponse */
+        GeneratorListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["GeneratorOut"][];
+        };
+        /** GeneratorOut */
+        GeneratorOut: {
+            /** Key */
+            key: string;
+            /** Resource Type */
+            resource_type: string;
+            /** Settings Schema */
+            settings_schema: {
+                [key: string]: unknown;
+            };
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -2510,6 +2698,84 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["SourcePassageOut"];
+        };
+        /**
+         * SourceSpec
+         * @description What to generate from. Ids are verified in the backend (ScopeResolver); a foreign id is a
+         *     404 exactly like a missing one.
+         */
+        SourceSpec: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "document" | "documents" | "chapter" | "subject" | "folder" | "workspace" | "text";
+            /** Id */
+            id?: string | null;
+            /** Ids */
+            ids?: string[] | null;
+            /** Text */
+            text?: string | null;
+            /** Workspace Id */
+            workspace_id?: string | null;
+        };
+        /** StudyMaterialOut */
+        StudyMaterialOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
+            /** Title */
+            title: string;
+            /** Resource Type */
+            resource_type: string;
+            /** Status */
+            status: string;
+            /** Content */
+            content: {
+                [key: string]: unknown;
+            };
+            /** Generation Settings */
+            generation_settings: {
+                [key: string]: unknown;
+            };
+            /** Source Metadata */
+            source_metadata: {
+                [key: string]: unknown;
+            };
+            /** Current Version */
+            current_version: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Archived At */
+            archived_at: string | null;
+        };
+        /** StudyMaterialResponse */
+        StudyMaterialResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["StudyMaterialOut"];
         };
         /** SubjectListResponse */
         SubjectListResponse: {
@@ -6183,6 +6449,206 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SourcePassageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_generators_api_v1_study_generators_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratorListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_generations_api_v1_study_generations_get: {
+        parameters: {
+            query?: {
+                status?: ("pending" | "retrieving_sources" | "generating" | "validating" | "saving" | "completed" | "failed" | "cancelled") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_generation_api_v1_study_generations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_generation_api_v1_study_generations__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_generation_api_v1_study_generations__job_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_material_api_v1_study_materials__material_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyMaterialResponse"];
                 };
             };
             /** @description Validation Error */
