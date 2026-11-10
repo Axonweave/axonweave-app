@@ -106,6 +106,23 @@ class Settings(BaseSettings):
     celery_task_soft_time_limit_seconds: int = Field(default=240, ge=5)
     celery_task_hard_time_limit_seconds: int = Field(default=300, ge=10)
     celery_max_retries: int = Field(default=3, ge=0, le=10)
+
+    # ── Phase 4: study generation engine (D-78..) ──
+    # Empty model = the registry default. Never a literal provider model id (D-38).
+    study_generation_model: str = ""
+    study_max_input_tokens: int = Field(default=60_000, ge=500)
+    study_max_output_tokens: int = Field(default=4000, ge=100)
+    study_max_sources_per_request: int = Field(default=50, ge=1)
+    study_max_text_source_chars: int = Field(default=20_000, ge=100)
+    study_daily_generation_quota: int = Field(default=20, ge=1)
+    study_max_active_jobs_per_user: int = Field(default=2, ge=1)
+    study_requests_per_minute_per_user: int = Field(default=10, ge=1)
+    study_provider_max_retries: int = Field(default=1, ge=0, le=3)
+    study_job_timeout_seconds: int = Field(default=540, ge=5)
+    study_task_soft_time_limit_seconds: int = Field(default=570, ge=10)
+    study_task_hard_time_limit_seconds: int = Field(default=600, ge=20)
+    study_stale_job_seconds: int = Field(default=900, ge=30)
+    study_cancel_poll_seconds: float = Field(default=1.0, ge=0.01, le=30)
     # "redis" needs redis_url; "memory" is the in-process limiter (tests, single instance) (D-65).
     rate_limit_backend: str = "memory"
 

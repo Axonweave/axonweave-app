@@ -8,6 +8,7 @@ from app.models.document_chunk import DocumentChunk
 from app.models.document_processing_job import DocumentProcessingJob
 from app.models.email_verification_token import EmailVerificationToken
 from app.models.folder import Folder
+from app.models.generation_job import GenerationJob
 from app.models.llm_provider import LLMModel, LLMModelPrice, LLMProvider
 from app.models.message import Message, MessageFeedback
 from app.models.message_citation import MessageCitation
@@ -15,6 +16,8 @@ from app.models.password_reset_token import PasswordResetToken
 from app.models.prompt_template import PromptTemplate
 from app.models.session_model import Session
 from app.models.storage_cleanup import StorageCleanup
+from app.models.study_material import StudyMaterial, StudyMaterialVersion
+from app.models.study_preferences import StudyGenerationPreferences
 from app.models.subject import Subject
 from app.models.user import User
 from app.models.user_preferences import UserPreferences
@@ -32,6 +35,7 @@ __all__ = [
     "DocumentVersion",
     "EmailVerificationToken",
     "Folder",
+    "GenerationJob",
     "LLMModel",
     "LLMModelPrice",
     "LLMProvider",
@@ -42,6 +46,9 @@ __all__ = [
     "PromptTemplate",
     "Session",
     "StorageCleanup",
+    "StudyGenerationPreferences",
+    "StudyMaterial",
+    "StudyMaterialVersion",
     "Subject",
     "User",
     "UserPreferences",
