@@ -9,3 +9,8 @@ P4-0 | Source chunk-collection selection (spec 3.2 A) | Deferred | Needs a chunk
 P4-0 | Is a stale running job restarted? | Failed, never restarted | Spec 17.3: do not restart an expensive generation of uncertain outcome (D-85).
 P4-0 | Material status values | `completed`, `failed` only; the material row is created on success | Jobs carry in-flight status; a half-built material would need cleanup rules.
 P4-0 | Which tasks count toward the daily generation quota | All jobs except failed/cancelled ones with zero provider calls | Nothing was spent in those cases.
+P4-1 | Where does a regenerate preview live? | `generation_jobs.preview` JSONB (migration 0005) | A preview is not a material; a new table or a draft material would need cleanup rules.
+P4-1 | Section regeneration source | Retrieval by section heading, sampled fallback when nothing matches | Cheaper than re-reading the whole chapter; still reports what was used.
+P4-1 | Minimum source for a summary | 20 estimated tokens, refused before any provider call (422 `GENERATION_SOURCE_TOO_SMALL`) | A near-empty source can only produce invented text.
+P4-1 | Do edits obey generation caps (section count)? | No, only structure, unique headings and real references | The cap is a generation quality rule, not a limit on the user.
+P4-1 | M0 test asserting no generator in production | Updated to expect only `summary` | echo is still hidden; the assertion encoded "no real generators yet".

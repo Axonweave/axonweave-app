@@ -24,6 +24,8 @@ PROMPTS: tuple[PromptDefinition, ...] = (
     PromptDefinition(rag.DOCUMENT_ONLY_KEY, rag.VERSION, rag.DOCUMENT_ONLY),
     PromptDefinition(rag.DOCUMENT_FIRST_KEY, rag.VERSION, rag.DOCUMENT_FIRST),
     PromptDefinition(study.ECHO_KEY, study.ECHO_VERSION, study.ECHO),
+    PromptDefinition(study.SUMMARY_KEY, study.SUMMARY_VERSION, study.SUMMARY),
+    PromptDefinition(study.SUMMARY_NOTES_KEY, study.SUMMARY_NOTES_VERSION, study.SUMMARY_NOTES),
 )
 
 

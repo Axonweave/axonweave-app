@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.study.schemas import GenerationRequest
 
@@ -18,6 +18,14 @@ __all__ = [
     "GeneratorOut",
     "StudyMaterialOut",
     "StudyMaterialResponse",
+    "EditMaterialRequest",
+    "RestoreRequest",
+    "RegenerateRequest",
+    "VersionListResponse",
+    "VersionOut",
+    "VersionResponse",
+    "PreviewOut",
+    "PreviewResponse",
 ]
 
 JobStatusLiteral = Literal[
@@ -98,3 +106,63 @@ class GeneratorOut(BaseModel):
 class GeneratorListResponse(BaseModel):
     success: bool = True
     data: list[GeneratorOut]
+
+
+class EditMaterialRequest(BaseModel):
+    """`expected_version` is the version the user was looking at; a different current version is a
+    409, so an edit never silently replaces a newer one (another tab, an applied regeneration)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    expected_version: int = Field(ge=1)
+    payload: dict[str, Any]
+
+
+class RestoreRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_version: int = Field(ge=1)
+    version: int = Field(ge=1)
+
+
+class RegenerateRequest(BaseModel):
+    """Regenerate the whole material, or only the section at `section_index`. The result is a
+    preview job; nothing changes until the preview is applied."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    section_index: int | None = Field(default=None, ge=0, le=200)
+    settings: dict[str, Any] | None = None
+
+
+class VersionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    version_number: int
+    origin: str
+    created_at: datetime
+    content: dict[str, Any] | None = None
+
+
+class VersionListResponse(BaseModel):
+    success: bool = True
+    data: list[VersionOut]
+
+
+class VersionResponse(BaseModel):
+    success: bool = True
+    data: VersionOut
+
+
+class PreviewOut(BaseModel):
+    material_id: uuid.UUID
+    base_version: int
+    current_version: int
+    stale: bool
+    section_index: int | None
+    content: dict[str, Any]
+
+
+class PreviewResponse(BaseModel):
+    success: bool = True
+    data: PreviewOut

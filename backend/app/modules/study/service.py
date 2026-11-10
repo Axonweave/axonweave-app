@@ -32,6 +32,7 @@ from app.study.errors import (
     GenerationUnavailableError,
     NotCancellableError,
     SourceTooLargeError,
+    SourceTooSmallError,
     TooManyActiveGenerationsError,
 )
 from app.study.generators.registry import available_generators, get_generator, validate_settings
@@ -62,8 +63,14 @@ class StudyGenerationService:
         self._limiter = limiter
         self._jobs = GenerationJobRepository(db)
 
-    async def create(self, user: User, request: GenerationRequest) -> tuple[GenerationJob, bool]:
-        """Returns (job, existing); `existing` is True when an identical request is active."""
+    async def create(
+        self,
+        user: User,
+        request: GenerationRequest,
+        regenerate: dict[str, object] | None = None,
+    ) -> tuple[GenerationJob, bool]:
+        """Returns (job, existing); `existing` is True when an identical request is active.
+        `regenerate` is set only by `regenerate_material`; clients cannot send it."""
         if not self._rt.registry.configured:
             raise LLMNotConfiguredError()
         if not self._dispatcher.available():
@@ -76,14 +83,23 @@ class StudyGenerationService:
         reader = SourceReader(self._db, self._s)
         source = await reader.resolve(user.id, request.source)  # 404 for a foreign id
         estimate = await reader.estimate(source)  # NoSourcesError when nothing is ready
-        if (
-            generator.source_mode == "ordered"
-            and not generator.allow_sampled_fallback
-            and estimate.tokens > self._s.study_max_input_tokens
-        ):
-            raise SourceTooLargeError()
+        if regenerate is None and estimate.tokens < generator.min_source_tokens:
+            raise SourceTooSmallError()
+        if generator.source_mode == "ordered" and not generator.allow_sampled_fallback:
+            limit = (
+                self._s.study_max_scope_tokens
+                if generator.map_reduce
+                else self._s.study_max_input_tokens
+            )
+            if estimate.tokens > limit:
+                raise SourceTooLargeError()
 
-        digest = fingerprint(user.id, generator.key, request.source, normalised)
+        digest = fingerprint(
+            user.id,
+            generator.key,
+            request.source,
+            {"s": normalised, "r": regenerate} if regenerate else normalised,
+        )
         existing = await self._jobs.find_active_by_fingerprint(user.id, digest)
         if existing is not None:
             return existing, True
@@ -95,6 +111,8 @@ class StudyGenerationService:
             "source": request.source.model_dump(mode="json", exclude_none=True),
             "settings": normalised,
         }
+        if regenerate:
+            body["regenerate"] = regenerate
         try:
             job = await self._jobs.add(
                 user_id=user.id,

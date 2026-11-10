@@ -35,12 +35,34 @@ class Generator(ABC):
     allow_sampled_fallback: ClassVar[bool] = False
     #: Output token cap for this generator (also capped by STUDY_MAX_OUTPUT_TOKENS, the model).
     max_output_tokens: ClassVar[int | None] = None
+    #: Long scopes are summarised in ordered batches (map-reduce) instead of refused or sampled.
+    map_reduce: ClassVar[bool] = False
+    #: Refuse a source thinner than this many estimated tokens (0 = no minimum).
+    min_source_tokens: ClassVar[int] = 0
     #: Only in development/testing (the engine proof generator).
     test_only: ClassVar[bool] = False
 
     @abstractmethod
     def instruction(self, settings: GeneratorSettings) -> str:
         """The TASK block: what to produce and the exact JSON shape (from validated settings)."""
+
+    # Map-reduce and section regeneration hooks (generators that set `map_reduce` implement them).
+    notes_prompt_key: ClassVar[str] = ""
+    notes_model: ClassVar[type[BaseModel] | None] = None
+
+    def notes_instruction(self, settings: GeneratorSettings) -> str:
+        raise NotImplementedError
+
+    def reduce_instruction(self, settings: GeneratorSettings) -> str:
+        raise NotImplementedError
+
+    def section_instruction(self, settings: GeneratorSettings, heading: str) -> str:
+        raise NotImplementedError
+
+    def validate_edit(self, output: Any, source_count: int) -> Any:
+        """Checks for content the USER edited. Unlike `finalize` this has no generation caps; it
+        only keeps the resource valid and its source references real."""
+        return output
 
     @abstractmethod
     def title(self, output: Any, settings: GeneratorSettings) -> str: ...

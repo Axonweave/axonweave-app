@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
@@ -61,10 +62,20 @@ from app.repositories.generation_job_repository import GenerationJobRepository
 from app.repositories.study_material_repository import StudyMaterialRepository
 from app.retrieval.searcher import QueryEmbedder
 from app.study import errors
-from app.study.errors import NoSourcesError, SourceTooLargeError, StudyError
+from app.study.errors import (
+    NoSourcesError,
+    SourceTooLargeError,
+    SourceTooSmallError,
+    StudyError,
+)
 from app.study.generators.base import Generator, GeneratorSettings, OutputInvalid
 from app.study.generators.registry import get_generator, validate_settings
-from app.study.prompting import build_user_turn, correction_turn, source_refs_for
+from app.study.prompting import (
+    build_notes_turn,
+    build_user_turn,
+    correction_turn,
+    source_refs_for,
+)
 from app.study.schemas import GenerationRequest
 from app.study.source_reader import (
     ResolvedSource,
@@ -72,7 +83,7 @@ from app.study.source_reader import (
     SourceReader,
     estimate_tokens,
 )
-from app.study.validation import validate_output
+from app.study.validation import Note, parse_notes, validate_output
 
 logger = structlog.get_logger(__name__)
 
@@ -86,6 +97,8 @@ HEARTBEAT_EVERY = 15.0
 INPUT_BUDGET_FRACTION = 0.8  # of a model's verified input limit
 PROMPT_OVERHEAD_TOKENS = 300
 CONTENT_SCHEMA_VERSION = 1
+MAX_MAP_BATCHES = 30
+MAX_CONDENSE_ROUNDS = 3
 
 
 class _Cancelled(Exception):
@@ -114,6 +127,27 @@ def redact_request(request: dict[str, Any]) -> dict[str, Any]:
         source["text"] = None
         source["redacted"] = True
     return {**request, "source": source}
+
+
+def coverage_report(bundle: SourceBundle, batch_count: int) -> dict[str, Any]:
+    """Which sources the result is based on: counts and document ids, never text (spec 5.5)."""
+    per_doc: dict[str, dict[str, Any]] = {}
+    for unit in bundle.units:
+        if unit.document_id is None:
+            continue
+        entry = per_doc.setdefault(
+            str(unit.document_id),
+            {"document_id": str(unit.document_id), "name": unit.document_name, "chunks": 0},
+        )
+        entry["chunks"] += 1
+    return {
+        "mode": bundle.mode,
+        "batches": batch_count,
+        "units_included": len(bundle.units),
+        "units_available": bundle.units_available,
+        "complete": not bundle.truncated and bundle.mode in ("ordered", "text"),
+        "documents": list(per_doc.values()),
+    }
 
 
 async def run_generation(deps: EngineDeps, job_id: Any, celery_task_id: str | None = None) -> str:
@@ -189,10 +223,13 @@ class _Run:
     # main flow ───────────────────────────────────────────────────────────────
 
     async def execute(self) -> None:
-        request = GenerationRequest.model_validate(self._raw_request)
+        raw = dict(self._raw_request)
+        regen = raw.pop("regenerate", None)  # internal: set by the service, never by the client
+        request = GenerationRequest.model_validate(raw)
         generator = get_generator(request.generation_type, self._s)
         gsettings = validate_settings(generator, request.settings)
         prompt = active_prompt(generator.prompt_key)
+        heading = str(regen["heading"]) if regen and regen.get("heading") else None
 
         cfg, catalog = await self._select_model()
         await self._stage(
@@ -201,17 +238,55 @@ class _Run:
             model_id=cfg.internal_id,
             prompt_version=f"{prompt.prompt_key}:v{prompt.version}",
         )
-        instruction = generator.instruction(gsettings)
+        instruction = (
+            generator.section_instruction(gsettings, heading)
+            if heading
+            else generator.instruction(gsettings)
+        )
         budget = self._input_budget(cfg, prompt.content, instruction)
-        source, bundle = await self._read_sources(request, generator, gsettings, budget)
+        source, bundle, batches = await self._read_sources(
+            request, generator, gsettings, budget, heading
+        )
         await self._checkpoint()
 
-        out_cap = self._output_cap(generator, cfg)
-        llm_request = LLMRequest(
+        if batches:
+            output = await self._map_reduce(generator, gsettings, batches, cfg, catalog, budget)
+        else:
+            llm_request = self._llm_request(
+                cfg, prompt.content, build_user_turn(bundle.units, instruction), generator
+            )
+            await self._stage("generating", 30)
+            output = await self._validated_call(
+                cfg,
+                catalog,
+                llm_request,
+                generator.output_model.model_json_schema(),
+                lambda text: validate_output(generator, text, gsettings, len(bundle.units)),
+            )
+
+        await self._checkpoint()
+        await self._stage("saving", 92)
+        await self._save(
+            request,
+            generator,
+            gsettings,
+            source,
+            bundle,
+            output,
+            cfg,
+            prompt.version,
+            regen,
+            len(batches) if batches else 1,
+        )
+
+    def _llm_request(
+        self, cfg: ModelConfig, system_prompt: str, turn: str, generator: Generator
+    ) -> LLMRequest:
+        return LLMRequest(
             model=cfg.provider_model_id,
-            messages=[LLMMessage(Role.user, build_user_turn(bundle.units, instruction))],
-            max_output_tokens=out_cap,
-            system_prompt=prompt.content,
+            messages=[LLMMessage(Role.user, turn)],
+            max_output_tokens=self._output_cap(generator, cfg),
+            system_prompt=system_prompt,
             temperature=cfg.default_temperature,
             timeouts=TimeoutPolicy(
                 connect=self._s.llm_connect_timeout_seconds,
@@ -224,14 +299,21 @@ class _Run:
             else None,
             request_tag=str(self.job_id),
         )
-        schema = generator.output_model.model_json_schema()
 
-        await self._stage("generating", 30)
+    async def _validated_call(
+        self,
+        cfg: ModelConfig,
+        catalog: LLMModel,
+        llm_request: LLMRequest,
+        schema: dict[str, Any],
+        validate: Callable[[str], Any],
+    ) -> Any:
+        """One provider call, parse and validate, and at most ONE correction call."""
+        out_cap = llm_request.max_output_tokens or 1000
         response = await self._call(cfg, catalog, llm_request, schema)
-
         await self._stage("validating", 65)
         try:
-            output = validate_output(generator, response.content, gsettings, len(bundle.units))
+            return validate(response.content)
         except OutputInvalid as bad:
             logger.info(
                 "generation_output_invalid", job_id=str(self.job_id), problem=str(bad)[:200]
@@ -248,13 +330,105 @@ class _Run:
             response = await self._call(cfg, catalog, retry_request, schema)
             await self._stage("validating", 85)
             try:
-                output = validate_output(generator, response.content, gsettings, len(bundle.units))
+                return validate(response.content)
             except OutputInvalid:
                 raise _InvalidOutput from None
 
+    # map-reduce (D-91) ───────────────────────────────────────────────────────
+
+    async def _notes_step(
+        self,
+        generator: Generator,
+        gsettings: GeneratorSettings,
+        turn: str,
+        allowed: set[int],
+        cfg: ModelConfig,
+        catalog: LLMModel,
+    ) -> list[Note]:
+        notes_model = generator.notes_model
+        assert notes_model is not None
+        request = self._llm_request(
+            cfg, active_prompt(generator.notes_prompt_key).content, turn, generator
+        )
+        result: list[Note] = await self._validated_call(
+            cfg,
+            catalog,
+            request,
+            notes_model.model_json_schema(),
+            lambda text: parse_notes(notes_model, text, allowed),
+        )
+        return result
+
+    async def _map_reduce(
+        self,
+        generator: Generator,
+        gsettings: GeneratorSettings,
+        batches: list[SourceBundle],
+        cfg: ModelConfig,
+        catalog: LLMModel,
+        budget: int,
+    ) -> Any:
+        """Ordered map-reduce: every batch, in reading order, is condensed into notes; the notes of
+        ALL batches (condensed further only when they would not fit) go to one reducer call."""
+        total_units = sum(len(b.units) for b in batches)
+        notes: list[Note] = []
+        offset = 0
+        for i, batch in enumerate(batches):
+            await self._checkpoint()
+            await self._stage("generating", 20 + int(40 * i / len(batches)))
+            allowed = set(range(offset + 1, offset + len(batch.units) + 1))
+            turn = build_user_turn(
+                batch.units, generator.notes_instruction(gsettings), start=offset + 1
+            )
+            notes += await self._notes_step(generator, gsettings, turn, allowed, cfg, catalog)
+            offset += len(batch.units)
+
+        for _ in range(MAX_CONDENSE_ROUNDS):
+            if sum(estimate_tokens(t) for t, _ in notes) <= budget:
+                break
+            notes = await self._condense(generator, gsettings, notes, cfg, catalog, budget)
+        if sum(estimate_tokens(t) for t, _ in notes) > budget:
+            raise SourceTooLargeError()
+
         await self._checkpoint()
-        await self._stage("saving", 92)
-        await self._save(request, generator, gsettings, source, bundle, output, cfg, prompt.version)
+        await self._stage("generating", 62)
+        turn = build_notes_turn(notes, generator.reduce_instruction(gsettings))
+        request = self._llm_request(
+            cfg, active_prompt(generator.prompt_key).content, turn, generator
+        )
+        return await self._validated_call(
+            cfg,
+            catalog,
+            request,
+            generator.output_model.model_json_schema(),
+            lambda text: validate_output(generator, text, gsettings, total_units),
+        )
+
+    async def _condense(
+        self,
+        generator: Generator,
+        gsettings: GeneratorSettings,
+        notes: list[Note],
+        cfg: ModelConfig,
+        catalog: LLMModel,
+        budget: int,
+    ) -> list[Note]:
+        groups: list[list[Note]] = [[]]
+        spent = 0
+        for note in notes:
+            size = estimate_tokens(note[0])
+            if groups[-1] and spent + size > budget:
+                groups.append([])
+                spent = 0
+            groups[-1].append(note)
+            spent += size
+        out: list[Note] = []
+        for group in groups:
+            await self._checkpoint()
+            allowed = {r for _, refs in group for r in refs}
+            turn = build_notes_turn(group, generator.notes_instruction(gsettings))
+            out += await self._notes_step(generator, gsettings, turn, allowed, cfg, catalog)
+        return out
 
     # stages ──────────────────────────────────────────────────────────────────
 
@@ -314,13 +488,20 @@ class _Run:
         generator: Generator,
         gsettings: GeneratorSettings,
         budget: int,
-    ) -> tuple[ResolvedSource, SourceBundle]:
+        section_heading: str | None = None,
+    ) -> tuple[ResolvedSource, SourceBundle, list[SourceBundle] | None]:
+        batches: list[SourceBundle] | None = None
         async with self._factory() as db:
             reader = SourceReader(db, self._s, self._d.embedder)
             source = await reader.resolve(self.user_id, request.source)
             estimate = await reader.estimate(source)
             if source.text is not None:
                 bundle = await reader.read_ordered(source, budget)
+            elif section_heading:  # regenerate one section: only the passages about it
+                try:
+                    bundle = await reader.read_retrieved(source, section_heading, budget)
+                except NoSourcesError:  # the heading matches nothing: use an even sample instead
+                    bundle = await reader.read_sampled(source, budget)
             elif generator.source_mode == "sampled":
                 bundle = await reader.read_sampled(source, budget)
             elif generator.source_mode == "retrieved":
@@ -329,23 +510,37 @@ class _Run:
                 )
             elif estimate.tokens <= budget:
                 bundle = await reader.read_ordered(source, budget)
+            elif generator.map_reduce:
+                batches = await reader.ordered_batches(source, budget)
+                if len(batches) > MAX_MAP_BATCHES:
+                    raise SourceTooLargeError()
+                first = batches[0]
+                bundle = SourceBundle(
+                    tuple(u for b in batches for u in b.units),
+                    "ordered",
+                    first.units_available,
+                    first.tokens_available,
+                )
             elif generator.allow_sampled_fallback:
                 bundle = await reader.read_sampled(source, budget)
             else:
                 raise SourceTooLargeError()
             if not bundle.units:
                 raise NoSourcesError()
+            if not section_heading and bundle.tokens < generator.min_source_tokens:
+                raise SourceTooSmallError()
             jobs = GenerationJobRepository(db)
             stats = {
                 **bundle.stats(),
                 "documents": estimate.documents,
                 "estimated_input_tokens": bundle.tokens,
+                "batches": len(batches) if batches else 1,
             }
             await jobs.update_active(
                 self.job_id, _now(), source_stats=stats, request=redact_request(self._raw_request)
             )
             await db.commit()
-        return source, bundle
+        return source, bundle, batches
 
     # provider ────────────────────────────────────────────────────────────────
 
@@ -471,13 +666,19 @@ class _Run:
         output: Any,
         cfg: ModelConfig,
         prompt_version: int,
+        regen: dict[str, Any] | None,
+        batch_count: int,
     ) -> None:
         content = {
             "schema_version": CONTENT_SCHEMA_VERSION,
             "type": generator.resource_type,
             "payload": generator.dump(output),
             "sources": source_refs_for(bundle.units),
+            "coverage": coverage_report(bundle, batch_count),
         }
+        if regen is not None:  # a preview: nothing the user has is touched (D-92)
+            await self._save_preview(content, regen, gsettings)
+            return
         source_request = request.source.canonical()
         source_metadata = {
             "source": source_request,
@@ -503,6 +704,25 @@ class _Run:
                 self.job_id, COMPLETED, _now(), material_id=material.id
             )
             if not ok:  # cancelled or swept at the last moment: keep nothing
+                await db.rollback()
+                raise _Cancelled
+            await db.commit()
+
+    async def _save_preview(
+        self, content: dict[str, Any], regen: dict[str, Any], gsettings: GeneratorSettings
+    ) -> None:
+        preview = {
+            "material_id": regen["material_id"],
+            "base_version": regen["base_version"],
+            "section_index": regen.get("section_index"),
+            "content": content,
+            "settings": gsettings.model_dump(mode="json"),
+        }
+        async with self._factory() as db:
+            ok = await GenerationJobRepository(db).finish(
+                self.job_id, COMPLETED, _now(), preview=preview
+            )
+            if not ok:
                 await db.rollback()
                 raise _Cancelled
             await db.commit()

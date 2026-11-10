@@ -1360,6 +1360,117 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /**
+         * Edit Material
+         * @description Save the user's edits as a new version (the original generated version is kept).
+         */
+        patch: operations["edit_material_api_v1_study_materials__material_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Versions */
+        get: operations["list_versions_api_v1_study_materials__material_id__versions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/versions/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Version */
+        get: operations["get_version_api_v1_study_materials__material_id__versions__number__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Version */
+        post: operations["restore_version_api_v1_study_materials__material_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Regenerate Material
+         * @description Starts a job whose result is a preview (`GET /generations/{id}/preview`); nothing is
+         *     replaced until the preview is applied.
+         */
+        post: operations["regenerate_material_api_v1_study_materials__material_id__regenerate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/generations/{job_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preview */
+        get: operations["get_preview_api_v1_study_generations__job_id__preview_get"];
+        put?: never;
+        post?: never;
+        /** Discard Preview */
+        delete: operations["discard_preview_api_v1_study_generations__job_id__preview_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/generations/{job_id}/preview/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply Preview */
+        post: operations["apply_preview_api_v1_study_generations__job_id__preview_apply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
         patch?: never;
         trace?: never;
     };
@@ -1924,6 +2035,19 @@ export interface components {
             success: boolean;
             data: components["schemas"]["DocumentOut"];
         };
+        /**
+         * EditMaterialRequest
+         * @description `expected_version` is the version the user was looking at; a different current version is a
+         *     409, so an edit never silently replaces a newer one (another tab, an applied regeneration).
+         */
+        EditMaterialRequest: {
+            /** Expected Version */
+            expected_version: number;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+        };
         /** FeedbackOut */
         FeedbackOut: {
             /**
@@ -2331,6 +2455,35 @@ export interface components {
             success: boolean;
             data: components["schemas"]["UserPreferencesOut"];
         };
+        /** PreviewOut */
+        PreviewOut: {
+            /**
+             * Material Id
+             * Format: uuid
+             */
+            material_id: string;
+            /** Base Version */
+            base_version: number;
+            /** Current Version */
+            current_version: number;
+            /** Stale */
+            stale: boolean;
+            /** Section Index */
+            section_index: number | null;
+            /** Content */
+            content: {
+                [key: string]: unknown;
+            };
+        };
+        /** PreviewResponse */
+        PreviewResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["PreviewOut"];
+        };
         /** ProcessingDetailsOut */
         ProcessingDetailsOut: {
             /**
@@ -2449,16 +2602,6 @@ export interface components {
             /** Data */
             data: components["schemas"]["RecentSubjectItem"][];
         };
-        /** RegenerateRequest */
-        RegenerateRequest: {
-            /** Model Id */
-            model_id?: string | null;
-            /**
-             * Stream
-             * @default false
-             */
-            stream: boolean;
-        };
         /** Region */
         Region: {
             /** Page */
@@ -2502,6 +2645,13 @@ export interface components {
             token: string;
             /** New Password */
             new_password: string;
+        };
+        /** RestoreRequest */
+        RestoreRequest: {
+            /** Expected Version */
+            expected_version: number;
+            /** Version */
+            version: number;
         };
         /** SearchData */
         SearchData: {
@@ -3156,6 +3306,41 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** VersionListResponse */
+        VersionListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["VersionOut"][];
+        };
+        /** VersionOut */
+        VersionOut: {
+            /** Version Number */
+            version_number: number;
+            /** Origin */
+            origin: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Content */
+            content?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** VersionResponse */
+        VersionResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["VersionOut"];
+        };
         /** WorkspaceListResponse */
         WorkspaceListResponse: {
             /**
@@ -3241,6 +3426,29 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["WorkspaceOut"];
+        };
+        /** RegenerateRequest */
+        app__modules__ai__schemas__RegenerateRequest: {
+            /** Model Id */
+            model_id?: string | null;
+            /**
+             * Stream
+             * @default false
+             */
+            stream: boolean;
+        };
+        /**
+         * RegenerateRequest
+         * @description Regenerate the whole material, or only the section at `section_index`. The result is a
+         *     preview job; nothing changes until the preview is applied.
+         */
+        app__modules__study__schemas__RegenerateRequest: {
+            /** Section Index */
+            section_index?: number | null;
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            } | null;
         };
     };
     responses: never;
@@ -5453,7 +5661,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RegenerateRequest"];
+                "application/json": components["schemas"]["app__modules__ai__schemas__RegenerateRequest"];
             };
         };
         responses: {
@@ -6635,6 +6843,281 @@ export interface operations {
             header?: never;
             path: {
                 material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyMaterialResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_material_api_v1_study_materials__material_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditMaterialRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyMaterialResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_versions_api_v1_study_materials__material_id__versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_version_api_v1_study_materials__material_id__versions__number__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                number: number;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_version_api_v1_study_materials__material_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RestoreRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyMaterialResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    regenerate_material_api_v1_study_materials__material_id__regenerate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["app__modules__study__schemas__RegenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preview_api_v1_study_generations__job_id__preview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_preview_api_v1_study_generations__job_id__preview_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    apply_preview_api_v1_study_generations__job_id__preview_apply_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
             };
             cookie?: {
                 aw_session?: string | null;

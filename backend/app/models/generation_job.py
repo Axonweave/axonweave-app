@@ -81,6 +81,8 @@ class GenerationJob(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
     request: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     source_stats: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    # Result of a regeneration, held for review until the user applies or discards it (D-92).
+    preview: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     provider_calls: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default=text("0")
     )

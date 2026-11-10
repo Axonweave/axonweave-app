@@ -13,7 +13,7 @@ import re
 from collections.abc import Sequence
 from typing import Any
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from app.study.generators.base import Generator, GeneratorSettings, OutputInvalid
 
@@ -78,3 +78,21 @@ def validate_output(
     except ValidationError as exc:
         raise OutputInvalid(describe_errors(exc)) from None
     return generator.finalize(output, source_count, settings)
+
+
+Note = tuple[str, list[int]]
+
+
+def parse_notes(model: type[BaseModel], raw: str, allowed: set[int]) -> list[Note]:
+    """Intermediate map/condense output: working notes whose source numbers are restricted to the
+    ones that were actually in that step's input (a number outside it is stripped)."""
+    data = parse_json_object(raw)
+    try:
+        parsed = model.model_validate(data)
+    except ValidationError as exc:
+        raise OutputInvalid(describe_errors(exc)) from None
+    notes: list[Note] = []
+    for item in parsed.notes:  # type: ignore[attr-defined]
+        refs = [r for r in clean_refs(item.source_refs, max(allowed, default=0)) if r in allowed]
+        notes.append((item.text, refs))
+    return notes

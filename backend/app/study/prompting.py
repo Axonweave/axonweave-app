@@ -24,9 +24,10 @@ def _location(unit: SourceUnit) -> str:
     return ", ".join(parts)
 
 
-def build_user_turn(units: Sequence[SourceUnit], instruction: str) -> str:
+def build_user_turn(units: Sequence[SourceUnit], instruction: str, start: int = 1) -> str:
+    """`start` is the number of the first unit, so batches of one long scope keep global numbers."""
     blocks = []
-    for n, unit in enumerate(units, start=1):
+    for n, unit in enumerate(units, start=start):
         header = f"<<<SOURCE {n} | {escape_markup(unit.document_name)[:120]}"
         location = _location(unit)
         header += f" | {location}>>>" if location else ">>>"
@@ -60,3 +61,18 @@ def source_refs_for(units: Sequence[SourceUnit]) -> list[dict[str, object]]:
             )
         refs.append(ref)
     return refs
+
+
+def build_notes_turn(notes: Sequence[tuple[str, Sequence[int]]], instruction: str) -> str:
+    """Working notes (model output derived from untrusted text) for a reduce or condense step.
+    Each note keeps the source numbers it came from; text is escaped like any other source text."""
+    nl = "\n"
+    blocks = []
+    for k, (text, refs) in enumerate(notes, start=1):
+        label = ", ".join(str(r) for r in refs) or "none"
+        blocks.append(
+            f"<<<NOTE {k} | sources {label}>>>{nl}{escape_markup(text)}{nl}<<<END NOTE>>>"
+        )
+    body = (nl * 2).join(blocks)
+    head = "REFERENCE MATERIAL (working notes, in reading order)"
+    return f"{head}{nl * 2}{body}{nl * 2}{instruction}"
