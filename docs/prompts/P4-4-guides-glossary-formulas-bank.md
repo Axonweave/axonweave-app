@@ -1,0 +1,3 @@
+# P4-4 - Phase 4 M4: Study guides, glossaries, formula sheets, question banks
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase4.md (M4), docs/PHASE4_SPEC.md sections 8 to 11, 22.4 to 22.6 and the M0 engine and M3 question validation. Backend only.
+Implement all four generators on the common engine with versioned prompts, validated settings schemas, source attribution, endpoints from spec 19.1, and tests per 22.4 to 22.6 (heading hierarchy, objectives, duplicate terms, glossary search, LaTeX validation, invalid formula handling, topic/difficulty organisation). Question banks reuse M3 validation and never expose answer keys in public responses. Sanitise Markdown/HTML; never execute generated code or trust generated URLs.

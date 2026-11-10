@@ -1,0 +1,3 @@
+# P4-8 - Phase 4 M8: Usage controls, security review, evaluation, docs and acceptance
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase4.md (M8) and docs/PHASE4_SPEC.md sections 21 to 23 and 26. The pipeline stops after this task for a human to review.
+Do everything under M8. Run all gates locally and report honestly. Write all nine documents named in spec section 26 and docs/PHASE4_ACCEPTANCE.md walking section 23 line by line (Met / Partly / Not met with evidence; anything needing the live Gemini key, real documents or visual checks is at best Partly). Do not run live evaluation; list it under HUMAN-NEEDED with exact commands.

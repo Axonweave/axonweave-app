@@ -1,6 +1,3 @@
-# P4-2 - Phase 4 M2: Flashcards
-Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/PHASE4_SPEC.md (flashcard sections) and the P4-0 engine. Backend only.
-1. Flashcard generation (count, difficulty, types per spec) using SourceReader sampled/retrieved mode for large scopes and ordered mode for small ones; de-duplicate near-identical cards; each card keeps its source reference.
-2. Decks: CRUD for decks and cards, manual add/edit/delete, regenerate as proposal, move cards, versioned snapshots.
-3. Review/study state per the spec (spaced-repetition fields if specified), study session endpoints, per-user data only.
-4. Tests: validity and de-duplication, ownership 404s, regeneration proposals, snapshot restore, study-state updates, limits and quotas.
+# P4-2 - Phase 4 M2: Flashcard generator
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase4.md (M2), docs/PHASE4_SPEC.md sections 6, 15.3, 18.4, 18.5, 19.3, 22.2 and the M0 engine. Backend only.
+Implement every item under M2: tables per 18.4/18.5 via migration, all six card types, settings, near-duplicate detection, quality rules, source reference per card, the 19.3 endpoints plus reorder, regenerate selected cards as a preview, and the tests listed. Ownership 404s everywhere.

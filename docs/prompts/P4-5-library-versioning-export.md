@@ -1,0 +1,3 @@
+# P4-5 - Phase 4 M5: Study library, versioning, regeneration, preferences and export
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase4.md (M5), docs/PHASE4_SPEC.md sections 12 to 14, 16, 19.2, 19.5, 21 and the existing engine and generators. Backend only.
+Implement every item under M5: library list/search/filter/sort/pagination, get/patch/delete/duplicate/archive/regenerate, versioning with restore, preferences API used as generation defaults, export jobs (PDF and CSV first; Markdown and DOCX where cheap) with short-lived ownership-checked downloads, CSV formula-injection protection, sanitised content in PDFs, account export and deletion coverage, and the listed tests.

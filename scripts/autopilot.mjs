@@ -14,14 +14,15 @@ const TASKS = [
   ["P3-5", "P3-5-rag-citations.md", "RAG and citations"],
   ["P3-6", "P3-6-ui-documents-rag.md", "Documents and RAG UI"],
   ["P3-7", "P3-7-phase3-closeout.md", "Phase 3 closeout", { pauseAfter: true }],
-  ["P4-0", "P4-0-generation-foundation.md", "Generation foundation"],
+  ["P4-0", "P4-0-generation-engine.md", "Generation engine"],
   ["P4-1", "P4-1-summaries.md", "Summaries"],
   ["P4-2", "P4-2-flashcards.md", "Flashcards"],
   ["P4-3", "P4-3-quiz-engine.md", "Quiz engine"],
-  ["P4-4", "P4-4-exports-analytics.md", "Exports and analytics"],
-  ["P4-5", "P4-5-ui-summaries-flashcards.md", "Summaries and flashcards UI"],
-  ["P4-6", "P4-6-ui-quiz-progress.md", "Quiz and progress UI"],
-  ["P4-7", "P4-7-phase4-closeout.md", "Phase 4 closeout", { pauseAfter: true }],
+  ["P4-4", "P4-4-guides-glossary-formulas-bank.md", "Guides, glossary, formulas, question bank"],
+  ["P4-5", "P4-5-library-versioning-export.md", "Library, versioning and export"],
+  ["P4-6", "P4-6-ui-generation-library.md", "Generation and library UI"],
+  ["P4-7", "P4-7-ui-quiz-export-preferences.md", "Quiz, export and preferences UI"],
+  ["P4-8", "P4-8-phase4-closeout.md", "Phase 4 closeout", { pauseAfter: true }],
 ].map(([id, file, title, o = {}]) => ({ id, file, title, ...o }));
 
 const args = process.argv.slice(2);
@@ -74,6 +75,7 @@ function preflight() {
     log("WARNING: docs/PHASE4_SPEC.md is missing; Phase 4 tasks will block until you add it.");
   }
   if (!fs.existsSync(path.join(ROOT, "docs/PHASE3_SPEC.md"))) die("Missing docs/PHASE3_SPEC.md");
+  if (TASKS.some((t) => t.id.startsWith("P4")) && !fs.existsSync(path.join(ROOT, "docs/TASKS_Phase4.md"))) die("Missing docs/TASKS_Phase4.md");
 }
 
 const q = (a) => (isWin && /[ ()&|<>^]/.test(a) ? `"${a}"` : a);
