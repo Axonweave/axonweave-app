@@ -1,5 +1,23 @@
 # Shared by the worker and beat (same codebase as the API). The API lists the same Phase 3 variables below.
 # There is no env_file: every variable must be passed through here.
+# LLM settings the Celery worker needs for study generation (Phase 4, D-88): generation runs in the
+# worker, never in the API process. The API keeps its own copy of the same variables below.
+x-llm-env: &llm-env
+  LLM_PROVIDER: ${LLM_PROVIDER:-}
+  FAKE_LLM_CHUNK_DELAY_SECONDS: ${FAKE_LLM_CHUNK_DELAY_SECONDS:-0}
+  LLM_DEFAULT_MODEL: ${LLM_DEFAULT_MODEL:-}
+  LLM_ALLOWED_MODELS: ${LLM_ALLOWED_MODELS:-}
+  LLM_MODEL_MAX_INPUT_TOKENS: ${LLM_MODEL_MAX_INPUT_TOKENS:-}
+  LLM_MODEL_MAX_OUTPUT_TOKENS: ${LLM_MODEL_MAX_OUTPUT_TOKENS:-}
+  LLM_CONNECT_TIMEOUT_SECONDS: ${LLM_CONNECT_TIMEOUT_SECONDS:-10}
+  LLM_GENERATION_TIMEOUT_SECONDS: ${LLM_GENERATION_TIMEOUT_SECONDS:-60}
+  LLM_OVERALL_TIMEOUT_SECONDS: ${LLM_OVERALL_TIMEOUT_SECONDS:-120}
+  LLM_THINKING_BUDGET: ${LLM_THINKING_BUDGET:-}
+  STUDY_GENERATION_MODEL: ${STUDY_GENERATION_MODEL:-}
+  STUDY_MAX_INPUT_TOKENS: ${STUDY_MAX_INPUT_TOKENS:-60000}
+  STUDY_MAX_OUTPUT_TOKENS: ${STUDY_MAX_OUTPUT_TOKENS:-4000}
+  STUDY_JOB_TIMEOUT_SECONDS: ${STUDY_JOB_TIMEOUT_SECONDS:-540}
+
 x-phase3-env: &phase3-env
   STORAGE_BACKEND: ${STORAGE_BACKEND:-s3}
   STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-http://objectstore:8333}
@@ -125,7 +143,7 @@ services:
     # allow-listed egress-proxy, which permits HTTPS to the embedding provider host and nothing else.
     networks: [internal]
     environment:
-      <<: [*phase3-env, *core-env]
+      <<: [*phase3-env, *core-env, *llm-env]
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       HTTPS_PROXY: http://egress-proxy:3128
       NO_PROXY: redis,postgres,objectstore,localhost

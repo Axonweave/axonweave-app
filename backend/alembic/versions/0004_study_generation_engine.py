@@ -56,7 +56,9 @@ def upgrade() -> None:
         sa.Column("chapter_id", sa.UUID(), nullable=True),
         sa.Column("title", sa.String(length=300), nullable=False),
         sa.Column("resource_type", sa.String(length=32), nullable=False),
-        sa.Column("status", sa.String(length=16), server_default=sa.text("'completed'"), nullable=False),
+        sa.Column(
+            "status", sa.String(length=16), server_default=sa.text("'completed'"), nullable=False
+        ),
         sa.Column("content", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("generation_settings", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("source_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
@@ -129,7 +131,9 @@ def upgrade() -> None:
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("study_material_id", sa.UUID(), nullable=True),
         sa.Column("generation_type", sa.String(length=32), nullable=False),
-        sa.Column("status", sa.String(length=24), server_default=sa.text("'pending'"), nullable=False),
+        sa.Column(
+            "status", sa.String(length=24), server_default=sa.text("'pending'"), nullable=False
+        ),
         sa.Column("progress", sa.Integer(), server_default=sa.text("0"), nullable=False),
         sa.Column("model_id", sa.String(length=128), nullable=True),
         sa.Column("prompt_version", sa.String(length=80), nullable=True),
@@ -138,7 +142,9 @@ def upgrade() -> None:
         sa.Column("request", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("source_stats", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("provider_calls", sa.Integer(), server_default=sa.text("0"), nullable=False),
-        sa.Column("cancel_requested", sa.Boolean(), server_default=sa.text("false"), nullable=False),
+        sa.Column(
+            "cancel_requested", sa.Boolean(), server_default=sa.text("false"), nullable=False
+        ),
         sa.Column("celery_task_id", sa.String(length=64), nullable=True),
         sa.Column("heartbeat_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),

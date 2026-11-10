@@ -112,6 +112,7 @@ class Settings(BaseSettings):
     study_generation_model: str = ""
     study_max_input_tokens: int = Field(default=60_000, ge=500)
     study_max_output_tokens: int = Field(default=4000, ge=100)
+    study_max_scope_tokens: int = Field(default=500_000, ge=1000)
     study_max_sources_per_request: int = Field(default=50, ge=1)
     study_max_text_source_chars: int = Field(default=20_000, ge=100)
     study_daily_generation_quota: int = Field(default=20, ge=1)
@@ -225,6 +226,10 @@ class Settings(BaseSettings):
             raise ValueError("SCANNER_BACKEND must be 'none' or 'clamav'")
         if self.celery_task_soft_time_limit_seconds >= self.celery_task_hard_time_limit_seconds:
             raise ValueError("CELERY soft time limit must be below the hard limit")
+        if self.study_task_soft_time_limit_seconds >= self.study_task_hard_time_limit_seconds:
+            raise ValueError("STUDY task soft time limit must be below the hard limit")
+        if self.study_job_timeout_seconds >= self.study_task_soft_time_limit_seconds:
+            raise ValueError("STUDY_JOB_TIMEOUT_SECONDS must be below the task soft time limit")
         if self.embedding_provider and self.embedding_dimensions != EMBEDDING_COLUMN_DIMENSIONS:
             raise ValueError(
                 "EMBEDDING_DIMENSIONS does not match the vector column "
