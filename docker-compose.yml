@@ -1,5 +1,34 @@
 # Shared by the worker and beat (same codebase as the API). The API lists the same Phase 3 variables below.
 # There is no env_file: every variable must be passed through here.
+# LLM settings the Celery worker needs for study generation (Phase 4, D-88): generation runs in the
+# worker, never in the API process. The API keeps its own copy of the same variables below.
+x-llm-env: &llm-env
+  LLM_PROVIDER: ${LLM_PROVIDER:-}
+  FAKE_LLM_CHUNK_DELAY_SECONDS: ${FAKE_LLM_CHUNK_DELAY_SECONDS:-0}
+  LLM_DEFAULT_MODEL: ${LLM_DEFAULT_MODEL:-}
+  LLM_ALLOWED_MODELS: ${LLM_ALLOWED_MODELS:-}
+  LLM_MODEL_MAX_INPUT_TOKENS: ${LLM_MODEL_MAX_INPUT_TOKENS:-}
+  LLM_MODEL_MAX_OUTPUT_TOKENS: ${LLM_MODEL_MAX_OUTPUT_TOKENS:-}
+  LLM_CONNECT_TIMEOUT_SECONDS: ${LLM_CONNECT_TIMEOUT_SECONDS:-10}
+  LLM_GENERATION_TIMEOUT_SECONDS: ${LLM_GENERATION_TIMEOUT_SECONDS:-60}
+  LLM_OVERALL_TIMEOUT_SECONDS: ${LLM_OVERALL_TIMEOUT_SECONDS:-120}
+  LLM_THINKING_BUDGET: ${LLM_THINKING_BUDGET:-}
+  STUDY_GENERATION_MODEL: ${STUDY_GENERATION_MODEL:-}
+  STUDY_MAX_INPUT_TOKENS: ${STUDY_MAX_INPUT_TOKENS:-60000}
+  STUDY_MAX_OUTPUT_TOKENS: ${STUDY_MAX_OUTPUT_TOKENS:-4000}
+  STUDY_JOB_TIMEOUT_SECONDS: ${STUDY_JOB_TIMEOUT_SECONDS:-540}
+  STUDY_MAX_SCOPE_TOKENS: ${STUDY_MAX_SCOPE_TOKENS:-500000}
+  STUDY_MAX_SOURCES_PER_REQUEST: ${STUDY_MAX_SOURCES_PER_REQUEST:-50}
+  STUDY_MAX_TEXT_SOURCE_CHARS: ${STUDY_MAX_TEXT_SOURCE_CHARS:-20000}
+  STUDY_DAILY_GENERATION_QUOTA: ${STUDY_DAILY_GENERATION_QUOTA:-20}
+  STUDY_MAX_ACTIVE_JOBS_PER_USER: ${STUDY_MAX_ACTIVE_JOBS_PER_USER:-2}
+  STUDY_REQUESTS_PER_MINUTE_PER_USER: ${STUDY_REQUESTS_PER_MINUTE_PER_USER:-10}
+  STUDY_PROVIDER_MAX_RETRIES: ${STUDY_PROVIDER_MAX_RETRIES:-1}
+  STUDY_TASK_SOFT_TIME_LIMIT_SECONDS: ${STUDY_TASK_SOFT_TIME_LIMIT_SECONDS:-570}
+  STUDY_TASK_HARD_TIME_LIMIT_SECONDS: ${STUDY_TASK_HARD_TIME_LIMIT_SECONDS:-600}
+  STUDY_STALE_JOB_SECONDS: ${STUDY_STALE_JOB_SECONDS:-900}
+  STUDY_CANCEL_POLL_SECONDS: ${STUDY_CANCEL_POLL_SECONDS:-1.0}
+
 x-phase3-env: &phase3-env
   STORAGE_BACKEND: ${STORAGE_BACKEND:-s3}
   STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-http://objectstore:8333}
@@ -125,7 +154,7 @@ services:
     # allow-listed egress-proxy, which permits HTTPS to the embedding provider host and nothing else.
     networks: [internal]
     environment:
-      <<: [*phase3-env, *core-env]
+      <<: [*phase3-env, *core-env, *llm-env]
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       HTTPS_PROXY: http://egress-proxy:3128
       NO_PROXY: redis,postgres,objectstore,localhost
@@ -203,7 +232,7 @@ services:
       target: api
     restart: unless-stopped
     environment:
-      <<: *phase3-env
+      <<: [*phase3-env, *llm-env]
       APP_ENV: ${APP_ENV:-development}
       APP_SECRET_KEY: ${APP_SECRET_KEY:-change_me_in_production_use_32_plus_chars}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://axonweave_app:axonweave_app_dev_password@postgres:5432/axonweave}

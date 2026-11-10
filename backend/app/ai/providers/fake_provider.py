@@ -51,6 +51,8 @@ class FakeProvider(LLMProvider):
     def __init__(self) -> None:
         # Knobs for tests. All default to a plain successful reply.
         self.reply: str | None = None  # fixed reply text; None = echo of the last user message
+        # Replies handed out one per call before `reply` applies (e.g. invalid JSON, then valid).
+        self.replies: list[str] = []
         self.chunk_size = 8
         self.chunk_delay = 0.0
         self.fail_with: LLMError | None = None  # raised before any output
@@ -71,6 +73,8 @@ class FakeProvider(LLMProvider):
         return provider
 
     def _text_for(self, request: LLMRequest) -> str:
+        if self.replies:
+            return self.replies.pop(0)
         if self.reply is not None:
             return self.reply
         last = next((m.content for m in reversed(request.messages) if m.role == "user"), "")

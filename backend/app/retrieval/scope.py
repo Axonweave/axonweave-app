@@ -8,6 +8,7 @@ the caller's resolves to 404, exactly like a missing one.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
@@ -40,6 +41,20 @@ class ScopeResolver:
     def __init__(self, db: AsyncSession) -> None:
         self._repo = RetrievalRepository(db)
         self._docs = DocumentRepository(db)
+
+    async def resolve_documents(
+        self, user_id: uuid.UUID, document_ids: Sequence[uuid.UUID]
+    ) -> ResolvedScope:
+        """A scope made of several documents. Every id must be the caller's (else 404, same as a
+        missing one); documents that are not completed and active are left out, like any scope."""
+        wanted = list(dict.fromkeys(document_ids))
+        if not wanted:
+            raise _not_found()
+        for doc_id in wanted:
+            if await self._docs.get_owned(document_id=doc_id, user_id=user_id) is None:
+                raise _not_found()
+        eligible = set(await self._repo.eligible_document_ids(user_id, "all", None))
+        return ResolvedScope(user_id, tuple(d for d in wanted if d in eligible), _TOKEN)
 
     async def resolve(
         self, user_id: uuid.UUID, kind: ScopeKind, scope_id: uuid.UUID | None = None

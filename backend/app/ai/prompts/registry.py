@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 
-from app.ai.prompts import academic_tutor, rag
+from app.ai.prompts import academic_tutor, rag, study
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,6 +23,7 @@ PROMPTS: tuple[PromptDefinition, ...] = (
     PromptDefinition(academic_tutor.PROMPT_KEY, academic_tutor.VERSION, academic_tutor.CONTENT),
     PromptDefinition(rag.DOCUMENT_ONLY_KEY, rag.VERSION, rag.DOCUMENT_ONLY),
     PromptDefinition(rag.DOCUMENT_FIRST_KEY, rag.VERSION, rag.DOCUMENT_FIRST),
+    PromptDefinition(study.ECHO_KEY, study.ECHO_VERSION, study.ECHO),
 )
 
 
