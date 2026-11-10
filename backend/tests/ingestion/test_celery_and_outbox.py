@@ -48,7 +48,11 @@ def test_every_beat_entry_points_at_a_registered_task() -> None:
         "storage-cleanup-outbox",
         "dispatch-queued-processing-jobs",
         "sweep-stale-processing-jobs",
+        "dispatch-pending-generation-jobs",
+        "sweep-stale-generation-jobs",
     }
+    import app.study.tasks  # noqa: F401  (registers the study tasks)
+
     for entry in BEAT_SCHEDULE.values():
         assert entry["task"] in celery_app.tasks, entry["task"]
         assert entry["schedule"] > 0
