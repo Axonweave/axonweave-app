@@ -201,6 +201,7 @@ class GenerationJobRepository:
         *,
         error_code: str | None = None,
         material_id: uuid.UUID | None = None,
+        preview: dict[str, Any] | None = None,
     ) -> bool:
         """Move an active job to a terminal state. False if it already finished (first wins)."""
         values: dict[str, Any] = {
@@ -212,6 +213,8 @@ class GenerationJobRepository:
         if status == "completed":
             values["progress"] = 100
             values["study_material_id"] = material_id
+            if preview is not None:
+                values["preview"] = preview
         result = await self._db.execute(
             update(GenerationJob)
             .where(GenerationJob.id == job_id, GenerationJob.status.in_(_RUNNING))

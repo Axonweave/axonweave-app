@@ -3,6 +3,8 @@ the existing handler renders them. Job failures store only the `code` (never pro
 
 from __future__ import annotations
 
+from fastapi import HTTPException
+
 from app.ai.errors import AiError
 
 
@@ -43,6 +45,58 @@ class SourceTooLargeError(StudyError):
     user_message = "The selected material is too large for this kind of generation."
 
 
+class MaterialNotFoundError(StudyError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Study material not found."
+
+
+class MaterialVersionConflictError(StudyError):
+    code = "MATERIAL_VERSION_CONFLICT"
+    http_status = 409
+    user_message = "This material changed since you opened it. Reload it and try again."
+
+
+class InvalidEditError(StudyError):
+    code = "MATERIAL_EDIT_INVALID"
+    http_status = 422
+    user_message = "The edited content is not valid."
+
+    def __init__(self, problem: str = "") -> None:
+        super().__init__()
+        self.problem = problem  # field paths and rule names only, never content
+
+    def to_http_exception(self) -> HTTPException:
+        message = self.user_message + (f" ({self.problem})" if self.problem else "")
+        return HTTPException(
+            status_code=self.http_status, detail={"code": self.code, "message": message}
+        )
+
+
+class RegenerationNotPossibleError(StudyError):
+    code = "REGENERATION_NOT_POSSIBLE"
+    http_status = 422
+    user_message = "This material cannot be regenerated from its original source."
+
+
+class PreviewNotAvailableError(StudyError):
+    code = "PREVIEW_NOT_AVAILABLE"
+    http_status = 409
+    user_message = "There is no preview to apply for this generation."
+
+
+class PreviewStaleError(StudyError):
+    code = "PREVIEW_STALE"
+    http_status = 409
+    user_message = "The material changed after this preview was made. Regenerate to get a new one."
+
+
+class SourceTooSmallError(StudyError):
+    code = "GENERATION_SOURCE_TOO_SMALL"
+    http_status = 422
+    user_message = "There is not enough material to generate this. Add more content and try again."
+
+
 class GenerationUnavailableError(StudyError):
     code = "GENERATION_UNAVAILABLE"
     http_status = 503
@@ -81,6 +135,7 @@ JOB_ERROR_MESSAGES: dict[str, str] = {
     INTERRUPTED: "The generation was interrupted. Please start it again.",
     SOURCES_GONE: NoSourcesError.user_message,
     INTERNAL: "The generation failed. Please try again.",
+    "GENERATION_SOURCE_TOO_SMALL": SourceTooSmallError.user_message,
     "GENERATION_SOURCE_TOO_LARGE": SourceTooLargeError.user_message,
     "LLM_NOT_CONFIGURED": "The AI service is not configured.",
     "LLM_RATE_LIMITED": "The AI service is temporarily busy. Please try again.",

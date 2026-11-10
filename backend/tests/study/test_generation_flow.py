@@ -240,7 +240,7 @@ class TestValidation:
         from tests.ai.test_provider_layer import _PROD, make_settings
 
         prod = make_settings(**_PROD)
-        assert available_generators(prod) == []
+        assert [g.key for g in available_generators(prod)] == ["summary"]  # echo is hidden
         with pytest.raises(UnknownGeneratorError):
             get_generator("echo", prod)
 

@@ -36,3 +36,29 @@ statement drawn from the material."""
 )
 
 VERSION = 1
+
+SUMMARY_KEY = "study_summary"
+SUMMARY_VERSION = 1
+SUMMARY = (
+    COMMON
+    + """
+6. You are writing a summary. Preserve the source's meaning and technical terminology, avoid \
+repetition, and do not claim that anything will definitely appear in an examination.
+7. Mark a section "additional_explanation": true only when it contains explanation that goes \
+beyond the passages (for example a simpler analogy); everything else must come from the passages \
+and carry source_refs.
+8. Only include definitions, formulas, examples or terms when the material contains them. Never \
+force a formula, comparison or example into material that has none."""
+)
+
+# Intermediate (map and condense) steps of a long-chapter summary. Same untrusted-data rules.
+SUMMARY_NOTES_KEY = "study_summary_notes"
+SUMMARY_NOTES_VERSION = 1
+SUMMARY_NOTES = (
+    COMMON
+    + """
+6. You are condensing part of a long chapter into faithful working notes that a later step will \
+merge into the final summary. Keep every distinct concept, definition, process, comparison, \
+formula and example of your part; drop only repetition. Keep technical terms exact.
+7. Each note must carry the source numbers it came from in "source_refs"."""
+)
