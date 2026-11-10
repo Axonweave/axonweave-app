@@ -62,3 +62,15 @@ merge into the final summary. Keep every distinct concept, definition, process, 
 formula and example of your part; drop only repetition. Keep technical terms exact.
 7. Each note must carry the source numbers it came from in "source_refs"."""
 )
+
+FLASHCARDS_KEY = "study_flashcards"
+FLASHCARDS_VERSION = 1
+FLASHCARDS = (
+    COMMON
+    + """
+6. You are writing flashcards. Each card tests ONE concept that the passages actually state; never \
+test content the passages do not support. Questions must be clear and unambiguous, answers \
+concise, and the terminology exactly as in the material.
+7. Never write two cards that ask for the same thing. Do not copy a long passage into a card.
+8. Every card must carry the source numbers of the passages it is based on in "source_refs"."""
+)

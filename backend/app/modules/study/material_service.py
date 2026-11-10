@@ -71,7 +71,7 @@ class StudyMaterialService:
 
     def _generator(self, material: StudyMaterial) -> Generator:
         generator = generator_for_resource(material.resource_type, self._s)
-        if generator is None:
+        if generator is None or generator.item_store:  # decks are edited card by card
             raise InvalidEditError
         return generator
 
@@ -104,6 +104,7 @@ class StudyMaterialService:
     ) -> StudyMaterial:
         """Copy an old version forward as a new one: history is never rewritten."""
         material = await self._owned(user, material_id)
+        self._generator(material)
         old = await self._materials.get_version(material_id, user.id, number)
         if old is None:
             raise MaterialNotFoundError
@@ -205,7 +206,7 @@ class StudyMaterialService:
     async def apply_preview(self, user: User, job_id: uuid.UUID) -> StudyMaterial:
         job = await self._preview_job(user, job_id)
         preview = job.preview
-        if preview is None:
+        if preview is None or "card_ids" in preview:  # card previews: flashcard apply route
             raise PreviewNotAvailableError
         material = await self._owned(user, uuid.UUID(preview["material_id"]))
         if material.current_version != preview["base_version"]:

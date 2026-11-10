@@ -14,3 +14,9 @@ P4-1 | Section regeneration source | Retrieval by section heading, sampled fallb
 P4-1 | Minimum source for a summary | 20 estimated tokens, refused before any provider call (422 `GENERATION_SOURCE_TOO_SMALL`) | A near-empty source can only produce invented text.
 P4-1 | Do edits obey generation caps (section count)? | No, only structure, unique headings and real references | The cap is a generation quality rule, not a limit on the user.
 P4-1 | M0 test asserting no generator in production | Updated to expect only `summary` | echo is still hidden; the assertion encoded "no real generators yet".
+P4-2 | Flashcard storage: own tables or study_materials only? | Own tables `flashcard_sets` + `flashcards`, material keeps version-1 snapshot | Spec 18.4 allows either; per-card edit, reorder, favourite and selective regenerate need rows.
+P4-2 | Generated card with no valid source number | Dropped, not failed | Unsupported content must not be kept (6.5), but one bad reference should not cost the whole job.
+P4-2 | Near-duplicate threshold | Word-set Jaccard >= 0.8 after removing filler words | Cheap, deterministic, no embedding call; catches "What is X" vs "Define X".
+P4-2 | How regenerate-selected protects edits | Per-card `revision` stored in the preview; apply is 409 if any changed | Satisfies "do not overwrite user edits" without locking cards.
+P4-2 | Reorder endpoint shape | `PUT /study/flashcards/{set_id}/order` with the full ordered id list | Spec has none; full list is unambiguous and validated against the set.
+P4-2 | Max cards | 50 per generation, 200 per set, 30 per regenerate | Cost control (6.3); constants, not env, since settings models cannot see app settings.

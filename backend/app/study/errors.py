@@ -154,3 +154,21 @@ def safe_job_message(code: str | None) -> str | None:
     if code is None:
         return None
     return JOB_ERROR_MESSAGES.get(code, JOB_ERROR_MESSAGES[INTERNAL])
+
+
+class FlashcardNotFoundError(StudyError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Flashcard not found."
+
+
+class DuplicateFlashcardError(StudyError):
+    code = "FLASHCARD_DUPLICATE"
+    http_status = 409
+    user_message = "A very similar card already exists in this set."
+
+
+class FlashcardLimitError(StudyError):
+    code = "FLASHCARD_LIMIT"
+    http_status = 409
+    user_message = "This set has reached the maximum number of cards."
