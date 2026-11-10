@@ -43,7 +43,10 @@ const isWin = process.platform === "win32";
 const log = (...a) => console.log(`[${new Date().toISOString().slice(11, 19)}]`, ...a);
 const die = (m) => { console.error("\nSTOPPED: " + m); process.exit(1); };
 
+// With shell: true on Windows, args containing spaces or quotes are split by the shell.
+const winQuote = (a) => (/[\s"]/.test(a) ? `"${a.replace(/"/g, '\\"')}"` : a);
 function run(cmd, cmdArgs, opts = {}) {
+  if (isWin) cmdArgs = cmdArgs.map(winQuote);
   const r = spawnSync(cmd, cmdArgs, {
     cwd: ROOT, encoding: "utf8", shell: isWin, maxBuffer: 64 * 1024 * 1024, ...opts,
   });
