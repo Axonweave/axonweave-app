@@ -10,6 +10,7 @@ from app.modules.documents.routes import router as documents_router
 from app.modules.folders.routes import router as folders_router
 from app.modules.search.routes import router as search_router
 from app.modules.study.flashcard_routes import router as flashcard_router
+from app.modules.study.quiz_routes import router as quiz_router
 from app.modules.study.routes import router as study_router
 from app.modules.subjects.routes import router as subjects_router
 from app.modules.users.routes import router as users_router
@@ -30,3 +31,4 @@ router.include_router(search_router)
 router.include_router(citations_router)
 router.include_router(study_router)
 router.include_router(flashcard_router)
+router.include_router(quiz_router)

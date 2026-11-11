@@ -11,9 +11,15 @@ from app.study.errors import InvalidSettingsError, UnknownGeneratorError
 from app.study.generators.base import Generator, GeneratorSettings
 from app.study.generators.echo import EchoGenerator
 from app.study.generators.flashcards import FlashcardGenerator
+from app.study.generators.quiz import QuizGenerator
 from app.study.generators.summary import SummaryGenerator
 
-_GENERATORS: tuple[Generator, ...] = (EchoGenerator(), SummaryGenerator(), FlashcardGenerator())
+_GENERATORS: tuple[Generator, ...] = (
+    EchoGenerator(),
+    SummaryGenerator(),
+    FlashcardGenerator(),
+    QuizGenerator(),
+)
 
 
 def available_generators(settings: Settings) -> list[Generator]:

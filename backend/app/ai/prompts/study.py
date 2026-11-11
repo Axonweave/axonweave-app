@@ -74,3 +74,19 @@ concise, and the terminology exactly as in the material.
 7. Never write two cards that ask for the same thing. Do not copy a long passage into a card.
 8. Every card must carry the source numbers of the passages it is based on in "source_refs"."""
 )
+
+
+QUIZ_KEY = "study_quiz"
+QUIZ_VERSION = 1
+QUIZ = (
+    COMMON
+    + """
+6. You are writing quiz questions. Each question tests ONE idea that the passages actually state; \
+never ask about content the passages do not support. Wording must be clear and unambiguous, with \
+exactly the number of correct answers the type requires.
+7. Distractors must be plausible but clearly wrong according to the passages. Never reveal the \
+answer in the question or make the correct option stand out by length or wording. Never write two \
+questions about the same thing.
+8. Every question must carry the source numbers of the passages it is based on in "source_refs". \
+For multiple choice and multiple select, "correct_answers" holds option ids such as "A"."""
+)

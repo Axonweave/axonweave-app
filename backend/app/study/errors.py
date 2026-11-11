@@ -172,3 +172,45 @@ class FlashcardLimitError(StudyError):
     code = "FLASHCARD_LIMIT"
     http_status = 409
     user_message = "This set has reached the maximum number of cards."
+
+
+class QuizNotFoundError(StudyError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Quiz not found."
+
+
+class QuizAttemptNotFoundError(StudyError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Quiz attempt not found."
+
+
+class QuizAttemptSubmittedError(StudyError):
+    code = "QUIZ_ATTEMPT_SUBMITTED"
+    http_status = 409
+    user_message = "This attempt was already submitted and can no longer be changed."
+
+
+class QuizAttemptExpiredError(StudyError):
+    code = "QUIZ_ATTEMPT_EXPIRED"
+    http_status = 409
+    user_message = "The time limit ran out; the attempt was submitted with the saved answers."
+
+
+class QuizAttemptNotSubmittedError(StudyError):
+    code = "QUIZ_ATTEMPT_NOT_SUBMITTED"
+    http_status = 409
+    user_message = "Results are available after the attempt is submitted."
+
+
+class QuizAnswerInvalidError(StudyError):
+    code = "QUIZ_ANSWER_INVALID"
+    http_status = 422
+    user_message = "An answer is not valid for its question."
+
+
+class QuizAttemptLimitError(StudyError):
+    code = "QUIZ_ATTEMPT_LIMIT"
+    http_status = 409
+    user_message = "This quiz has reached the maximum number of attempts."

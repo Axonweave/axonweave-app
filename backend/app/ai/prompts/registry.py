@@ -26,6 +26,7 @@ PROMPTS: tuple[PromptDefinition, ...] = (
     PromptDefinition(study.ECHO_KEY, study.ECHO_VERSION, study.ECHO),
     PromptDefinition(study.SUMMARY_KEY, study.SUMMARY_VERSION, study.SUMMARY),
     PromptDefinition(study.FLASHCARDS_KEY, study.FLASHCARDS_VERSION, study.FLASHCARDS),
+    PromptDefinition(study.QUIZ_KEY, study.QUIZ_VERSION, study.QUIZ),
     PromptDefinition(study.SUMMARY_NOTES_KEY, study.SUMMARY_NOTES_VERSION, study.SUMMARY_NOTES),
 )
 
