@@ -53,12 +53,12 @@ Every milestone ends with ruff, mypy, pytest, Vitest (and Playwright from M6) gr
 - [x] All use the M0 engine and registry; settings schemas, prompts (versioned) and tests per generator.
 
 ## M5: Study library, editing, versioning, regeneration and export (steps 7 and 8; sections 12 to 14, 16, 19.2, 19.5)
-- [ ] Library API (19.2): list with search, filters (type, workspace, subject, chapter, status), pagination and allow-listed sorts; get, patch, delete, duplicate, archive, regenerate.
-- [ ] Versioning (13.2): original generated version kept, current edited version, version number, modified by and when; restore. Regeneration always previews and never overwrites edits (13.3).
-- [ ] Preferences (16): language, explanation level, summary length, question difficulty, include examples/definitions/references; endpoints and use as generation defaults.
-- [ ] Export (14, 19.5): PDF and CSV first, then Markdown and DOCX where cheap; background job; short-lived, ownership-checked download; CSV cells starting with `=`, `+`, `-`, `@`, tab or CR neutralised; sanitised HTML/Markdown in PDF; quiz exports never contain answer keys unless the spec allows it after submission.
-- [ ] Account export and deletion cover all Phase 4 data; deleting a source document does not delete study materials but marks references unavailable.
-- [ ] Tests: filters, search, version restore, regenerate preview, export per resource type, injection payloads, expired or foreign download link, deletion cascade.
+- [x] Library API (19.2): list with search, filters (type, workspace, subject, chapter, status), pagination and allow-listed sorts; get, patch, delete, duplicate, archive, regenerate.
+- [x] Versioning (13.2): original generated version kept, current edited version, version number, modified by and when; restore. Regeneration always previews and never overwrites edits (13.3).
+- [x] Preferences (16): language, explanation level, summary length, question difficulty, include examples/definitions/references; endpoints and use as generation defaults.
+- [x] Export (14, 19.5): PDF and CSV first, then Markdown and DOCX where cheap; background job; short-lived, ownership-checked download; CSV cells starting with `=`, `+`, `-`, `@`, tab or CR neutralised; sanitised HTML/Markdown in PDF; quiz exports never contain answer keys unless the spec allows it after submission.
+- [x] Account export and deletion cover all Phase 4 data; deleting a source document does not delete study materials but marks references unavailable.
+- [x] Tests: filters, search, version restore, regenerate preview, export per resource type, injection payloads, expired or foreign download link, deletion cascade.
 
 ## M6: Frontend: generation, library, summaries, flashcards, guides (sections 20.x, 12.2)
 - [ ] Library gets a Study materials tab; entry points on subject, chapter and document pages; generation dialogs with scope, settings, quota hint; job progress with polling and cancel; failure states.

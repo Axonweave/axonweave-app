@@ -32,3 +32,10 @@ P4-4 | Invalid formula handling | Unsafe dropped, syntax/undefined variables fla
 P4-4 | Where bank answer keys live | quiz_questions via an untimed quiz row, no new migration | Reuses M3 key protection and validation (D-99).
 P4-4 | Duplicate glossary terms | Merged, first definition wins | Failing the job over a repeated term wastes cost.
 P4-4 | Guide objective without a source | Kept, forced generated_recommendation=true | Spec 8.4 allows it if clearly marked.
+P4-5 | Favourites (spec 12.3) | Not built | Not in the M5 task list and needs a column; flashcards already have favourites.
+P4-5 | Quiz/bank duplicate | 422 DUPLICATE_NOT_SUPPORTED | Needs copying answer keys; deferred, documented in D-100.
+P4-5 | Rename | Via existing PATCH edit (title in payload) | No separate endpoint; decks rename through the flashcard routes.
+P4-5 | Export of quiz answer keys | Never, even after submission | Safest reading of spec 14 / 21.4; results page already shows keys after submit.
+P4-5 | Export dispatch when no broker | 503 EXPORT_UNAVAILABLE | Same pattern as generation; app otherwise unaffected.
+P4-5 | PDF font | Built-in Latin-1 Helvetica, non-Latin shown as ? | No font files may be committed; embedding a font is a later improvement.
+P4-5 | Tests needing PyMuPDF/python-docx | Skip in the API image, run where installed | Parsers are worker-only (D-70); PDF/DOCX rendering was checked by hand in worker and locally.
