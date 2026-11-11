@@ -24,7 +24,15 @@ function optionText(q: ResultQuestion, ids: string[] | string | null): string {
  * Results and review. Correct answers and explanations come from the results route, which the
  * server only answers for a submitted attempt (D-94). A quiz score is not a measure of mastery.
  */
-export function QuizResults({ materialId, attemptId }: { materialId: string; attemptId: string }) {
+export function QuizResults({
+  materialId,
+  attemptId,
+  timeUp = false,
+}: {
+  materialId: string;
+  attemptId: string;
+  timeUp?: boolean;
+}) {
   const res = useAsync(async () => {
     const material = await studyApi.get(materialId);
     if (!material.item_id) throw new Error("no quiz");
@@ -80,7 +88,7 @@ export function QuizResults({ materialId, attemptId }: { materialId: string; att
             <dd className="inline">{formatClock(r.time_taken_seconds)}</dd>
           </div>
         </dl>
-        {r.auto_submitted ? (
+        {r.auto_submitted || timeUp ? (
           <p role="status" className="text-sm text-amber-700 dark:text-amber-400">
             Time ran out, so this attempt was submitted automatically with the answers you had
             saved.

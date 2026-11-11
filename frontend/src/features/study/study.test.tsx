@@ -299,7 +299,7 @@ describe("QuizTaker", () => {
       await vi.advanceTimersByTimeAsync(2600);
     });
     await waitFor(() => expect(api.submit).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/study/m1/quiz/results/a1"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/study/m1/quiz/results/a1?timeup=1"));
   });
 
   it("goes to the results when the server says the attempt already ended", async () => {

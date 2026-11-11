@@ -1,9 +1,19 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { QuizResults } from "@/features/study/quiz-results";
 
-export default function QuizResultsPage() {
+function Results() {
   const { materialId, attemptId } = useParams<{ materialId: string; attemptId: string }>();
-  return <QuizResults materialId={materialId} attemptId={attemptId} />;
+  const timeUp = useSearchParams().get("timeup") === "1";
+  return <QuizResults materialId={materialId} attemptId={attemptId} timeUp={timeUp} />;
+}
+
+export default function QuizResultsPage() {
+  return (
+    <Suspense fallback={null}>
+      <Results />
+    </Suspense>
+  );
 }

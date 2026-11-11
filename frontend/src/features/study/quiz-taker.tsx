@@ -127,7 +127,9 @@ export function QuizTaker({ materialId }: { materialId: string }) {
           return;
         }
       }
-      routerRef.current.push(`/study/${materialId}/quiz/results/${attempt.id}`);
+      routerRef.current.push(
+        `/study/${materialId}/quiz/results/${attempt.id}${auto ? "?timeup=1" : ""}`,
+      );
     },
     [attempt, quizId, materialId],
   );
