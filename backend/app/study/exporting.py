@@ -268,11 +268,12 @@ def _latin(text: str) -> str:
 
 def render_pdf(data: ExportInput) -> bytes:
     """Plain-text PDF drawn directly (no HTML engine, no links, no embedded content)."""
-    import pymupdf
+    import pymupdf as _pymupdf
 
-    doc = pymupdf.open()
+    pymupdf: Any = _pymupdf  # untyped in some installs, typed in others: treat as Any everywhere
+    doc: Any = pymupdf.open()
     width, height, margin = 595.0, 842.0, 54.0
-    state = {"page": doc.new_page(width=width, height=height), "y": margin}
+    state: dict[str, Any] = {"page": doc.new_page(width=width, height=height), "y": margin}
 
     def write(text: str, size: float, *, indent: float = 0.0, bold: bool = False) -> None:
         font = "hebo" if bold else "helv"
