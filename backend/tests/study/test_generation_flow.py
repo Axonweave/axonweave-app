@@ -243,6 +243,7 @@ class TestValidation:
         assert [g.key for g in available_generators(prod)] == [
             "summary",
             "flashcards",
+            "quiz",
         ]  # echo is hidden
         with pytest.raises(UnknownGeneratorError):
             get_generator("echo", prod)

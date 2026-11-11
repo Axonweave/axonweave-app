@@ -20,3 +20,10 @@ P4-2 | Near-duplicate threshold | Word-set Jaccard >= 0.8 after removing filler 
 P4-2 | How regenerate-selected protects edits | Per-card `revision` stored in the preview; apply is 409 if any changed | Satisfies "do not overwrite user edits" without locking cards.
 P4-2 | Reorder endpoint shape | `PUT /study/flashcards/{set_id}/order` with the full ordered id list | Spec has none; full list is unambiguous and validated against the set.
 P4-2 | Max cards | 50 per generation, 200 per set, 30 per regenerate | Cost control (6.3); constants, not env, since settings models cannot see app settings.
+P4-3 | Where answer keys live | Only `quiz_questions`; material content stores title and counts | The generic material and version endpoints would otherwise return the key (D-94).
+P4-3 | Retake policy | Unlimited retakes (cap 100), one open attempt, resume on start | Spec says define it; simplest safe option (D-95).
+P4-3 | Timer | Server deadline, lazy auto-submit on next access, 10 s submit grace | No background worker needed; client cannot extend time (D-95).
+P4-3 | Subjective questions | Not auto-graded; self-assessment with model answer and rubric after submit | LLM grading costs money and is optional in the spec (D-96).
+P4-3 | Show explanations immediately | Not offered; only after_submission | Immediate feedback would reveal keys before submission.
+P4-3 | Question editing | Not implemented in M3 | Not listed under M3; library editing is M5.
+P4-3 | Multiple select scoring | Exact match, one point | Spec 7.7.

@@ -121,7 +121,7 @@ class QuizService:
             await self._finalize(user, quiz, attempt, auto=True, now=now)
             await self._db.commit()
         else:
-            await self._db.rollback()  # release the row lock
+            await self._db.commit()  # nothing changed: releases the row lock
         return attempt
 
     async def _owned_attempt(
@@ -198,7 +198,7 @@ class QuizService:
         quiz = await self._quiz(user, quiz_id)
         attempt = await self._owned_attempt(user, quiz, attempt_id, lock=True)
         if attempt.status == "submitted":
-            await self._db.rollback()
+            await self._db.commit()  # nothing changed: releases the row lock
             return attempt
         now = _now()
         late = self._expired(attempt, now, SUBMIT_GRACE_SECONDS)
