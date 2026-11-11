@@ -90,3 +90,52 @@ questions about the same thing.
 8. Every question must carry the source numbers of the passages it is based on in "source_refs". \
 For multiple choice and multiple select, "correct_answers" holds option ids such as "A"."""
 )
+
+
+STUDY_GUIDE_KEY = "study_guide"
+STUDY_GUIDE_VERSION = 1
+STUDY_GUIDE = (
+    COMMON
+    + """
+6. You are writing a study guide with a clear topic hierarchy: "level" 1 is a main topic, 2 a \
+subtopic, 3 a detail; never skip a level. Preserve academic accuracy and the source's \
+terminology.
+7. Learning objectives must come from the passages and carry source_refs. If you suggest one \
+the passages do not support, set "generated_recommendation": true and leave source_refs empty.
+8. Practice questions are questions only: never include answers."""
+)
+
+GLOSSARY_KEY = "study_glossary"
+GLOSSARY_VERSION = 1
+GLOSSARY = (
+    COMMON
+    + """
+6. You are extracting a glossary of important technical terms. Define each term as the \
+passages define it, once only (no repeated terms or spelling variants). Use related_terms only \
+for other terms that appear in the passages. Never invent a definition for a term the passages \
+do not explain."""
+)
+
+FORMULA_SHEET_KEY = "study_formula_sheet"
+FORMULA_SHEET_VERSION = 1
+FORMULA_SHEET = (
+    COMMON
+    + """
+6. You are listing formulas that the passages actually contain. Write each expression as plain \
+LaTeX math without $ delimiters and without any HTML, links or macro definitions. Define every \
+variable that appears. Never derive, correct or invent a formula; if the passages do not \
+contain one, produce fewer entries."""
+)
+
+QUESTION_BANK_KEY = "study_question_bank"
+QUESTION_BANK_VERSION = 1
+QUESTION_BANK = (
+    COMMON
+    + """
+6. You are writing reusable bank questions. Each question tests ONE idea that the passages \
+state, has the exact number of correct answers its type requires, plausible distractors, and a \
+short "topic" label taken from the material.
+7. Never reveal the answer in the question and never write two questions about the same thing.
+8. Every question must carry source_refs. For choice questions "correct_answers" holds option \
+ids such as "A"."""
+)

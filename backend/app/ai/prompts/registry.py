@@ -27,6 +27,10 @@ PROMPTS: tuple[PromptDefinition, ...] = (
     PromptDefinition(study.SUMMARY_KEY, study.SUMMARY_VERSION, study.SUMMARY),
     PromptDefinition(study.FLASHCARDS_KEY, study.FLASHCARDS_VERSION, study.FLASHCARDS),
     PromptDefinition(study.QUIZ_KEY, study.QUIZ_VERSION, study.QUIZ),
+    PromptDefinition(study.STUDY_GUIDE_KEY, study.STUDY_GUIDE_VERSION, study.STUDY_GUIDE),
+    PromptDefinition(study.GLOSSARY_KEY, study.GLOSSARY_VERSION, study.GLOSSARY),
+    PromptDefinition(study.FORMULA_SHEET_KEY, study.FORMULA_SHEET_VERSION, study.FORMULA_SHEET),
+    PromptDefinition(study.QUESTION_BANK_KEY, study.QUESTION_BANK_VERSION, study.QUESTION_BANK),
     PromptDefinition(study.SUMMARY_NOTES_KEY, study.SUMMARY_NOTES_VERSION, study.SUMMARY_NOTES),
 )
 

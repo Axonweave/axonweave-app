@@ -27,3 +27,8 @@ P4-3 | Subjective questions | Not auto-graded; self-assessment with model answer
 P4-3 | Show explanations immediately | Not offered; only after_submission | Immediate feedback would reveal keys before submission.
 P4-3 | Question editing | Not implemented in M3 | Not listed under M3; library editing is M5.
 P4-3 | Multiple select scoring | Exact match, one point | Spec 7.7.
+P4-4 | Endpoints for the four generators | Existing generic POST /study/generations, no per-type routes | Same as M1-M3; spec 19.1 paths are aliases the frontend does not need (D-97).
+P4-4 | Invalid formula handling | Unsafe dropped, syntax/undefined variables flagged needs_review, never marked verified | Spec 10.4 forbids claiming correctness (D-98).
+P4-4 | Where bank answer keys live | quiz_questions via an untimed quiz row, no new migration | Reuses M3 key protection and validation (D-99).
+P4-4 | Duplicate glossary terms | Merged, first definition wins | Failing the job over a repeated term wastes cost.
+P4-4 | Guide objective without a source | Kept, forced generated_recommendation=true | Spec 8.4 allows it if clearly marked.
