@@ -35,8 +35,8 @@ class StudyLibraryService:
         self._db = db
         self._materials = StudyMaterialRepository(db)
 
-    async def _owned(self, user: User, material_id: uuid.UUID) -> StudyMaterial:
-        material = await self._materials.get_owned(material_id, user.id)
+    async def _owned(self, user_id: uuid.UUID, material_id: uuid.UUID) -> StudyMaterial:
+        material = await self._materials.get_owned(material_id, user_id)
         if material is None:
             raise MaterialNotFoundError
         return material
@@ -50,8 +50,9 @@ class StudyLibraryService:
         return {m.id: [d for d in source_document_ids(m) if d not in present] for m in materials}
 
     async def delete(self, user: User, material_id: uuid.UUID) -> None:
-        material = await self._owned(user, material_id)
-        user_id, mid = user.id, material.id
+        user_id = user.id
+        material = await self._owned(user_id, material_id)
+        mid = material.id
         keys = await StudyExportRepository(self._db).keys_for_material(mid, user_id)
         await enqueue_keys(self._db, keys, "study_material_deleted")  # outbox first (D-66)
         await self._materials.delete(mid, user_id)  # versions, decks, quizzes, exports cascade
@@ -60,18 +61,19 @@ class StudyLibraryService:
     async def set_archived(
         self, user: User, material_id: uuid.UUID, archived: bool
     ) -> StudyMaterial:
-        material = await self._owned(user, material_id)
-        user_id, mid = user.id, material.id
+        user_id = user.id
+        material = await self._owned(user_id, material_id)
+        mid = material.id
         await self._materials.set_archived(mid, user_id, archived)
         await self._db.commit()
-        self._db.expire_all()
-        return await self._owned(user, mid)
+        await self._db.refresh(material)
+        return material
 
     async def duplicate(self, user: User, material_id: uuid.UUID) -> StudyMaterial:
-        material = await self._owned(user, material_id)
+        user_id = user.id
+        material = await self._owned(user_id, material_id)
         if material.resource_type not in DUPLICABLE or material.status != "completed":
             raise DuplicateNotSupportedError
-        user_id = user.id
         copy_row = await self._materials.create_with_first_version(
             user_id=user_id,
             workspace_id=material.workspace_id,
@@ -104,7 +106,6 @@ class StudyLibraryService:
                         for c in await cards_repo.cards(source_set.id, user_id)
                     ],
                 )
-        new_id = copy_row.id
         await self._db.commit()
-        self._db.expire_all()
-        return await self._owned(user, new_id)
+        await self._db.refresh(copy_row)
+        return copy_row

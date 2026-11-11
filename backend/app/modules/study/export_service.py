@@ -43,7 +43,8 @@ class StudyExportService:
         self._exports = StudyExportRepository(db)
 
     async def create(self, user: User, material_id: uuid.UUID, fmt: str) -> StudyExport:
-        material = await StudyMaterialRepository(self._db).get_owned(material_id, user.id)
+        user_id = user.id  # read before commit expires the loaded user
+        material = await StudyMaterialRepository(self._db).get_owned(material_id, user_id)
         if material is None:
             raise MaterialNotFoundError  # foreign and missing look the same
         if material.status != "completed" or fmt not in FORMATS_BY_TYPE.get(
@@ -54,20 +55,16 @@ class StudyExportService:
             raise ExportUnavailableError
         since = datetime.now(UTC) - timedelta(hours=1)
         if (
-            await self._exports.recent_count(user.id, since)
+            await self._exports.recent_count(user_id, since)
             >= self._s.study_exports_per_hour_per_user
         ):
             raise ExportRateLimitedError(retry_after=3600)
-        row = await self._exports.add(user.id, material.id, fmt)
+        row = await self._exports.add(user_id, material.id, fmt)
         export_id = row.id
         await self._db.commit()
-        if not self._dispatcher.dispatch(export_id):
-            pass  # stays pending; the sweeper sends it again
-        self._db.expire_all()
-        fresh = await self._exports.get_owned(export_id, user.id)
-        if fresh is None:
-            raise ExportNotFoundError
-        return fresh
+        self._dispatcher.dispatch(export_id)  # if refused it stays pending; the sweeper resends
+        await self._db.refresh(row)
+        return row
 
     async def get(self, user: User, export_id: uuid.UUID) -> StudyExport:
         row = await self._exports.get_owned(export_id, user.id)
