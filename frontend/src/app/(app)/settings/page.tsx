@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthContext } from "@/contexts/auth-context";
+import { PreferencesForm } from "@/features/study/preferences-form";
 import { profileApi } from "@/lib/api/profile";
 import { ApiRequestError } from "@/lib/api/client";
+import { applyTheme } from "@/lib/theme";
 import type { SessionInfo, UserPreferences } from "@/types/api";
 
-type Tab = "appearance" | "learning" | "security" | "sessions" | "account";
+type Tab = "appearance" | "learning" | "study" | "security" | "sessions" | "account";
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -44,6 +46,7 @@ function AppearanceTab() {
     try {
       const r = await profileApi.updatePreferences({ theme });
       setPrefs(r.data);
+      applyTheme(theme);
       toast({ title: "Appearance saved" });
     } catch {
       toast({ title: "Error", description: "Could not save appearance.", variant: "destructive" });
@@ -497,6 +500,7 @@ export default function SettingsPage() {
   const tabs: Array<{ id: Tab; label: string }> = [
     { id: "appearance", label: "Appearance" },
     { id: "learning", label: "Learning" },
+    { id: "study", label: "Study material" },
     { id: "security", label: "Security" },
     { id: "sessions", label: "Sessions" },
     { id: "account", label: "Account" },
@@ -522,6 +526,7 @@ export default function SettingsPage() {
       <div role="tabpanel" className="rounded-lg border border-border bg-card p-6">
         {tab === "appearance" && <AppearanceTab />}
         {tab === "learning" && <LearningTab />}
+        {tab === "study" && <PreferencesForm />}
         {tab === "security" && <SecurityTab />}
         {tab === "sessions" && <SessionsTab />}
         {tab === "account" && <AccountTab />}

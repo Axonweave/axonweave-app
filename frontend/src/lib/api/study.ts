@@ -27,7 +27,8 @@ export type GenerationType =
   | "formula_sheet"
   | "question_bank";
 
-export type SourceType = "document" | "documents" | "chapter" | "subject" | "folder" | "workspace" | "text";
+export type SourceType =
+  "document" | "documents" | "chapter" | "subject" | "folder" | "workspace" | "text";
 
 export interface SourceSpec {
   type: SourceType;
@@ -109,8 +110,7 @@ export const studyApi = {
   edit: (id: string, expected_version: number, payload: Record<string, unknown>) =>
     api.patch<StudyMaterial>(m(id), { expected_version, payload }).then((r) => r.data),
   remove: (id: string) => api.delete<null>(m(id)),
-  duplicate: (id: string) =>
-    api.post<StudyMaterial>(`${m(id)}/duplicate`).then((r) => r.data),
+  duplicate: (id: string) => api.post<StudyMaterial>(`${m(id)}/duplicate`).then((r) => r.data),
   archive: (id: string) => api.post<StudyMaterial>(`${m(id)}/archive`).then((r) => r.data),
   unarchive: (id: string) => api.post<StudyMaterial>(`${m(id)}/unarchive`).then((r) => r.data),
 
@@ -137,11 +137,10 @@ export const studyApi = {
   ) => getPaged<BankQuestion>(`${m(id)}/questions${query(p)}`),
 
   // flashcards (the deck id equals the set id; found through the material)
-  deck: (setId: string) => api.get<FlashcardSet>(`/study/flashcards/${enc(setId)}`).then((r) => r.data),
-  addCard: (
-    setId: string,
-    body: { front: string; back: string; explanation?: string | null },
-  ) => api.post<Flashcard>(`/study/flashcards/${enc(setId)}/cards`, body).then((r) => r.data),
+  deck: (setId: string) =>
+    api.get<FlashcardSet>(`/study/flashcards/${enc(setId)}`).then((r) => r.data),
+  addCard: (setId: string, body: { front: string; back: string; explanation?: string | null }) =>
+    api.post<Flashcard>(`/study/flashcards/${enc(setId)}/cards`, body).then((r) => r.data),
   editCard: (
     cardId: string,
     body: Partial<Pick<Flashcard, "front" | "back" | "explanation" | "is_favourite">>,
@@ -176,23 +175,28 @@ export const studyApi = {
   startAttempt: (quizId: string) =>
     api.post<QuizAttempt>(`/study/quizzes/${enc(quizId)}/attempts`).then((r) => r.data),
   attempts: (quizId: string) =>
-    api.get<QuizAttemptSummary[]>(`/study/quizzes/${enc(quizId)}/attempts`).then((r) => r.data),
+    api
+      .get<{ items: QuizAttemptSummary[]; total: number }>(
+        `/study/quizzes/${enc(quizId)}/attempts?limit=100`,
+      )
+      .then((r) => r.data.items),
   attempt: (quizId: string, attemptId: string) =>
     api
       .get<QuizAttempt>(`/study/quizzes/${enc(quizId)}/attempts/${enc(attemptId)}`)
       .then((r) => r.data),
-  saveAnswers: (quizId: string, attemptId: string, answers: AnswerInput[]) =>
+  /** `flagged` replaces the flagged set when given; leave it out to keep it as it is. */
+  saveAnswers: (quizId: string, attemptId: string, answers: AnswerInput[], flagged?: string[]) =>
     api
       .put<QuizAttempt>(`/study/quizzes/${enc(quizId)}/attempts/${enc(attemptId)}/answers`, {
         answers,
+        ...(flagged ? { flagged } : {}),
       })
       .then((r) => r.data),
-  submit: (quizId: string, attemptId: string, answers?: AnswerInput[]) =>
+  submit: (quizId: string, attemptId: string, answers: AnswerInput[] = []) =>
     api
-      .post<QuizAttempt>(
-        `/study/quizzes/${enc(quizId)}/attempts/${enc(attemptId)}/submit`,
-        answers ? { answers } : undefined,
-      )
+      .post<QuizAttempt>(`/study/quizzes/${enc(quizId)}/attempts/${enc(attemptId)}/submit`, {
+        answers,
+      })
       .then((r) => r.data),
   result: (quizId: string, attemptId: string) =>
     api
@@ -202,8 +206,8 @@ export const studyApi = {
 
 export interface AnswerInput {
   question_id: string;
-  answer: string[];
-  flagged?: boolean;
+  /** Option ids for choice questions, text otherwise. Empty clears the answer. */
+  answer: string[] | string;
 }
 
 export interface GlossaryTerm {

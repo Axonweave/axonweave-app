@@ -47,7 +47,7 @@ describe("SettingsPage structure", () => {
   it("exposes the sections as an accessible tab list", async () => {
     render(<SettingsPage />);
     expect(screen.getByRole("tablist", { name: "Settings sections" })).toBeInTheDocument();
-    expect(screen.getAllByRole("tab")).toHaveLength(5);
+    expect(screen.getAllByRole("tab")).toHaveLength(6);
     expect(screen.getByRole("tab", { name: "Appearance" })).toHaveAttribute(
       "aria-selected",
       "true",

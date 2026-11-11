@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
   RotateCcw,
   Library,
+  Sparkles,
   Star,
   ChevronLeft,
   ChevronRight,
@@ -36,6 +37,7 @@ const primaryNav: NavItem[] = [
   { label: "Recent Activity", href: "/activity", icon: Clock },
   { label: "Archived Items", href: "/archived", icon: Archive },
   { label: "Library", href: "/library", icon: Library },
+  { label: "Study materials", href: "/study", icon: Sparkles },
   { label: "AI Tutor", href: "/ai-tutor", icon: BrainCircuit },
 ];
 

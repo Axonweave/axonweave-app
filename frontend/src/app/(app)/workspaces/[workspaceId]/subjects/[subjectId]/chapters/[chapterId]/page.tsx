@@ -1,5 +1,6 @@
 "use client";
 
+import { GenerateButton } from "@/features/study/generate-button";
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -144,6 +145,7 @@ export default function ChapterDetailPage() {
           >
             Upload documents
           </Link>
+          <GenerateButton preset={{ type: "chapter", id: chapterId, label: chapter.title }} />
           <Button variant="outline" onClick={() => setDialog("edit")}>
             <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
             Edit
