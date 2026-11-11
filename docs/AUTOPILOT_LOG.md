@@ -32,3 +32,22 @@ P4-4 | Invalid formula handling | Unsafe dropped, syntax/undefined variables fla
 P4-4 | Where bank answer keys live | quiz_questions via an untimed quiz row, no new migration | Reuses M3 key protection and validation (D-99).
 P4-4 | Duplicate glossary terms | Merged, first definition wins | Failing the job over a repeated term wastes cost.
 P4-4 | Guide objective without a source | Kept, forced generated_recommendation=true | Spec 8.4 allows it if clearly marked.
+P4-5 | Favourites (spec 12.3) | Not built | Not in the M5 task list and needs a column; flashcards already have favourites.
+P4-5 | Quiz/bank duplicate | 422 DUPLICATE_NOT_SUPPORTED | Needs copying answer keys; deferred, documented in D-100.
+P4-5 | Rename | Via existing PATCH edit (title in payload) | No separate endpoint; decks rename through the flashcard routes.
+P4-5 | Export of quiz answer keys | Never, even after submission | Safest reading of spec 14 / 21.4; results page already shows keys after submit.
+P4-5 | Export dispatch when no broker | 503 EXPORT_UNAVAILABLE | Same pattern as generation; app otherwise unaffected.
+P4-5 | PDF font | Built-in Latin-1 Helvetica, non-Latin shown as ? | No font files may be committed; embedding a font is a later improvement.
+P4-5 | Tests needing PyMuPDF/python-docx | Skip in the API image, run where installed | Parsers are worker-only (D-70); PDF/DOCX rendering was checked by hand in worker and locally.
+P4-6 | Material id to deck or quiz id | Add `item_id` to `StudyMaterialOut` | The UI could not otherwise reach `/study/flashcards/{id}` or `/study/quizzes/{id}`; smallest backend change, owner scoped, tested.
+P4-6 | Where the Study materials tab lives | Own page `/study`, linked from Library page tabs and sidebar | Library is a documents page with upload state; a separate route keeps both simple.
+P4-6 | Safe LaTeX library | KaTeX 0.19.1 | 0.16.22 had advisory GHSA-238p-pmpm-9mq7 (trust bypass); upgraded before shipping.
+P4-6 | Quota hint in the dialog | Shows the user's 30-day request count from the usage summary | No remaining-allowance endpoint exists; limit errors are shown by name when hit.
+P4-6 | Edit UI for generated payloads | Generic text editor over the payload (locked: refs, kinds, flags) | Backend revalidates on save; avoids one bespoke form per type.
+P4-6 | E2E without a model | `seed_study_e2e.py` creates materials directly; generate flow tested to its failure state only on `LLM_PROVIDER=fake` | Fake provider cannot write study JSON; never call a paid provider in tests.
+P4-7 | Auto-submit at zero | Client submits, server stays authoritative | Server finalises expired attempts itself; client submit only speeds the redirect.
+P4-7 | Autosave state | Latest answers kept in refs, saved debounced 700 ms | A Vitest case showed render-captured state saved empty answers.
+P4-7 | Attempt list response shape | Read `data.items` | The attempts endpoint returns an object, not an array.
+P4-8 | Live evaluation script | Read-only measure script plus human protocol; no separate live caller | The app already enforces job, token and quota caps; a second path could exceed them.
+P4-8 | Route security sweep | Enumerate routes from the app and require login on each | New routes are covered automatically.
+P4-8 | Acceptance statuses | Generation criteria are at best Partly | No live provider call, real document or visual check was run.

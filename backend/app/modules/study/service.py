@@ -21,6 +21,7 @@ from app.core.rate_limit import RateLimiter
 from app.models.generation_job import GenerationJob
 from app.models.study_material import StudyMaterial
 from app.models.user import User
+from app.modules.study.preferences_service import StudyPreferencesService
 from app.repositories.ai_usage_repository import AiUsageRepository, utc_day_start
 from app.repositories.generation_job_repository import GenerationJobRepository
 from app.repositories.study_material_repository import StudyMaterialRepository
@@ -77,7 +78,12 @@ class StudyGenerationService:
             raise GenerationUnavailableError()
 
         generator = get_generator(request.generation_type, self._s)
-        settings = validate_settings(generator, request.settings)
+        requested = request.settings
+        if regenerate is None:  # a regeneration already carries the material's own settings
+            requested = await StudyPreferencesService(self._db).defaults_for(
+                user.id, generator, requested
+            )
+        settings = validate_settings(generator, requested)
         normalised = settings.model_dump(mode="json")
 
         reader = SourceReader(self._db, self._s)

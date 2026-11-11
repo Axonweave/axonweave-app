@@ -90,6 +90,11 @@ class StudyMaterialOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     archived_at: datetime | None
+    # Source documents deleted after generation: the material stays, references are unavailable.
+    unavailable_document_ids: list[uuid.UUID] = Field(default_factory=list)
+    # The flashcard deck or quiz row that holds this material's live items (decks, quizzes, banks).
+    # The UI needs it to reach /study/flashcards/{id} and /study/quizzes/{id}.
+    item_id: uuid.UUID | None = None
 
 
 class StudyMaterialResponse(BaseModel):

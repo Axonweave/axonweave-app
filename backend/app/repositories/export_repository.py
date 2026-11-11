@@ -12,8 +12,12 @@ from app.models.ai_usage_record import AiUsageRecord
 from app.models.chapter import Chapter
 from app.models.conversation import Conversation
 from app.models.document import Document
+from app.models.flashcard import Flashcard, FlashcardSet
 from app.models.folder import Folder
 from app.models.message import Message, MessageFeedback
+from app.models.quiz import QuizAttempt
+from app.models.study_material import StudyMaterial, StudyMaterialVersion
+from app.models.study_preferences import StudyGenerationPreferences
 from app.models.subject import Subject
 from app.models.workspace import Workspace
 
@@ -295,3 +299,128 @@ class ExportRepository:
             }
             for d in rows
         ]
+
+    # Study materials (Phase 4, D-100): the user's own generated content. Quiz answer keys are not
+    # part of this export (they are generated reference data, and never leave before submission).
+
+    async def study_materials(self, user_id: uuid.UUID) -> list[dict[str, Any]]:
+        materials = (
+            (
+                await self._db.execute(
+                    select(StudyMaterial)
+                    .where(StudyMaterial.user_id == user_id)
+                    .order_by(StudyMaterial.created_at)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        versions = (
+            (
+                await self._db.execute(
+                    select(StudyMaterialVersion)
+                    .where(StudyMaterialVersion.user_id == user_id)
+                    .order_by(
+                        StudyMaterialVersion.study_material_id,
+                        StudyMaterialVersion.version_number,
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        by_material: dict[uuid.UUID, list[dict[str, Any]]] = {}
+        for v in versions:
+            by_material.setdefault(v.study_material_id, []).append(
+                {
+                    "version_number": v.version_number,
+                    "origin": v.origin,
+                    "created_at": _iso(v.created_at),
+                    "content": v.content,
+                }
+            )
+        cards = (
+            await self._db.execute(
+                select(Flashcard, FlashcardSet.study_material_id)
+                .join(FlashcardSet, Flashcard.flashcard_set_id == FlashcardSet.id)
+                .where(Flashcard.user_id == user_id)
+                .order_by(FlashcardSet.study_material_id, Flashcard.display_order)
+            )
+        ).all()
+        cards_by_material: dict[uuid.UUID, list[dict[str, Any]]] = {}
+        for card, material_id in cards:
+            cards_by_material.setdefault(material_id, []).append(
+                {
+                    "front": card.front,
+                    "back": card.back,
+                    "explanation": card.explanation,
+                    "card_type": card.card_type,
+                    "difficulty": card.difficulty,
+                    "is_favourite": card.is_favourite,
+                }
+            )
+        return [
+            {
+                "id": str(m.id),
+                "workspace_id": str(m.workspace_id),
+                "subject_id": str(m.subject_id) if m.subject_id else None,
+                "chapter_id": str(m.chapter_id) if m.chapter_id else None,
+                "title": m.title,
+                "resource_type": m.resource_type,
+                "status": m.status,
+                "current_version": m.current_version,
+                "content": m.content,
+                "generation_settings": m.generation_settings,
+                "created_at": _iso(m.created_at),
+                "updated_at": _iso(m.updated_at),
+                "archived_at": _iso(m.archived_at),
+                "versions": by_material.get(m.id, []),
+                "flashcards": cards_by_material.get(m.id, []),
+            }
+            for m in materials
+        ]
+
+    async def quiz_attempts(self, user_id: uuid.UUID) -> list[dict[str, Any]]:
+        rows = (
+            (
+                await self._db.execute(
+                    select(QuizAttempt)
+                    .where(QuizAttempt.user_id == user_id)
+                    .order_by(QuizAttempt.started_at)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return [
+            {
+                "quiz_id": str(a.quiz_id),
+                "status": a.status,
+                "started_at": _iso(a.started_at),
+                "submitted_at": _iso(a.submitted_at),
+                "score": str(a.score) if a.score is not None else None,
+                "graded_questions": a.graded_questions,
+                "percentage": str(a.percentage) if a.percentage is not None else None,
+            }
+            for a in rows
+        ]
+
+    async def study_preferences(self, user_id: uuid.UUID) -> dict[str, Any] | None:
+        row = (
+            await self._db.execute(
+                select(StudyGenerationPreferences).where(
+                    StudyGenerationPreferences.user_id == user_id
+                )
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            return None
+        return {
+            "language": row.language,
+            "explanation_level": row.explanation_level,
+            "summary_length": row.summary_length,
+            "question_difficulty": row.question_difficulty,
+            "include_examples": row.include_examples,
+            "include_definitions": row.include_definitions,
+            "include_source_references": row.include_source_references,
+        }

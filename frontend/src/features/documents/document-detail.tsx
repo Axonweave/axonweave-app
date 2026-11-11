@@ -1,5 +1,6 @@
 "use client";
 
+import { GenerateButton } from "@/features/study/generate-button";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Download } from "lucide-react";
@@ -128,6 +129,11 @@ export function DocumentDetail({
                   Download original
                 </Button>
               </a>
+              {d.processing_status === "completed" && (
+                <GenerateButton
+                  preset={{ type: "document", id: d.id, label: d.display_name }}
+                />
+              )}
               {d.processing_status === "failed" && (
                 <Button
                   size="sm"

@@ -76,5 +76,45 @@ See D-84 to D-88. Summary: atomic claim, no Celery auto-retry, no retry after a 
 
 Ownership at every step (404, never 403); source text and model output are never logged; model references and ids are never trusted; source text is data, not instructions (escaped markers, a rule in the system prompt); responses carry no source text, prompts or provider errors; the echo generator is refused in production.
 
-## 9. What M1 to M8 add
-The summary generator (map-reduce over `ordered_batches`), flashcards, quizzes (answer keys stored once, never returned before submission), guides, glossaries, formula sheets and question banks, the library API with versioning, editing, regeneration preview and export, the frontend, and the security review and acceptance.
+## 9. What M1 to M8 added (final state)
+
+| Milestone | Added | Document |
+|---|---|---|
+| M1 | Summaries, map-reduce, edit, versions, regeneration preview | `SUMMARY_GENERATION.md` |
+| M2 | Flashcards (deck tables, card editing, selected-card regeneration) | `FLASHCARD_GENERATION.md` |
+| M3 | Quizzes, attempts, server timer, scoring, answer-key protection | `QUIZ_GENERATION.md` |
+| M4 | Study guides, glossaries, formula sheets, question banks | `STUDY_GUIDES.md` |
+| M5 | Library API, duplicate, archive, preferences, exports, account export and deletion | `STUDY_LIBRARY.md`, `EXPORT_SYSTEM.md` |
+| M6, M7 | Frontend: generate dialog, job progress, library, viewers, editor, versions, regeneration review, deck study mode, quiz taking and results, export, preferences | this section 11 |
+| M8 | Security review, route sweep, evaluation script, reliability map, acceptance | `GENERATION_SECURITY.md`, `STUDY_GENERATION_TESTING.md`, `PHASE4_ACCEPTANCE.md` |
+
+## 10. Reference tables
+
+### Endpoints (`/api/v1/study`, all authenticated, CSRF on state-changing methods)
+Generation: `GET generators`; `POST generations` (202, or 200 `existing`); `GET generations`; `GET generations/{id}`; `POST generations/{id}/cancel`; `GET|DELETE generations/{id}/preview`; `POST generations/{id}/preview/apply`.
+Materials: `GET materials`; `GET|PATCH|DELETE materials/{id}`; `GET materials/{id}/versions[/{n}]`; `POST materials/{id}/restore|regenerate|duplicate|archive|unarchive|export`; `GET materials/{id}/glossary`; `GET materials/{id}/questions`.
+Flashcards: `GET flashcards/{set}`; `POST flashcards/{set}/cards`; `PATCH|DELETE flashcards/cards/{card}`; `PUT flashcards/{set}/order`; `POST flashcards/{set}/regenerate` and `.../regenerate/{job}/apply`.
+Quizzes: `GET quizzes/{id}`; `POST|GET quizzes/{id}/attempts`; `GET quizzes/{id}/attempts/{attempt}`; `PUT .../answers`; `POST .../submit`; `GET quizzes/{id}/results/{attempt}`.
+Other: `GET|PUT preferences`; `GET exports/{id}`; `GET exports/{id}/download`.
+Error codes are fixed strings with fixed messages (`GENERATION_*`, `MATERIAL_*`, `PREVIEW_*`, `FLASHCARD_*`, `QUIZ_*`, `EXPORT_*`); see `app/study/errors.py`.
+
+### Prompts (registry keys, all version 1, immutable once released)
+`study_common`, `study_summary`, `study_summary_notes`, `study_flashcards`, `study_quiz`, `study_guide`, `study_glossary`, `study_formula_sheet`, `study_question_bank` (and the test-only `study_echo`). Source text always goes in the user turn as escaped, untrusted data.
+
+### Usage limits (environment variables, defaults)
+| Setting | Default |
+|---|---|
+| `STUDY_REQUESTS_PER_MINUTE_PER_USER` | 10 |
+| `STUDY_DAILY_GENERATION_QUOTA` | 20 |
+| `STUDY_MAX_ACTIVE_JOBS_PER_USER` | 2 |
+| `STUDY_MAX_INPUT_TOKENS` / `STUDY_MAX_OUTPUT_TOKENS` | 60000 / 4000 |
+| `STUDY_MAX_SCOPE_TOKENS` | 500000 |
+| `STUDY_MAX_SOURCES_PER_REQUEST` / `STUDY_MAX_TEXT_SOURCE_CHARS` | 50 / 20000 |
+| `STUDY_PROVIDER_MAX_RETRIES` | 1 |
+| `STUDY_JOB_TIMEOUT_SECONDS` (soft/hard task limits) | 540 (570/600) |
+| `STUDY_STALE_JOB_SECONDS` | 900 |
+| `STUDY_EXPORT_TTL_SECONDS` / `STUDY_EXPORTS_PER_HOUR_PER_USER` | 3600 / 30 |
+Per-generator item caps: flashcards 50, quiz 50, question bank 100, glossary 150 (request default 30), formula sheet 60, summary and guide 40 sections. Daily token quota is shared with chat (`AI_DAILY_TOKEN_QUOTA`).
+
+## 11. Frontend map (`frontend/src/features/study/`)
+`generate-dialog.tsx` (source and settings), `use-job.ts` and `job-progress.tsx` (polling, cancel, failure text), `study-library.tsx` (list), `material-page.tsx` (viewer shell), `material-views.tsx` (summary, guide, glossary, formula, bank), `render-body.tsx` (read-only payload view used by previews and old versions), `payload-editor.tsx`, `regeneration-review.tsx`, `flashcards-view.tsx`, `quiz-panel.tsx`, `quiz-taker.tsx`, `quiz-results.tsx`, `export-menu.tsx`, `preferences-form.tsx`, `latex.tsx`, `sources.tsx`. Pages: `/study`, `/study/[materialId]`, `/study/[materialId]/quiz`, `/study/[materialId]/quiz/results/[attemptId]`; preferences under Settings. API types are generated from the OpenAPI schema (`npm run generate-types`); `lib/api/study.ts` wraps them.

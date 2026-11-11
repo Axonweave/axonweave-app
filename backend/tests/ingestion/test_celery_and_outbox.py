@@ -50,6 +50,7 @@ def test_every_beat_entry_points_at_a_registered_task() -> None:
         "sweep-stale-processing-jobs",
         "dispatch-pending-generation-jobs",
         "sweep-stale-generation-jobs",
+        "sweep-study-exports",
     }
     import app.study.tasks  # noqa: F401  (registers the study tasks)
 

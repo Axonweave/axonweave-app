@@ -216,6 +216,9 @@ class UsersService:
             "ai_conversations": await self._export.ai_conversations(user.id),
             "ai_usage": await self._export.ai_usage(user.id),
             "documents": await self._export.documents(user.id),
+            "study_materials": await self._export.study_materials(user.id),
+            "quiz_attempts": await self._export.quiz_attempts(user.id),
+            "study_preferences": await self._export.study_preferences(user.id),
         }
 
     # ── Account deletion ──────────────────────────────────────────────────────

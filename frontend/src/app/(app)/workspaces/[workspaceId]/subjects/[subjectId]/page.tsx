@@ -1,5 +1,6 @@
 "use client";
 
+import { GenerateButton } from "@/features/study/generate-button";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -262,6 +263,7 @@ export default function SubjectDetailPage() {
           >
             Upload documents
           </Link>
+          <GenerateButton preset={{ type: "subject", id: subjectId, label: subject.name }} />
           <Button variant="outline" onClick={() => setDialog({ kind: "folder-new", parent: null })}>
             <FolderPlus className="mr-2 h-4 w-4" aria-hidden="true" />
             New folder

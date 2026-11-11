@@ -37,6 +37,10 @@ BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
         "task": "study.dispatch_pending",
         "schedule": 60.0,
     },
+    "sweep-study-exports": {
+        "task": "study.sweep_exports",
+        "schedule": 120.0,
+    },
     "sweep-stale-generation-jobs": {
         "task": "study.sweep_stale_jobs",
         "schedule": 120.0,

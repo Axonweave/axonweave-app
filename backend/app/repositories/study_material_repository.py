@@ -5,10 +5,20 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from sqlalchemy import func, select, update
+from sqlalchemy import Text, cast, delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.document import Document
 from app.models.study_material import StudyMaterial, StudyMaterialVersion
+
+_LIKE_ESCAPE = chr(92)
+
+
+def _escape_like(value: str) -> str:
+    """Escape LIKE wildcards so user text is matched literally (escape character: backslash)."""
+    for ch in (_LIKE_ESCAPE, "%", "_"):
+        value = value.replace(ch, _LIKE_ESCAPE + ch)
+    return value
 
 
 class StudyMaterialRepository:
@@ -114,3 +124,97 @@ class StudyMaterialRepository:
         )
         await self._db.flush()
         return expected_version + 1
+
+    # library (M5)
+
+    async def list_library(
+        self,
+        user_id: uuid.UUID,
+        *,
+        q: str | None,
+        resource_type: str | None,
+        workspace_id: uuid.UUID | None,
+        subject_id: uuid.UUID | None,
+        chapter_id: uuid.UUID | None,
+        status: str | None,
+        archived: str,
+        sort: str,
+        descending: bool,
+        limit: int,
+        offset: int,
+    ) -> tuple[list[StudyMaterial], int]:
+        """Owner-scoped search, filters, allow-listed sort and pagination. `q` is a parameterised
+        case-insensitive substring match on the title and the stored payload (wildcards escaped)."""
+        conditions = [StudyMaterial.user_id == user_id]
+        if q:
+            escaped = _escape_like(q)
+            pattern = f"%{escaped}%"
+            conditions.append(
+                or_(
+                    StudyMaterial.title.ilike(pattern, escape=_LIKE_ESCAPE),
+                    cast(StudyMaterial.content["payload"], Text).ilike(
+                        pattern, escape=_LIKE_ESCAPE
+                    ),
+                )
+            )
+        if resource_type:
+            conditions.append(StudyMaterial.resource_type == resource_type)
+        if workspace_id:
+            conditions.append(StudyMaterial.workspace_id == workspace_id)
+        if subject_id:
+            conditions.append(StudyMaterial.subject_id == subject_id)
+        if chapter_id:
+            conditions.append(StudyMaterial.chapter_id == chapter_id)
+        if status:
+            conditions.append(StudyMaterial.status == status)
+        if archived == "no":
+            conditions.append(StudyMaterial.archived_at.is_(None))
+        elif archived == "only":
+            conditions.append(StudyMaterial.archived_at.is_not(None))
+        columns = {
+            "created_at": StudyMaterial.created_at,
+            "updated_at": StudyMaterial.updated_at,
+            "title": StudyMaterial.title,
+            "resource_type": StudyMaterial.resource_type,
+        }
+        column = columns[sort]
+        order = column.desc() if descending else column.asc()
+        total = (
+            await self._db.execute(
+                select(func.count()).select_from(StudyMaterial).where(*conditions)
+            )
+        ).scalar_one()
+        rows = await self._db.execute(
+            select(StudyMaterial)
+            .where(*conditions)
+            .order_by(order, StudyMaterial.id)
+            .limit(limit)
+            .offset(offset)
+        )
+        return list(rows.scalars()), int(total)
+
+    async def delete(self, material_id: uuid.UUID, user_id: uuid.UUID) -> None:
+        await self._db.execute(
+            delete(StudyMaterial).where(
+                StudyMaterial.id == material_id, StudyMaterial.user_id == user_id
+            )
+        )
+
+    async def set_archived(
+        self, material_id: uuid.UUID, user_id: uuid.UUID, archived: bool
+    ) -> None:
+        await self._db.execute(
+            update(StudyMaterial)
+            .where(StudyMaterial.id == material_id, StudyMaterial.user_id == user_id)
+            .values(archived_at=func.now() if archived else None)
+        )
+
+    async def existing_document_ids(
+        self, user_id: uuid.UUID, document_ids: list[uuid.UUID]
+    ) -> set[uuid.UUID]:
+        if not document_ids:
+            return set()
+        rows = await self._db.execute(
+            select(Document.id).where(Document.user_id == user_id, Document.id.in_(document_ids))
+        )
+        return set(rows.scalars())

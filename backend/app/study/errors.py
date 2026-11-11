@@ -214,3 +214,48 @@ class QuizAttemptLimitError(StudyError):
     code = "QUIZ_ATTEMPT_LIMIT"
     http_status = 409
     user_message = "This quiz has reached the maximum number of attempts."
+
+
+class ExportFormatError(StudyError):
+    code = "EXPORT_FORMAT_UNSUPPORTED"
+    http_status = 422
+    user_message = "That export format is not available for this kind of material."
+
+
+class ExportNotFoundError(StudyError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Export not found."
+
+
+class ExportNotReadyError(StudyError):
+    code = "EXPORT_NOT_READY"
+    http_status = 409
+    user_message = "This export is not ready to download."
+
+
+class ExportExpiredError(StudyError):
+    code = "EXPORT_EXPIRED"
+    http_status = 410
+    user_message = "This export has expired. Create a new one."
+
+
+class ExportUnavailableError(StudyError):
+    code = "EXPORT_UNAVAILABLE"
+    http_status = 503
+    user_message = "Exports are not available right now."
+
+
+class ExportRateLimitedError(StudyError):
+    code = "EXPORT_RATE_LIMITED"
+    http_status = 429
+    user_message = "You have created too many exports. Please try again later."
+
+
+class DuplicateNotSupportedError(StudyError):
+    code = "DUPLICATE_NOT_SUPPORTED"
+    http_status = 422
+    user_message = "This kind of material cannot be duplicated yet."
+
+
+EXPORT_RENDER_FAILED = "EXPORT_RENDER_FAILED"

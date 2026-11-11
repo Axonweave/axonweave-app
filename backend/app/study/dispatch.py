@@ -46,3 +46,34 @@ class CeleryGenerationDispatcher:
 
 def get_generation_dispatcher() -> GenerationDispatcher:
     return CeleryGenerationDispatcher()
+
+
+EXPORT_TASK = "study.run_export"
+
+
+class ExportDispatcher(Protocol):
+    def available(self) -> bool:
+        """False when no broker is configured, so an export could never be produced."""
+
+    def dispatch(self, export_id: uuid.UUID) -> bool: ...
+
+
+class CeleryExportDispatcher:
+    def available(self) -> bool:
+        return bool(get_settings().celery_broker_url)
+
+    def dispatch(self, export_id: uuid.UUID) -> bool:
+        if not self.available():
+            return False
+        from app.ingestion.worker import celery_app
+
+        try:
+            celery_app.send_task(EXPORT_TASK, args=[str(export_id)])
+        except Exception as exc:  # broker down: the sweeper will retry
+            logger.warning("export_dispatch_failed", error_type=type(exc).__name__)
+            return False
+        return True
+
+
+def get_export_dispatcher() -> ExportDispatcher:
+    return CeleryExportDispatcher()

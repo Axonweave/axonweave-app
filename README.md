@@ -32,6 +32,18 @@ tutor they see a notice that conversations are sent to the configured provider.
 For UI work without a key, `LLM_PROVIDER=fake` runs a deterministic test provider (development and
 testing only; the tutor shows a "Test provider, not a real AI" badge). **Never commit a key.**
 
+## Study materials (Phase 4)
+
+Open **Study materials** in the sidebar (or the Library page). Generate a summary, flashcards, a quiz, a
+study guide, a glossary, a formula sheet or a question bank from a document, chapter or subject (also
+from the buttons on those pages), then edit, version, export and, for decks and quizzes, study and take
+them. Generation runs in the Celery worker and needs a configured provider, Redis and the worker; without
+them only these endpoints answer 503 and the rest of the app works. Quiz answers stay on the server until
+you submit. Formulas are rendered with KaTeX and are always marked "Not verified". Per-user limits and
+settings: `docs/STUDY_GENERATION_ARCHITECTURE.md`. Browser tests seed materials with
+`backend/scripts/seed_study_e2e.py` (development and testing only) because the fake provider cannot write
+structured study output.
+
 ## Prerequisites
 
 - Docker Desktop (with Docker Compose)
@@ -144,6 +156,11 @@ handlers and no SQL outside repositories.
 | `docs/PHASE2_SPEC.md`, `docs/TASKS_Phase2.md` | Phase 2 requirements and task board |
 | `docs/PHASE3_SPEC.md`, `docs/TASKS_Phase3.md` | Phase 3 requirements and task board |
 | `docs/PHASE3_ACCEPTANCE.md`, `docs/DOCUMENT_SECURITY.md` | Phase 3 status and security review |
+| `docs/PHASE4_SPEC.md`, `docs/TASKS_Phase4.md` | Phase 4 (study generation) requirements and task board |
+| `docs/PHASE4_ACCEPTANCE.md`, `docs/GENERATION_SECURITY.md`, `docs/STUDY_GENERATION_TESTING.md` | Phase 4 status, security review, tests and evaluation |
+| `docs/STUDY_GENERATION_ARCHITECTURE.md` | Phase 4 engine, endpoints, prompts, limits, frontend map |
+| `docs/SUMMARY_GENERATION.md`, `docs/FLASHCARD_GENERATION.md`, `docs/QUIZ_GENERATION.md`, `docs/STUDY_GUIDES.md` | Per-generator schemas, settings and rules |
+| `docs/STUDY_LIBRARY.md`, `docs/EXPORT_SYSTEM.md` | Library, versions, preferences and exports |
 | `docs/PHASE2_ACCEPTANCE.md` | Phase 2 spec section 23, item by item, with evidence |
 | `docs/AI_ARCHITECTURE.md` | AI design: providers, orchestration, context, streaming, data model |
 | `docs/LLM_PROVIDER_INTEGRATION.md` | Configuring a provider; adding Qwen or Llama |

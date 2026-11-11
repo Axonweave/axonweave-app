@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.ingestion import errors
 from app.repositories.storage_cleanup_repository import StorageCleanupRepository
 from app.storage.base import StorageBackend, StorageError
-from app.storage.keys import is_valid_original_key
+from app.storage.keys import is_valid_export_key, is_valid_original_key
 
 logger = structlog.get_logger(__name__)
 
@@ -50,7 +50,7 @@ async def process_outbox(
         repo = StorageCleanupRepository(db)
         batch = await repo.claim_due(clock, limit=limit, max_attempts=MAX_ATTEMPTS)
         for row in batch:
-            if not is_valid_original_key(row.storage_key):
+            if not (is_valid_original_key(row.storage_key) or is_valid_export_key(row.storage_key)):
                 # Defence in depth: never act on a key this code could not have generated.
                 await repo.mark_done(row.id, clock, errors.INVALID_STORAGE_KEY)
                 skipped += 1
