@@ -244,6 +244,10 @@ class TestValidation:
             "summary",
             "flashcards",
             "quiz",
+            "study_guide",
+            "glossary",
+            "formula_sheet",
+            "question_bank",
         ]  # echo is hidden
         with pytest.raises(UnknownGeneratorError):
             get_generator("echo", prod)
