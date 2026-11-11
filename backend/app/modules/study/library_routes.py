@@ -25,7 +25,7 @@ from app.modules.study.preferences_service import (
     PreferencesResponse,
     StudyPreferencesService,
 )
-from app.modules.study.schemas import StudyMaterialOut, StudyMaterialResponse
+from app.modules.study.schemas import StudyMaterialResponse
 from app.repositories.study_material_repository import StudyMaterialRepository
 from app.storage.base import StorageBackend, StorageNotConfiguredError
 from app.storage.factory import get_storage_backend
@@ -80,10 +80,7 @@ def _item(m: StudyMaterial, unavailable: int) -> LibraryItemOut:
 async def _material_out(
     service: StudyLibraryService, user: ActiveUser, material: StudyMaterial
 ) -> StudyMaterialResponse:
-    missing = (await service.unavailable_sources(user.id, [material])).get(material.id, [])
-    out = StudyMaterialOut.model_validate(material)
-    out.unavailable_document_ids = missing
-    return StudyMaterialResponse(data=out)
+    return StudyMaterialResponse(data=await service.present(user.id, material))
 
 
 @router.get("/materials", response_model=LibraryListResponse)

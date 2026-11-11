@@ -289,6 +289,26 @@ class TestLibrary:
             "total"
         ] == 0
 
+    async def test_material_reports_deck_and_quiz_item_ids(
+        self, client: AsyncClient, db_session: AsyncSession, alice: Actor, bob: Actor
+    ) -> None:
+        deck = await make_deck(db_session, alice, ["Front one?"])
+        quiz = await make_quiz(db_session, alice)
+        summary = await make_material(db_session, alice, "summary")
+        card_set = await FlashcardRepository(db_session).get_set_for_material(
+            deck.id, alice.user.id
+        )
+        row = await QuizRepository(db_session).get_quiz_for_material(quiz.id, alice.user.id)
+        assert card_set is not None and row is not None
+        got = await _call(client, alice, "GET", f"/study/materials/{deck.id}")
+        assert got.json()["data"]["item_id"] == str(card_set.id)
+        got = await _call(client, alice, "GET", f"/study/materials/{quiz.id}")
+        assert got.json()["data"]["item_id"] == str(row.id)
+        got = await _call(client, alice, "GET", f"/study/materials/{summary.id}")
+        assert got.json()["data"]["item_id"] is None
+        # Another user gets 404, never the item id
+        assert (await _call(client, bob, "GET", f"/study/materials/{deck.id}")).status_code == 404
+
     async def test_list_is_isolated_between_users(
         self, client: AsyncClient, db_session: AsyncSession, alice: Actor, bob: Actor
     ) -> None:

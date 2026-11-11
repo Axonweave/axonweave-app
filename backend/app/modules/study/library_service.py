@@ -11,7 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.study_material import StudyMaterial
 from app.models.user import User
 from app.modules.documents.cleanup import enqueue_keys
+from app.modules.study.schemas import StudyMaterialOut
 from app.repositories.flashcard_repository import FlashcardRepository
+from app.repositories.quiz_repository import QuizRepository
 from app.repositories.study_export_repository import StudyExportRepository
 from app.repositories.study_material_repository import StudyMaterialRepository
 from app.study.errors import DuplicateNotSupportedError, MaterialNotFoundError
@@ -48,6 +50,20 @@ class StudyLibraryService:
         wanted = {d for m in materials for d in source_document_ids(m)}
         present = await self._materials.existing_document_ids(user_id, sorted(wanted, key=str))
         return {m.id: [d for d in source_document_ids(m) if d not in present] for m in materials}
+
+    async def present(self, user_id: uuid.UUID, material: StudyMaterial) -> StudyMaterialOut:
+        """The API view of a material: unavailable sources and the id of its deck or quiz row."""
+        out = StudyMaterialOut.model_validate(material)
+        out.unavailable_document_ids = (await self.unavailable_sources(user_id, [material])).get(
+            material.id, []
+        )
+        if material.resource_type == "flashcards":
+            deck = await FlashcardRepository(self._db).get_set_for_material(material.id, user_id)
+            out.item_id = deck.id if deck else None
+        elif material.resource_type in ("quiz", "question_bank"):
+            quiz = await QuizRepository(self._db).get_quiz_for_material(material.id, user_id)
+            out.item_id = quiz.id if quiz else None
+        return out
 
     async def delete(self, user: User, material_id: uuid.UUID) -> None:
         user_id = user.id

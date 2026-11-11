@@ -1357,7 +1357,8 @@ export interface paths {
         get: operations["get_material_api_v1_study_materials__material_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete Material */
+        delete: operations["delete_material_api_v1_study_materials__material_id__delete"];
         options?: never;
         head?: never;
         /**
@@ -1474,6 +1475,393 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/study/flashcards/{set_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Set */
+        get: operations["get_set_api_v1_study_flashcards__set_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/{set_id}/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Card */
+        post: operations["add_card_api_v1_study_flashcards__set_id__cards_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/cards/{card_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Card */
+        delete: operations["delete_card_api_v1_study_flashcards_cards__card_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Card */
+        patch: operations["edit_card_api_v1_study_flashcards_cards__card_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/{set_id}/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder Cards */
+        put: operations["reorder_cards_api_v1_study_flashcards__set_id__order_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/{set_id}/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Regenerate Cards
+         * @description Starts a job whose result is a preview (GET /study/generations/{id}/preview); no card
+         *     changes until POST /study/flashcards/{set_id}/regenerate/{job_id}/apply.
+         */
+        post: operations["regenerate_cards_api_v1_study_flashcards__set_id__regenerate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/{set_id}/regenerate/{job_id}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply Regeneration */
+        post: operations["apply_regeneration_api_v1_study_flashcards__set_id__regenerate__job_id__apply_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quizzes/{quiz_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Quiz */
+        get: operations["get_quiz_api_v1_study_quizzes__quiz_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quizzes/{quiz_id}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Attempts */
+        get: operations["list_attempts_api_v1_study_quizzes__quiz_id__attempts_get"];
+        put?: never;
+        /**
+         * Start Attempt
+         * @description Starts an attempt, or returns the open one (200) so a refresh resumes it.
+         */
+        post: operations["start_attempt_api_v1_study_quizzes__quiz_id__attempts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quizzes/{quiz_id}/attempts/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Attempt */
+        get: operations["get_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quizzes/{quiz_id}/attempts/{attempt_id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Answers */
+        put: operations["save_answers_api_v1_study_quizzes__quiz_id__attempts__attempt_id__answers_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quizzes/{quiz_id}/attempts/{attempt_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Attempt */
+        post: operations["submit_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quizzes/{quiz_id}/results/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Results
+         * @description The only route that returns correct answers and explanations: 409 until submitted.
+         */
+        get: operations["get_results_api_v1_study_quizzes__quiz_id__results__attempt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/glossary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Glossary */
+        get: operations["search_glossary_api_v1_study_materials__material_id__glossary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Filter Bank Questions */
+        get: operations["filter_bank_questions_api_v1_study_materials__material_id__questions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Materials */
+        get: operations["list_materials_api_v1_study_materials_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Duplicate Material */
+        post: operations["duplicate_material_api_v1_study_materials__material_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive Material */
+        post: operations["archive_material_api_v1_study_materials__material_id__archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unarchive Material */
+        post: operations["unarchive_material_api_v1_study_materials__material_id__unarchive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preferences */
+        get: operations["get_preferences_api_v1_study_preferences_get"];
+        /** Put Preferences */
+        put: operations["put_preferences_api_v1_study_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/materials/{material_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Export */
+        post: operations["create_export_api_v1_study_materials__material_id__export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/exports/{export_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Export */
+        get: operations["get_export_api_v1_study_exports__export_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/exports/{export_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Export */
+        get: operations["download_export_api_v1_study_exports__export_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1519,6 +1907,27 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** AddCardRequest */
+        AddCardRequest: {
+            /** Front */
+            front: string;
+            /** Back */
+            back: string;
+            /** Explanation */
+            explanation?: string | null;
+            /**
+             * Card Type
+             * @default basic
+             * @enum {string}
+             */
+            card_type: "basic" | "definition" | "concept" | "comparison" | "fill_in_the_blank" | "application";
+            /**
+             * Difficulty
+             * @default medium
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard";
+        };
         /**
          * AiStatusOut
          * @description What the UI needs to know before any model call. Never exposes keys or settings.
@@ -1541,6 +1950,16 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["AiStatusOut"];
+        };
+        /** AnswerItem */
+        AnswerItem: {
+            /**
+             * Question Id
+             * Format: uuid
+             */
+            question_id: string;
+            /** Answer */
+            answer: string[] | string;
         };
         /** ArchivedItem */
         ArchivedItem: {
@@ -1584,6 +2003,119 @@ export interface components {
             data: components["schemas"]["ArchivedItem"][];
             /** Total */
             total: number;
+        };
+        /** AttemptListOut */
+        AttemptListOut: {
+            /** Items */
+            items: components["schemas"]["AttemptSummary"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** AttemptListResponse */
+        AttemptListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["AttemptListOut"];
+        };
+        /** AttemptOut */
+        AttemptOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Quiz Id
+             * Format: uuid
+             */
+            quiz_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "in_progress" | "submitted";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Server Time
+             * Format: date-time
+             */
+            server_time: string;
+            /** Seconds Remaining */
+            seconds_remaining: number | null;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Auto Submitted */
+            auto_submitted: boolean;
+            /** Question Order */
+            question_order: string[];
+            /** Answers */
+            answers: {
+                [key: string]: unknown;
+            };
+            /** Flagged */
+            flagged: string[];
+            /** Questions */
+            questions: components["schemas"]["QuizQuestionOut"][];
+            /** Score */
+            score: number | null;
+            /** Total Questions */
+            total_questions: number | null;
+            /** Graded Questions */
+            graded_questions: number | null;
+            /** Percentage */
+            percentage: number | null;
+        };
+        /** AttemptResponse */
+        AttemptResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["AttemptOut"];
+        };
+        /** AttemptSummary */
+        AttemptSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "in_progress" | "submitted";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Auto Submitted */
+            auto_submitted: boolean;
+            /** Score */
+            score: number | null;
+            /** Total Questions */
+            total_questions: number | null;
+            /** Graded Questions */
+            graded_questions: number | null;
+            /** Percentage */
+            percentage: number | null;
         };
         /** AuthResponse */
         AuthResponse: {
@@ -2035,6 +2567,21 @@ export interface components {
             success: boolean;
             data: components["schemas"]["DocumentOut"];
         };
+        /** EditCardRequest */
+        EditCardRequest: {
+            /** Front */
+            front?: string | null;
+            /** Back */
+            back?: string | null;
+            /** Explanation */
+            explanation?: string | null;
+            /** Card Type */
+            card_type?: ("basic" | "definition" | "concept" | "comparison" | "fill_in_the_blank" | "application") | null;
+            /** Difficulty */
+            difficulty?: ("easy" | "medium" | "hard") | null;
+            /** Is Favourite */
+            is_favourite?: boolean | null;
+        };
         /**
          * EditMaterialRequest
          * @description `expected_version` is the version the user was looking at; a different current version is a
@@ -2047,6 +2594,56 @@ export interface components {
             payload: {
                 [key: string]: unknown;
             };
+        };
+        /** ExportOut */
+        ExportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Study Material Id
+             * Format: uuid
+             */
+            study_material_id: string;
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "pdf" | "csv" | "md" | "docx";
+            /** Status */
+            status: string;
+            /** Size Bytes */
+            size_bytes: number | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Download Path */
+            download_path?: string | null;
+        };
+        /** ExportRequest */
+        ExportRequest: {
+            /**
+             * Format
+             * @enum {string}
+             */
+            format: "pdf" | "csv" | "md" | "docx";
+        };
+        /** ExportResponse */
+        ExportResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ExportOut"];
         };
         /** FeedbackOut */
         FeedbackOut: {
@@ -2086,6 +2683,125 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["FeedbackOut"];
+        };
+        /** FlashcardListResponse */
+        FlashcardListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["FlashcardOut"][];
+        };
+        /** FlashcardOut */
+        FlashcardOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Front */
+            front: string;
+            /** Back */
+            back: string;
+            /** Explanation */
+            explanation: string | null;
+            /**
+             * Card Type
+             * @enum {string}
+             */
+            card_type: "basic" | "definition" | "concept" | "comparison" | "fill_in_the_blank" | "application";
+            /**
+             * Difficulty
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard";
+            /** Source References */
+            source_references: {
+                [key: string]: unknown;
+            }[];
+            /** Display Order */
+            display_order: number;
+            /** Is Favourite */
+            is_favourite: boolean;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "generated" | "manual";
+            /** Revision */
+            revision: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** FlashcardResponse */
+        FlashcardResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["FlashcardOut"];
+        };
+        /** FlashcardSetOut */
+        FlashcardSetOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Study Material Id
+             * Format: uuid
+             */
+            study_material_id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
+            /** Title */
+            title: string;
+            /** Generation Settings */
+            generation_settings: {
+                [key: string]: unknown;
+            };
+            /** Card Count */
+            card_count: number;
+            /** Cards */
+            cards: components["schemas"]["FlashcardOut"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** FlashcardSetResponse */
+        FlashcardSetResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["FlashcardSetOut"];
         };
         /** FolderListResponse */
         FolderListResponse: {
@@ -2271,6 +2987,77 @@ export interface components {
              */
             created_at: string;
         };
+        /** LibraryItemOut */
+        LibraryItemOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Resource Type */
+            resource_type: string;
+            /** Status */
+            status: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
+            /** Current Version */
+            current_version: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Archived At */
+            archived_at: string | null;
+            /** Source Document Count */
+            source_document_count: number;
+            /** Unavailable Source Count */
+            unavailable_source_count: number;
+        };
+        /** LibraryListResponse */
+        LibraryListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["LibraryItemOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ListResponse */
+        ListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            }[];
+            /** Total */
+            total: number;
+        };
         /** LoginRequest */
         LoginRequest: {
             /**
@@ -2411,6 +3198,13 @@ export interface components {
             success: boolean;
             data: components["schemas"]["ModelOut"];
         };
+        /** OptionOut */
+        OptionOut: {
+            /** Id */
+            id: string;
+            /** Text */
+            text: string;
+        };
         /** PageOut */
         PageOut: {
             /** Number */
@@ -2446,14 +3240,60 @@ export interface components {
             /** Chapter Id */
             chapter_id?: string | null;
         };
-        /** PreferencesResponse */
-        PreferencesResponse: {
+        /**
+         * PreferencesIn
+         * @description Replaces the stored preferences; a field left out (or null) is cleared.
+         */
+        PreferencesIn: {
+            /** Language */
+            language?: string | null;
+            /** Explanation Level */
+            explanation_level?: ("beginner" | "intermediate" | "advanced") | null;
+            /** Summary Length */
+            summary_length?: ("short" | "medium" | "long") | null;
+            /** Question Difficulty */
+            question_difficulty?: ("easy" | "medium" | "hard" | "mixed") | null;
             /**
-             * Success
+             * Include Examples
              * @default true
              */
-            success: boolean;
-            data: components["schemas"]["UserPreferencesOut"];
+            include_examples: boolean;
+            /**
+             * Include Definitions
+             * @default true
+             */
+            include_definitions: boolean;
+            /**
+             * Include Source References
+             * @default true
+             */
+            include_source_references: boolean;
+        };
+        /** PreferencesOut */
+        PreferencesOut: {
+            /** Language */
+            language?: string | null;
+            /** Explanation Level */
+            explanation_level?: ("beginner" | "intermediate" | "advanced") | null;
+            /** Summary Length */
+            summary_length?: ("short" | "medium" | "long") | null;
+            /** Question Difficulty */
+            question_difficulty?: ("easy" | "medium" | "hard" | "mixed") | null;
+            /**
+             * Include Examples
+             * @default true
+             */
+            include_examples: boolean;
+            /**
+             * Include Definitions
+             * @default true
+             */
+            include_definitions: boolean;
+            /**
+             * Include Source References
+             * @default true
+             */
+            include_source_references: boolean;
         };
         /** PreviewOut */
         PreviewOut: {
@@ -2570,6 +3410,74 @@ export interface components {
             success: boolean;
             data: components["schemas"]["UserProfileOut"];
         };
+        /** QuizOut */
+        QuizOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Study Material Id
+             * Format: uuid
+             */
+            study_material_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            /** Time Limit Seconds */
+            time_limit_seconds: number | null;
+            /** Randomize Order */
+            randomize_order: boolean;
+            /** Question Count */
+            question_count: number;
+            /** Questions */
+            questions: components["schemas"]["QuizQuestionOut"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** QuizQuestionOut */
+        QuizQuestionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Question */
+            question: string;
+            /**
+             * Question Type
+             * @enum {string}
+             */
+            question_type: "multiple_choice" | "multiple_select" | "true_false" | "fill_in_the_blank" | "short_answer" | "descriptive";
+            /**
+             * Difficulty
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard";
+            /**
+             * Answer Format
+             * @enum {string}
+             */
+            answer_format: "single_choice" | "multiple_choice" | "text";
+            /** Options */
+            options: components["schemas"]["OptionOut"][];
+            /** Display Order */
+            display_order: number;
+        };
+        /** QuizResponse */
+        QuizResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["QuizOut"];
+        };
         /** RecentSubjectItem */
         RecentSubjectItem: {
             /**
@@ -2601,6 +3509,18 @@ export interface components {
             success: boolean;
             /** Data */
             data: components["schemas"]["RecentSubjectItem"][];
+        };
+        /**
+         * RegenerateCardsRequest
+         * @description Regenerate the selected cards as a preview; nothing changes until the preview is applied.
+         */
+        RegenerateCardsRequest: {
+            /** Card Ids */
+            card_ids: string[];
+            /** Settings */
+            settings?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** Region */
         Region: {
@@ -2639,6 +3559,11 @@ export interface components {
             /** Chapter Ids */
             chapter_ids: string[];
         };
+        /** ReorderRequest */
+        ReorderRequest: {
+            /** Card Ids */
+            card_ids: string[];
+        };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
             /** Token */
@@ -2652,6 +3577,117 @@ export interface components {
             expected_version: number;
             /** Version */
             version: number;
+        };
+        /** ResultOut */
+        ResultOut: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Quiz Id
+             * Format: uuid
+             */
+            quiz_id: string;
+            /** Total Questions */
+            total_questions: number;
+            /** Graded Questions */
+            graded_questions: number;
+            /** Correct */
+            correct: number;
+            /** Incorrect */
+            incorrect: number;
+            /** Unanswered */
+            unanswered: number;
+            /** Not Graded */
+            not_graded: number;
+            /** Score */
+            score: number;
+            /** Percentage */
+            percentage: number | null;
+            /** Time Taken Seconds */
+            time_taken_seconds: number;
+            /** Auto Submitted */
+            auto_submitted: boolean;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /** Note */
+            note: string;
+            /** Questions */
+            questions: components["schemas"]["ResultQuestionOut"][];
+        };
+        /**
+         * ResultQuestionOut
+         * @description The only schema that carries the answer key; reachable only for a submitted attempt.
+         */
+        ResultQuestionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Question */
+            question: string;
+            /**
+             * Question Type
+             * @enum {string}
+             */
+            question_type: "multiple_choice" | "multiple_select" | "true_false" | "fill_in_the_blank" | "short_answer" | "descriptive";
+            /**
+             * Difficulty
+             * @enum {string}
+             */
+            difficulty: "easy" | "medium" | "hard";
+            /** Options */
+            options: components["schemas"]["OptionOut"][];
+            /** Submitted Answer */
+            submitted_answer: string[] | string | null;
+            /** Answered */
+            answered: boolean;
+            /**
+             * Grading
+             * @enum {string}
+             */
+            grading: "auto" | "self_assessment";
+            /** Is Correct */
+            is_correct: boolean | null;
+            /** Awarded Score */
+            awarded_score: number;
+            /** Correct Answers */
+            correct_answers: string[];
+            /** Rubric */
+            rubric: string[];
+            /** Explanation */
+            explanation: string | null;
+            /** Source References */
+            source_references: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** ResultResponse */
+        ResultResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResultOut"];
+        };
+        /** SaveAnswersRequest */
+        SaveAnswersRequest: {
+            /** Answers */
+            answers?: components["schemas"]["AnswerItem"][];
+            /** Flagged */
+            flagged?: string[] | null;
         };
         /** SearchData */
         SearchData: {
@@ -2917,6 +3953,8 @@ export interface components {
             updated_at: string;
             /** Archived At */
             archived_at: string | null;
+            /** Unavailable Document Ids */
+            unavailable_document_ids?: string[];
         };
         /** StudyMaterialResponse */
         StudyMaterialResponse: {
@@ -2984,6 +4022,11 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["SubjectOut"];
+        };
+        /** SubmitRequest */
+        SubmitRequest: {
+            /** Answers */
+            answers?: components["schemas"]["AnswerItem"][];
         };
         /** UpdateChapterRequest */
         UpdateChapterRequest: {
@@ -3437,6 +4480,15 @@ export interface components {
              */
             stream: boolean;
         };
+        /** PreferencesResponse */
+        app__modules__study__preferences_service__PreferencesResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["PreferencesOut"];
+        };
         /**
          * RegenerateRequest
          * @description Regenerate the whole material, or only the section at `section_index`. The result is a
@@ -3449,6 +4501,15 @@ export interface components {
             settings?: {
                 [key: string]: unknown;
             } | null;
+        };
+        /** PreferencesResponse */
+        app__modules__users__schemas__PreferencesResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["UserPreferencesOut"];
         };
     };
     responses: never;
@@ -3832,7 +4893,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PreferencesResponse"];
+                    "application/json": components["schemas"]["app__modules__users__schemas__PreferencesResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3867,7 +4928,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PreferencesResponse"];
+                    "application/json": components["schemas"]["app__modules__users__schemas__PreferencesResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3898,7 +4959,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PreferencesResponse"];
+                    "application/json": components["schemas"]["app__modules__users__schemas__PreferencesResponse"];
                 };
             };
             /** @description Validation Error */
@@ -6870,6 +7931,37 @@ export interface operations {
             };
         };
     };
+    delete_material_api_v1_study_materials__material_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     edit_material_api_v1_study_materials__material_id__patch: {
         parameters: {
             query?: never;
@@ -7132,6 +8224,884 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudyMaterialResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_set_api_v1_study_flashcards__set_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardSetResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_card_api_v1_study_flashcards__set_id__cards_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCardRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_card_api_v1_study_flashcards_cards__card_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_card_api_v1_study_flashcards_cards__card_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditCardRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_cards_api_v1_study_flashcards__set_id__order_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    regenerate_cards_api_v1_study_flashcards__set_id__regenerate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegenerateCardsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    apply_regeneration_api_v1_study_flashcards__set_id__regenerate__job_id__apply_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                set_id: string;
+                job_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_quiz_api_v1_study_quizzes__quiz_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_attempts_api_v1_study_quizzes__quiz_id__attempts_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_attempt_api_v1_study_quizzes__quiz_id__attempts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+                attempt_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_answers_api_v1_study_quizzes__quiz_id__attempts__attempt_id__answers_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+                attempt_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveAnswersRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+                attempt_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_results_api_v1_study_quizzes__quiz_id__results__attempt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+                attempt_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_glossary_api_v1_study_materials__material_id__glossary_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                topic?: string | null;
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    filter_bank_questions_api_v1_study_materials__material_id__questions_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                topic?: string | null;
+                difficulty?: ("easy" | "medium" | "hard") | null;
+                question_type?: string | null;
+            };
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_materials_api_v1_study_materials_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                resource_type?: ("summary" | "flashcards" | "quiz" | "study_guide" | "glossary" | "formula_sheet" | "question_bank") | null;
+                workspace_id?: string | null;
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                status?: ("completed" | "failed") | null;
+                archived?: "no" | "only" | "all";
+                sort?: "created_at" | "updated_at" | "title" | "resource_type";
+                order?: "asc" | "desc";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    duplicate_material_api_v1_study_materials__material_id__duplicate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyMaterialResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_material_api_v1_study_materials__material_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyMaterialResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unarchive_material_api_v1_study_materials__material_id__unarchive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyMaterialResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preferences_api_v1_study_preferences_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__study__preferences_service__PreferencesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_preferences_api_v1_study_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__study__preferences_service__PreferencesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_export_api_v1_study_materials__material_id__export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_export_api_v1_study_exports__export_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                export_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_export_api_v1_study_exports__export_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                export_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

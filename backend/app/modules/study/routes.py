@@ -142,10 +142,7 @@ async def get_material(
     dispatcher: Dispatcher,
 ) -> StudyMaterialResponse:
     material = await _service(db, runtime, dispatcher).get_material(current_user, material_id)
-    out = StudyMaterialOut.model_validate(material)
-    missing = await StudyLibraryService(db).unavailable_sources(current_user.id, [material])
-    out.unavailable_document_ids = missing.get(material.id, [])
-    return StudyMaterialResponse(data=out)
+    return StudyMaterialResponse(data=await StudyLibraryService(db).present(current_user.id, material))
 
 
 def _materials(
