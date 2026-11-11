@@ -33,10 +33,10 @@ Every milestone ends with ruff, mypy, pytest, Vitest (and Playwright from M6) gr
 - [ ] Tests (spec 22.1): each type, attribution, coverage (every chunk reaches the reducer), empty or insufficient source, injection text inside a document not followed, ownership.
 
 ## M2: Flashcard generator (step 4; sections 6, 15.3, 22.2)
-- [ ] `flashcard_sets` and `flashcards` (18.4, 18.5). Card types: basic, definition, concept, comparison, fill-in-the-blank, application (6.2). Settings 6.3, schema 6.4.
-- [ ] Near-duplicate detection, quality rules 6.5, source reference per card.
-- [ ] Endpoints per 19.3: get set, add card, edit card, delete card; reorder; regenerate selected cards as a preview.
-- [ ] Tests (22.2): structure, duplicates, wording limits, references, editing, ownership, quotas.
+- [x] `flashcard_sets` and `flashcards` (18.4, 18.5). Card types: basic, definition, concept, comparison, fill-in-the-blank, application (6.2). Settings 6.3, schema 6.4.
+- [x] Near-duplicate detection, quality rules 6.5, source reference per card.
+- [x] Endpoints per 19.3: get set, add card, edit card, delete card; reorder; regenerate selected cards as a preview.
+- [x] Tests (22.2): structure, duplicates, wording limits, references, editing, ownership, quotas.
 
 ## M3: Quiz generator and attempt engine (step 5; sections 7, 15.4, 19.4, 21.4, 22.3)
 - [ ] `quizzes`, `quiz_questions`, `quiz_attempts`, `quiz_attempt_answers` (18.6 to 18.9). Types: MCQ, multiple-select, true/false, fill-in-the-blank, short-answer, descriptive (7.2); difficulty (7.4).

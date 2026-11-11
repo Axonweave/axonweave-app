@@ -39,6 +39,9 @@ class Generator(ABC):
     map_reduce: ClassVar[bool] = False
     #: Refuse a source thinner than this many estimated tokens (0 = no minimum).
     min_source_tokens: ClassVar[int] = 0
+    #: The live items are stored in their own tables and edited through the generator's own
+    #: endpoints, so the generic material edit/restore/regenerate paths refuse this resource.
+    item_store: ClassVar[bool] = False
     #: Only in development/testing (the engine proof generator).
     test_only: ClassVar[bool] = False
 

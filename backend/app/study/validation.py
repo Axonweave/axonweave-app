@@ -44,6 +44,40 @@ def find_duplicates(texts: Sequence[str]) -> list[int]:
     return dupes
 
 
+_WORDS = re.compile(r"\w+", re.UNICODE)
+_STOP = frozenset(
+    "a an the of to in on for and or is are was were be what why how which who define".split()
+)
+
+
+def _word_set(text: str) -> frozenset[str]:
+    return frozenset(w for w in _WORDS.findall(text.casefold()) if w not in _STOP)
+
+
+def similarity(a: str, b: str) -> float:
+    """Word-set Jaccard similarity (0..1) after lower-casing and dropping filler words."""
+    wa, wb = _word_set(a), _word_set(b)
+    if not wa or not wb:
+        return 1.0 if wa == wb else 0.0
+    return len(wa & wb) / len(wa | wb)
+
+
+def is_near_duplicate(a: str, b: str, threshold: float = 0.8) -> bool:
+    return similarity(a, b) >= threshold
+
+
+def find_near_duplicates(texts: Sequence[str], threshold: float = 0.8) -> list[int]:
+    """Indexes of items that repeat or closely paraphrase an EARLIER kept item."""
+    kept: list[str] = []
+    dupes: list[int] = []
+    for i, text in enumerate(texts):
+        if any(is_near_duplicate(text, other, threshold) for other in kept):
+            dupes.append(i)
+        else:
+            kept.append(text)
+    return dupes
+
+
 def parse_json_object(raw: str) -> dict[str, Any]:
     if len(raw) > MAX_RAW_CHARS:
         raise OutputInvalid("output: too large")

@@ -58,6 +58,7 @@ from app.ai.usage.pricing import estimate_cost, find_price
 from app.models.llm_provider import LLMModel
 from app.repositories.ai_catalog_repository import AiCatalogRepository
 from app.repositories.ai_usage_repository import AiUsageRepository
+from app.repositories.flashcard_repository import FlashcardRepository
 from app.repositories.generation_job_repository import GenerationJobRepository
 from app.repositories.study_material_repository import StudyMaterialRepository
 from app.retrieval.searcher import QueryEmbedder
@@ -68,6 +69,7 @@ from app.study.errors import (
     SourceTooSmallError,
     StudyError,
 )
+from app.study.flashcard_rows import generated_card_rows
 from app.study.generators.base import Generator, GeneratorSettings, OutputInvalid
 from app.study.generators.registry import get_generator, validate_settings
 from app.study.prompting import (
@@ -700,6 +702,12 @@ class _Run:
                 generation_settings=gsettings.model_dump(mode="json"),
                 source_metadata=source_metadata,
             )
+            if generator.item_store:
+                repo = FlashcardRepository(db)
+                deck = await repo.create_set(self.user_id, material.id)
+                await repo.add_cards(
+                    deck, generated_card_rows(output.cards, source_refs_for(bundle.units))
+                )
             ok = await GenerationJobRepository(db).finish(
                 self.job_id, COMPLETED, _now(), material_id=material.id
             )
@@ -715,6 +723,7 @@ class _Run:
             "material_id": regen["material_id"],
             "base_version": regen["base_version"],
             "section_index": regen.get("section_index"),
+            **{k: regen[k] for k in ("set_id", "card_ids", "revisions") if k in regen},
             "content": content,
             "settings": gsettings.model_dump(mode="json"),
         }
