@@ -1,0 +1,8 @@
+material_id,resource_type,version,items,items_with_refs,ref_coverage,invalid_refs,duplicates,duplicate_rate,flagged,correctness,coverage,clarity,usefulness,reviewer_notes
+113686df-285b-4a7a-ad1a-dfbd69d30a45,flashcards,1,3,0,0.0,0,0,0.0,0,,,,,
+7d002700-fe9b-402b-9a86-072d349632f0,formula_sheet,1,2,1,0.5,0,0,0.0,1,,,,,
+b22035f7-15a0-415c-9a44-1d21bc4fe5b1,glossary,1,3,2,0.667,0,0,0.0,0,,,,,
+bbbc9d3b-aed3-4fda-8028-05daf905b6b8,quiz,1,2,0,0.0,0,0,0.0,0,,,,,
+7e23d609-25ea-4862-a865-3d7ae32ca796,quiz,1,2,0,0.0,0,0,0.0,0,,,,,
+e9567e7a-fa6e-4164-8950-b5674607300b,study_guide,1,1,0,0.0,0,0,0.0,0,,,,,
+1e116e24-54b5-4c55-a252-5f0dd297938e,summary,3,2,2,1.0,0,0,0.0,0,,,,,
