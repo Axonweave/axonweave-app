@@ -60,6 +60,7 @@ from app.repositories.ai_catalog_repository import AiCatalogRepository
 from app.repositories.ai_usage_repository import AiUsageRepository
 from app.repositories.flashcard_repository import FlashcardRepository
 from app.repositories.generation_job_repository import GenerationJobRepository
+from app.repositories.quiz_repository import QuizRepository
 from app.repositories.study_material_repository import StudyMaterialRepository
 from app.retrieval.searcher import QueryEmbedder
 from app.study import errors
@@ -78,6 +79,7 @@ from app.study.prompting import (
     correction_turn,
     source_refs_for,
 )
+from app.study.quiz_rows import generated_question_rows
 from app.study.schemas import GenerationRequest
 from app.study.source_reader import (
     ResolvedSource,
@@ -702,7 +704,23 @@ class _Run:
                 generation_settings=gsettings.model_dump(mode="json"),
                 source_metadata=source_metadata,
             )
-            if generator.item_store:
+            if generator.item_store and generator.key == "quiz":
+                await QuizRepository(db).create_quiz(
+                    user_id=self.user_id,
+                    material_id=material.id,
+                    title=material.title,
+                    description=getattr(output, "description", "") or None,
+                    time_limit=(
+                        gsettings.time_limit_minutes * 60  # type: ignore[attr-defined]
+                        if gsettings.time_limit_minutes  # type: ignore[attr-defined]
+                        else None
+                    ),
+                    settings=gsettings.model_dump(mode="json"),
+                    questions=generated_question_rows(
+                        output.questions, source_refs_for(bundle.units)
+                    ),
+                )
+            elif generator.item_store:
                 repo = FlashcardRepository(db)
                 deck = await repo.create_set(self.user_id, material.id)
                 await repo.add_cards(

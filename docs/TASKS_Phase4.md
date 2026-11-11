@@ -39,11 +39,11 @@ Every milestone ends with ruff, mypy, pytest, Vitest (and Playwright from M6) gr
 - [x] Tests (22.2): structure, duplicates, wording limits, references, editing, ownership, quotas.
 
 ## M3: Quiz generator and attempt engine (step 5; sections 7, 15.4, 19.4, 21.4, 22.3)
-- [ ] `quizzes`, `quiz_questions`, `quiz_attempts`, `quiz_attempt_answers` (18.6 to 18.9). Types: MCQ, multiple-select, true/false, fill-in-the-blank, short-answer, descriptive (7.2); difficulty (7.4).
-- [ ] Per-type validation of generated questions and answer keys (for example exactly one correct option for MCQ). Answer keys and explanations are never returned by any question endpoint before submission.
-- [ ] Attempts: start, save answers, submit (idempotent, no modification after submission), server-side timer, server-side grading for objective types, scores and per-question results (7.7, 7.8); retake behaviour defined and recorded.
-- [ ] Short-answer and descriptive questions: store the model answer and rubric; objective scoring only for objective types, subjective ones are self-assessed or flagged (record the decision).
-- [ ] Tests (22.3): generation per type, answer-key validation, scoring, result persistence, answer-key leakage sweep over every route and response schema, timer expiry, double submit, cross-user 404.
+- [x] `quizzes`, `quiz_questions`, `quiz_attempts`, `quiz_attempt_answers` (18.6 to 18.9). Types: MCQ, multiple-select, true/false, fill-in-the-blank, short-answer, descriptive (7.2); difficulty (7.4).
+- [x] Per-type validation of generated questions and answer keys (for example exactly one correct option for MCQ). Answer keys and explanations are never returned by any question endpoint before submission.
+- [x] Attempts: start, save answers, submit (idempotent, no modification after submission), server-side timer, server-side grading for objective types, scores and per-question results (7.7, 7.8); retake behaviour defined and recorded.
+- [x] Short-answer and descriptive questions: store the model answer and rubric; objective scoring only for objective types, subjective ones are self-assessed or flagged (record the decision).
+- [x] Tests (22.3): generation per type, answer-key validation, scoring, result persistence, answer-key leakage sweep over every route and response schema, timer expiry, double submit, cross-user 404.
 
 ## M4: Study guides, glossaries, formula sheets, question banks (step 6; sections 8 to 11, 22.4 to 22.6)
 - [ ] Study guide (8): heading hierarchy, learning objectives, topic coverage, source attribution.
