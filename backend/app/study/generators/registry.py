@@ -11,7 +11,11 @@ from app.study.errors import InvalidSettingsError, UnknownGeneratorError
 from app.study.generators.base import Generator, GeneratorSettings
 from app.study.generators.echo import EchoGenerator
 from app.study.generators.flashcards import FlashcardGenerator
+from app.study.generators.formula_sheet import FormulaSheetGenerator
+from app.study.generators.glossary import GlossaryGenerator
+from app.study.generators.question_bank import QuestionBankGenerator
 from app.study.generators.quiz import QuizGenerator
+from app.study.generators.study_guide import StudyGuideGenerator
 from app.study.generators.summary import SummaryGenerator
 
 _GENERATORS: tuple[Generator, ...] = (
@@ -19,6 +23,10 @@ _GENERATORS: tuple[Generator, ...] = (
     SummaryGenerator(),
     FlashcardGenerator(),
     QuizGenerator(),
+    StudyGuideGenerator(),
+    GlossaryGenerator(),
+    FormulaSheetGenerator(),
+    QuestionBankGenerator(),
 )
 
 

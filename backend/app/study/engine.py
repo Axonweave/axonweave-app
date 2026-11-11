@@ -704,17 +704,14 @@ class _Run:
                 generation_settings=gsettings.model_dump(mode="json"),
                 source_metadata=source_metadata,
             )
-            if generator.item_store and generator.key == "quiz":
+            if generator.item_store and generator.key in ("quiz", "question_bank"):
+                minutes = getattr(gsettings, "time_limit_minutes", None)  # banks are untimed
                 await QuizRepository(db).create_quiz(
                     user_id=self.user_id,
                     material_id=material.id,
                     title=material.title,
                     description=getattr(output, "description", "") or None,
-                    time_limit=(
-                        gsettings.time_limit_minutes * 60  # type: ignore[attr-defined]
-                        if gsettings.time_limit_minutes  # type: ignore[attr-defined]
-                        else None
-                    ),
+                    time_limit=minutes * 60 if minutes else None,
                     settings=gsettings.model_dump(mode="json"),
                     questions=generated_question_rows(
                         output.questions, source_refs_for(bundle.units)

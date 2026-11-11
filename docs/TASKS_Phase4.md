@@ -46,11 +46,11 @@ Every milestone ends with ruff, mypy, pytest, Vitest (and Playwright from M6) gr
 - [x] Tests (22.3): generation per type, answer-key validation, scoring, result persistence, answer-key leakage sweep over every route and response schema, timer expiry, double submit, cross-user 404.
 
 ## M4: Study guides, glossaries, formula sheets, question banks (step 6; sections 8 to 11, 22.4 to 22.6)
-- [ ] Study guide (8): heading hierarchy, learning objectives, topic coverage, source attribution.
-- [ ] Glossary (9): term extraction, definitions, duplicate terms merged, source references, search.
-- [ ] Formula sheet (10): LaTeX validation, variable definitions, safe rendering, invalid formula handling (10.4).
-- [ ] Question bank (11): organisation by topic and difficulty (11.3), requirements 11.4; shares question validation with M3 without storing answer keys in public responses.
-- [ ] All use the M0 engine and registry; settings schemas, prompts (versioned) and tests per generator.
+- [x] Study guide (8): heading hierarchy, learning objectives, topic coverage, source attribution.
+- [x] Glossary (9): term extraction, definitions, duplicate terms merged, source references, search.
+- [x] Formula sheet (10): LaTeX validation, variable definitions, safe rendering, invalid formula handling (10.4).
+- [x] Question bank (11): organisation by topic and difficulty (11.3), requirements 11.4; shares question validation with M3 without storing answer keys in public responses.
+- [x] All use the M0 engine and registry; settings schemas, prompts (versioned) and tests per generator.
 
 ## M5: Study library, editing, versioning, regeneration and export (steps 7 and 8; sections 12 to 14, 16, 19.2, 19.5)
 - [ ] Library API (19.2): list with search, filters (type, workspace, subject, chapter, status), pagination and allow-listed sorts; get, patch, delete, duplicate, archive, regenerate.
