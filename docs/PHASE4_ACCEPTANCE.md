@@ -6,7 +6,7 @@ Rule applied: a statement about what a model produces, or how something looks, i
 ## Verification record
 | Gate | Command | Result |
 |---|---|---|
-| Backend tests | `docker compose exec backend pytest` | **Full suite NOT completed**: the run was stopped by the harness for low memory at about 11 percent (no failures up to then). Run in P4-8: `pytest tests/study/test_route_sweep.py` 41 passed; `tests/study/test_library_export.py` 39 passed, 11 skipped. Earlier study files passed in their own tasks (P4-0 to P4-5). A human or CI must run the whole suite. |
+| Backend tests | `docker compose exec backend pytest` | **Full suite NOT completed**: the run was stopped by the harness for low memory at about 11 percent (no failures up to then). Run in P4-8: `pytest tests/study` 319 passed, 11 skipped (full study suite); the rest of the suite was stopped before finishing and is left to CI. `tests/study/test_library_export.py` 39 passed, 11 skipped. Earlier study files passed in their own tasks (P4-0 to P4-5). A human or CI must run the whole suite. |
 | Backend lint | `docker compose exec backend ruff check . && ruff format --check .` | clean (313 files formatted) |
 | Backend types | `docker compose exec backend mypy app` | no issues in 229 files |
 | Migrations | `alembic heads`; `upgrade head`; `downgrade -1`; `upgrade head` | single head `0008`; no schema change in M6 to M8 (upgrade and downgrade last run in P4-5) |

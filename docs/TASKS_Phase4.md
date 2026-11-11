@@ -13,24 +13,24 @@ Every milestone ends with ruff, mypy, pytest, Vitest (and Playwright from M6) gr
 - [ ] Phase 3 merged, `docs/PHASE3_ACCEPTANCE.md` reviewed by a human, `main` green in CI.
 - [ ] Retrieval quality checked on real lecture files (spec "How the phases connect": poor retrieval gives poor study material). Record the result; a weak result does not block Phase 4 but must be written down.
 - [ ] `GEMINI_API_KEY` available locally only. Provider spending limit set; generation calls cost money.
-- [ ] `docs/PHASE4_SPEC.md` in the repo.
+- [x] `docs/PHASE4_SPEC.md` in the repo.
 
 ## M0: Review Phase 3 and build the common generation engine (spec 25 steps 1 and 2; sections 3, 4, 17, 18.1 to 18.3, 21.1, 21.2, 21.6)
-- [ ] Review Phase 3 and record in `docs/STUDY_GENERATION_ARCHITECTURE.md` what is reused: documents, chunks and provenance, retrieval, citations, ScopeResolver, Celery, provider layer, prompt registry, usage records, quotas. Deliverable: one reusable `SourceReader` interface (ordered read for chapters/documents, sampled or retrieved read for large scopes); nothing rebuilt.
-- [ ] Decisions D-78+: SourceReader modes and map-reduce; one structured-output path with exactly one correction attempt; answer keys stored once and never returned before submission; no duplicated source content; regeneration is a preview/proposal and never overwrites edits; versioned snapshots; CSV formula-injection protection; per-user generation quotas and limits; duplicate-job prevention.
-- [ ] Migration: `study_materials`, `study_material_versions`, `generation_jobs` (spec 18.1 to 18.3) with ownership constraints, indexes, `archived_at`; `ai_usage_records.request_kind` gains `generation`; user generation preferences (spec 16) in a dedicated table. One head, upgrade and downgrade tested.
-- [ ] Generation engine: request schema, generator registry, per-generator validated settings, source selection via ScopeResolver (completed active versions only), context-size estimate, model selection, prompt registry entries, structured-output validation with Pydantic (required fields, types, array lengths, difficulty values, source references, duplicates).
-- [ ] Jobs on Celery: statuses pending, retrieving sources, generating, validating, saving, completed, failed, cancelled; progress, timeouts, retry only for transient errors, generation ids, duplicate-job prevention, cancellation, safe error codes; do not auto-restart an expensive generation whose outcome is uncertain.
-- [ ] Limits: max requests, max items per generator, max output tokens, per-user quotas, background job quotas, timeouts, usage tracking (spec 21.6).
-- [ ] Tests (FakeProvider): lifecycle, cross-user 404, quota, invalid output then corrected, invalid twice fails safely, cancel, duplicate request returns the existing job, no content in logs. Regenerate OpenAPI and frontend types.
+- [x] Review Phase 3 and record in `docs/STUDY_GENERATION_ARCHITECTURE.md` what is reused: documents, chunks and provenance, retrieval, citations, ScopeResolver, Celery, provider layer, prompt registry, usage records, quotas. Deliverable: one reusable `SourceReader` interface (ordered read for chapters/documents, sampled or retrieved read for large scopes); nothing rebuilt.
+- [x] Decisions D-78+: SourceReader modes and map-reduce; one structured-output path with exactly one correction attempt; answer keys stored once and never returned before submission; no duplicated source content; regeneration is a preview/proposal and never overwrites edits; versioned snapshots; CSV formula-injection protection; per-user generation quotas and limits; duplicate-job prevention.
+- [x] Migration: `study_materials`, `study_material_versions`, `generation_jobs` (spec 18.1 to 18.3) with ownership constraints, indexes, `archived_at`; `ai_usage_records.request_kind` gains `generation`; user generation preferences (spec 16) in a dedicated table. One head, upgrade and downgrade tested.
+- [x] Generation engine: request schema, generator registry, per-generator validated settings, source selection via ScopeResolver (completed active versions only), context-size estimate, model selection, prompt registry entries, structured-output validation with Pydantic (required fields, types, array lengths, difficulty values, source references, duplicates).
+- [x] Jobs on Celery: statuses pending, retrieving sources, generating, validating, saving, completed, failed, cancelled; progress, timeouts, retry only for transient errors, generation ids, duplicate-job prevention, cancellation, safe error codes; do not auto-restart an expensive generation whose outcome is uncertain.
+- [x] Limits: max requests, max items per generator, max output tokens, per-user quotas, background job quotas, timeouts, usage tracking (spec 21.6).
+- [x] Tests (FakeProvider): lifecycle, cross-user 404, quota, invalid output then corrected, invalid twice fails safely, cancel, duplicate request returns the existing job, no content in logs. Regenerate OpenAPI and frontend types.
 - Done when: a fake "echo" generator runs end to end through the engine with all of the above verified.
 
 ## M1: Summary generator (step 3; sections 5, 15.5, 22.1)
-- [ ] Types: quick, detailed, section-wise, exam-oriented, beginner-friendly, key-point (5.2). Settings per 5.3, structure per 5.4.
-- [ ] Whole-chapter summaries use ordered map-reduce so no part is silently skipped; the result reports which sources were included. Quality requirements 5.5.
-- [ ] Source references validated like Phase 3 citations (invalid ones stripped).
-- [ ] Edit and save; regenerate entire resource or selected section as a preview.
-- [ ] Tests (spec 22.1): each type, attribution, coverage (every chunk reaches the reducer), empty or insufficient source, injection text inside a document not followed, ownership.
+- [x] Types: quick, detailed, section-wise, exam-oriented, beginner-friendly, key-point (5.2). Settings per 5.3, structure per 5.4.
+- [x] Whole-chapter summaries use ordered map-reduce so no part is silently skipped; the result reports which sources were included. Quality requirements 5.5.
+- [x] Source references validated like Phase 3 citations (invalid ones stripped).
+- [x] Edit and save; regenerate entire resource or selected section as a preview.
+- [x] Tests (spec 22.1): each type, attribution, coverage (every chunk reaches the reducer), empty or insufficient source, injection text inside a document not followed, ownership.
 
 ## M2: Flashcard generator (step 4; sections 6, 15.3, 22.2)
 - [x] `flashcard_sets` and `flashcards` (18.4, 18.5). Card types: basic, definition, concept, comparison, fill-in-the-blank, application (6.2). Settings 6.3, schema 6.4.
