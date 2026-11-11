@@ -13,6 +13,10 @@ adds document upload, storage, extraction/OCR, chunking, embeddings, retrieval a
   plan: `docs/AI_INTEGRATION_PLAN.md`; tasks: `docs/TASKS_Phase2.md`.
 - Phase 3 requirements: `docs/PHASE3_SPEC.md`; design: `docs/DOCUMENT_ARCHITECTURE.md`; review of Phase 1/2 and conflicts:
   `docs/DOCUMENT_INTELLIGENCE_PLAN.md`; tasks: `docs/TASKS_Phase3.md`; decisions D-62 to D-76.
+- Phase 4 "AI-Powered Study Generation" (summaries, flashcards, quizzes, guides, glossaries, formula sheets, question banks,
+  library, versioning, export): `docs/PHASE4_SPEC.md`; design: `docs/STUDY_GENERATION_ARCHITECTURE.md`; tasks: `docs/TASKS_Phase4.md`;
+  status: `docs/PHASE4_ACCEPTANCE.md`; security: `docs/GENERATION_SECURITY.md`; decisions D-78 to D-101. Quiz answer keys never leave
+  the backend before submission; browser tests seed materials with `backend/scripts/seed_study_e2e.py`.
 - Product context: `docs/Axonweave_PRD.docx` (background only).
 - Decisions for things the spec leaves open: `docs/DECISIONS.md` (follow them; do not invent alternatives).
 - Who owns what / task board: `docs/TASKS_Phase1.md`, `docs/TASKS_Phase2.md`.

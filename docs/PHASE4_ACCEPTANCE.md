@@ -6,10 +6,10 @@ Rule applied: a statement about what a model produces, or how something looks, i
 ## Verification record
 | Gate | Command | Result |
 |---|---|---|
-| Backend tests | `docker compose exec backend pytest` | {{PYTEST}} |
-| Backend lint | `docker compose exec backend ruff check . && ruff format --check .` | {{RUFF}} |
-| Backend types | `docker compose exec backend mypy app` | {{MYPY}} |
-| Migrations | `alembic heads`; `upgrade head`; `downgrade -1`; `upgrade head` | {{ALEMBIC}} |
+| Backend tests | `docker compose exec backend pytest` | **Full suite NOT completed**: the run was stopped by the harness for low memory at about 11 percent (no failures up to then). Run in P4-8: `pytest tests/study/test_route_sweep.py` 41 passed; `tests/study/test_library_export.py` 39 passed, 11 skipped. Earlier study files passed in their own tasks (P4-0 to P4-5). A human or CI must run the whole suite. |
+| Backend lint | `docker compose exec backend ruff check . && ruff format --check .` | clean (313 files formatted) |
+| Backend types | `docker compose exec backend mypy app` | no issues in 229 files |
+| Migrations | `alembic heads`; `upgrade head`; `downgrade -1`; `upgrade head` | single head `0008`; no schema change in M6 to M8 (upgrade and downgrade last run in P4-5) |
 | Frontend lint, types | `cd frontend && npm run lint && npx tsc --noEmit` | clean |
 | Frontend unit | `cd frontend && npm run test` | 22 files, 250 tests passed |
 | Frontend build | `docker compose up -d --build frontend` (runs `next build`) | built |
@@ -84,14 +84,14 @@ Rule applied: a statement about what a model produces, or how something looks, i
 | Output schemas are validated | Met | `test_invalid_output_is_corrected_once`, `test_invalid_twice_fails_safely`, per-generator rule tests |
 | User ownership is enforced | Met | `test_route_sweep.py` (login on every route), per-feature "another user gets 404 everywhere" tests, Playwright isolation test |
 | Generation limits are enforced | Met | `test_daily_quota`, `test_per_minute_limit_and_token_quota`, `test_active_job_cap`, size limits |
-| Tests pass | Met | see the verification record |
+| Tests pass | Partly | see the verification record |
 | Documentation is complete | Met | the nine documents of spec 26 exist: `STUDY_GENERATION_ARCHITECTURE.md`, `SUMMARY_GENERATION.md`, `FLASHCARD_GENERATION.md`, `QUIZ_GENERATION.md`, `STUDY_GUIDES.md`, `STUDY_LIBRARY.md`, `EXPORT_SYSTEM.md`, `GENERATION_SECURITY.md`, `STUDY_GENERATION_TESTING.md`; README and `WORKFLOW.md` updated |
 
 ## Section 22.7 security tests
 All ten are mapped to tests in `GENERATION_SECURITY.md` section 2.
 
 ## Counts
-Met: 25. Partly: 17. Not met: 0 (42 criteria).
+Met: 24. Partly: 18. Not met: 0 (42 criteria).
 
 ## What would turn Partly into Met
 1. Generate each type from real lecture material with the live provider and score it (`STUDY_GENERATION_TESTING.md` section 4).
