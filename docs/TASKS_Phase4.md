@@ -61,21 +61,21 @@ Every milestone ends with ruff, mypy, pytest, Vitest (and Playwright from M6) gr
 - [x] Tests: filters, search, version restore, regenerate preview, export per resource type, injection payloads, expired or foreign download link, deletion cascade.
 
 ## M6: Frontend: generation, library, summaries, flashcards, guides (sections 20.x, 12.2)
-- [ ] Library gets a Study materials tab; entry points on subject, chapter and document pages; generation dialogs with scope, settings, quota hint; job progress with polling and cancel; failure states.
-- [ ] Summary viewer and editor with source references, version history, regenerate-preview review; flashcard deck viewer, study mode, editing; study guide, glossary (search), formula sheet (safe LaTeX rendering) and question bank views.
-- [ ] Tests: Vitest and Playwright (Fake providers) covering generate, view, edit, regenerate preview, versions, isolation between users, mobile; accessibility and keyboard checks.
+- [x] Library gets a Study materials tab; entry points on subject, chapter and document pages; generation dialogs with scope, settings, quota hint; job progress with polling and cancel; failure states. (a Study materials page linked from the Library page tabs and the sidebar; entry points on subject, chapter and document pages)
+- [x] Summary viewer and editor with source references, version history, regenerate-preview review; flashcard deck viewer, study mode, editing; study guide, glossary (search), formula sheet (safe LaTeX rendering) and question bank views.
+- [x] Tests: Vitest and Playwright (Fake providers) covering generate, view, edit, regenerate preview, versions, isolation between users, mobile; accessibility and keyboard checks. (generate is covered to its failure state on the fake provider; regenerate preview and apply are not driven end to end because the fake provider cannot write study output: see GENERATION_SECURITY.md and STUDY_GENERATION_TESTING.md; keyboard and role checks yes, no axe audit)
 
 ## M7: Frontend: quizzes, results, exports, preferences (sections 7.6, 7.8, 14, 16, 20.x)
-- [ ] Quiz generation and list; quiz-taking screen with server-driven countdown, navigation, flagging, autosave, resume after refresh, auto-submit on expiry; results and review (explanations only after submit); attempt history.
-- [ ] Export buttons and download handling; preferences page.
-- [ ] Tests: Playwright full quiz, timer expiry, refresh-resume, assertion that no answer key appears in network responses before submit, isolation, mobile.
+- [x] Quiz generation and list; quiz-taking screen with server-driven countdown, navigation, flagging, autosave, resume after refresh, auto-submit on expiry; results and review (explanations only after submit); attempt history.
+- [x] Export buttons and download handling; preferences page.
+- [x] Tests: Playwright full quiz, timer expiry, refresh-resume, assertion that no answer key appears in network responses before submit, isolation, mobile.
 
 ## M8: Usage controls, security review, evaluation, docs and acceptance (steps 9 and 10; sections 21, 22.7, 23, 26)
-- [ ] Security review (`docs/GENERATION_SECURITY.md`): ownership tests for every route, answer-key leakage sweep, prompt-injection, output sanitisation, quotas and cost limits, export injection, logs free of content, pip-audit and npm audit.
-- [ ] Evaluation (`docs/STUDY_GENERATION_TESTING.md`): validity, coverage, duplicate rate on the Fake provider; cost-capped live script (not run by automation); blank columns for human scoring; per-generator quality and cost on real lecture material by a human.
-- [ ] Reliability: worker crash mid-generation, duplicate job, retry, provider outage, large scope.
-- [ ] Docs per spec 26: `STUDY_GENERATION_ARCHITECTURE.md`, `SUMMARY_GENERATION.md`, `FLASHCARD_GENERATION.md`, `QUIZ_GENERATION.md`, `STUDY_GUIDES.md`, `STUDY_LIBRARY.md`, `EXPORT_SYSTEM.md`, `GENERATION_SECURITY.md`, `STUDY_GENERATION_TESTING.md`; README and `WORKFLOW.md` updated.
-- [ ] `docs/PHASE4_ACCEPTANCE.md`: walk spec section 23 line by line, Met / Partly / Not met with evidence.
+- [x] Security review (`docs/GENERATION_SECURITY.md`): ownership tests for every route, answer-key leakage sweep, prompt-injection, output sanitisation, quotas and cost limits, export injection, logs free of content, pip-audit and npm audit. (human items: live injection test, pip and npm audit rerun at release)
+- [x] Evaluation (`docs/STUDY_GENERATION_TESTING.md`): validity, coverage, duplicate rate on the Fake provider; cost-capped live script (not run by automation); blank columns for human scoring; per-generator quality and cost on real lecture material by a human. (script and protocol done; live run and human scoring NOT done: HUMAN-NEEDED)
+- [x] Reliability: worker crash mid-generation, duplicate job, retry, provider outage, large scope. (mapped to existing tests; killing a real worker container is a manual check)
+- [x] Docs per spec 26: `STUDY_GENERATION_ARCHITECTURE.md`, `SUMMARY_GENERATION.md`, `FLASHCARD_GENERATION.md`, `QUIZ_GENERATION.md`, `STUDY_GUIDES.md`, `STUDY_LIBRARY.md`, `EXPORT_SYSTEM.md`, `GENERATION_SECURITY.md`, `STUDY_GENERATION_TESTING.md`; README and `WORKFLOW.md` updated.
+- [x] `docs/PHASE4_ACCEPTANCE.md`: walk spec section 23 line by line, Met / Partly / Not met with evidence. (25 Met, 17 Partly, 0 Not met)
 
 ## Out of scope (spec section 24, do not start)
 Advanced spaced repetition and FSRS, retention prediction, adaptive difficulty, learner mastery modelling, misconception detection, knowledge graphs, AI viva, audio summaries, podcasts, simulations, research-paper comparison, collaboration.

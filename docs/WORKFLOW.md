@@ -69,6 +69,14 @@ Change minimally and mention in the PR: `backend/app/api/v1/router.py`, `backend
 Plan first for non-trivial work and wait for approval. One task per session; clear context between
 tasks. If the spec is ambiguous or contradicts `docs/DECISIONS.md`, stop and ask.
 
+## Phase 4 notes
+Phase 4 was delivered as autopilot tasks P4-0 to P4-8 (`docs/prompts/`, protocol in `docs/AUTOPILOT.md`), each a branch
+`autopilot/p4-N` with a final `docs/autopilot/P4-N.md` that becomes the PR description. Regenerate API types after any
+backend schema change (`python scripts/export_openapi.py`, then `npm run generate-types`) and commit the result. Playwright
+study tests need `docker compose` on the machine because they seed data through `backend/scripts/seed_study_e2e.py`.
+Never let a script write to a path outside the repo from Git Bash on Windows without checking the argument was not
+rewritten (a stray `C:` directory was created and removed during P4-8).
+
 ## Phase 3 notes
 Phase 3 was delivered as stacked milestone PRs (M1 to M6), each merged only after backend, frontend, e2e and security jobs
 were green. Run one pytest at a time; the full backend suite is memory-heavy locally and CI is the first full run.
