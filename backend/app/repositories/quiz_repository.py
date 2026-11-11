@@ -51,6 +51,21 @@ class QuizRepository:
             await self._db.execute(select(Quiz).where(Quiz.id == quiz_id, Quiz.user_id == user_id))
         ).scalar_one_or_none()
 
+    async def get_quiz_for_material(
+        self, material_id: uuid.UUID, user_id: uuid.UUID
+    ) -> Quiz | None:
+        return (
+            (
+                await self._db.execute(
+                    select(Quiz).where(
+                        Quiz.study_material_id == material_id, Quiz.user_id == user_id
+                    )
+                )
+            )
+            .scalars()
+            .first()
+        )
+
     async def questions(self, quiz_id: uuid.UUID, user_id: uuid.UUID) -> list[QuizQuestion]:
         rows = await self._db.execute(
             select(QuizQuestion)

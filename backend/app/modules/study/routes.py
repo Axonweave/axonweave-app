@@ -10,6 +10,7 @@ from app.ai.orchestration.runtime import AiRuntime, Runtime
 from app.core.dependencies import ActiveUser, DbSession
 from app.core.rate_limit import get_rate_limiter
 from app.models.generation_job import GenerationJob
+from app.modules.study.library_service import StudyLibraryService
 from app.modules.study.material_service import StudyMaterialService
 from app.modules.study.schemas import (
     EditMaterialRequest,
@@ -141,7 +142,10 @@ async def get_material(
     dispatcher: Dispatcher,
 ) -> StudyMaterialResponse:
     material = await _service(db, runtime, dispatcher).get_material(current_user, material_id)
-    return StudyMaterialResponse(data=StudyMaterialOut.model_validate(material))
+    out = StudyMaterialOut.model_validate(material)
+    missing = await StudyLibraryService(db).unavailable_sources(current_user.id, [material])
+    out.unavailable_document_ids = missing.get(material.id, [])
+    return StudyMaterialResponse(data=out)
 
 
 def _materials(

@@ -90,6 +90,8 @@ class StudyMaterialOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     archived_at: datetime | None
+    # Source documents deleted after generation: the material stays, references are unavailable.
+    unavailable_document_ids: list[uuid.UUID] = Field(default_factory=list)
 
 
 class StudyMaterialResponse(BaseModel):

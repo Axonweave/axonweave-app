@@ -12,12 +12,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.storage_cleanup_repository import StorageCleanupRepository
+from app.repositories.study_export_repository import StudyExportRepository
 
 
 async def _enqueue(db: AsyncSession, keys: Sequence[str], reason: str) -> int:
     if keys:
         await StorageCleanupRepository(db).enqueue(keys, reason)
     return len(keys)
+
+
+async def enqueue_keys(db: AsyncSession, keys: Sequence[str], reason: str) -> int:
+    """Queue arbitrary backend-generated keys (study exports) for deletion."""
+    return await _enqueue(db, keys, reason)
 
 
 async def enqueue_for_document(
@@ -36,14 +42,12 @@ async def enqueue_for_subject(db: AsyncSession, subject_id: uuid.UUID) -> int:
 
 
 async def enqueue_for_workspace(db: AsyncSession, workspace_id: uuid.UUID) -> int:
-    return await _enqueue(
-        db,
-        await DocumentRepository(db).storage_keys_for_workspace(workspace_id),
-        "workspace_deleted",
-    )
+    keys = await DocumentRepository(db).storage_keys_for_workspace(workspace_id)
+    keys = [*keys, *await StudyExportRepository(db).keys_for_workspace(workspace_id)]
+    return await _enqueue(db, keys, "workspace_deleted")
 
 
 async def enqueue_for_user(db: AsyncSession, user_id: uuid.UUID) -> int:
-    return await _enqueue(
-        db, await DocumentRepository(db).storage_keys_for_user(user_id), "account_deleted"
-    )
+    keys = await DocumentRepository(db).storage_keys_for_user(user_id)
+    keys = [*keys, *await StudyExportRepository(db).keys_for_user(user_id)]
+    return await _enqueue(db, keys, "account_deleted")

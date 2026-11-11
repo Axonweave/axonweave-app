@@ -32,3 +32,20 @@ def build_original_key(
 def is_valid_original_key(key: str) -> bool:
     """True for keys this module could have produced (defence in depth before delete or read)."""
     return bool(_KEY_RE.match(key))
+
+
+EXPORT_EXTENSIONS = frozenset({"pdf", "csv", "md", "docx"})
+_EXPORT_KEY_RE = re.compile(rf"^users/{_UUID}/exports/{_UUID}/file\.(?:pdf|csv|md|docx)$")
+
+
+def build_export_key(user_id: uuid.UUID, export_id: uuid.UUID, extension: str) -> str:
+    """Key of a generated study export (D-100). UUIDs and a fixed extension only."""
+    if not isinstance(user_id, uuid.UUID) or not isinstance(export_id, uuid.UUID):
+        raise TypeError("user_id and export_id must be UUID objects")
+    if extension not in EXPORT_EXTENSIONS:
+        raise ValueError("unsupported export extension")
+    return f"users/{user_id}/exports/{export_id}/file.{extension}"
+
+
+def is_valid_export_key(key: str) -> bool:
+    return bool(_EXPORT_KEY_RE.match(key))

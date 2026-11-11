@@ -27,9 +27,12 @@ from app.embeddings.service import EmbeddingService
 from app.ingestion.db import task_session_factory
 from app.ingestion.worker import celery_app
 from app.repositories.generation_job_repository import GenerationJobRepository
+from app.repositories.study_export_repository import StudyExportRepository
+from app.storage.factory import get_storage_backend
 from app.study import errors
-from app.study.dispatch import RUN_TASK
+from app.study.dispatch import EXPORT_TASK, RUN_TASK
 from app.study.engine import EngineDeps, run_generation
+from app.study.export_runner import expire_exports, run_export
 
 logger = structlog.get_logger(__name__)
 _settings = get_settings()
@@ -102,3 +105,34 @@ def sweep_stale_jobs() -> dict[str, Any]:
     if failed:
         logger.warning("stale_generation_jobs_failed", count=failed)
     return {"failed": failed}
+
+
+@celery_app.task(name=EXPORT_TASK, base=StudyTask, bind=True, soft_time_limit=120, time_limit=150)
+def run_export_task(self: Task, export_id: str) -> str:
+    async def run() -> str:
+        settings = get_settings()
+        async with task_session_factory() as factory:
+            return await run_export(factory, get_storage_backend(), settings, uuid.UUID(export_id))
+
+    return asyncio.run(run())
+
+
+@celery_app.task(name="study.sweep_exports", base=StudyTask)
+def sweep_exports() -> dict[str, int]:
+    """Resend exports that were never delivered to a worker, and delete expired export files."""
+
+    async def run() -> tuple[int, int]:
+        now = datetime.now(UTC)
+        sent = 0
+        async with task_session_factory() as factory:
+            async with factory() as db:
+                for export_id in await StudyExportRepository(db).pending_older_than(
+                    now - timedelta(seconds=90), limit=100
+                ):
+                    celery_app.send_task(EXPORT_TASK, args=[str(export_id)])
+                    sent += 1
+            expired = await expire_exports(factory, get_storage_backend(), now)
+        return sent, expired
+
+    sent, expired = asyncio.run(run())
+    return {"dispatched": sent, "expired": expired}

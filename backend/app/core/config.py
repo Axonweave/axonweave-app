@@ -124,6 +124,8 @@ class Settings(BaseSettings):
     study_task_hard_time_limit_seconds: int = Field(default=600, ge=20)
     study_stale_job_seconds: int = Field(default=900, ge=30)
     study_cancel_poll_seconds: float = Field(default=1.0, ge=0.01, le=30)
+    study_export_ttl_seconds: int = Field(default=3600, ge=60)
+    study_exports_per_hour_per_user: int = Field(default=30, ge=1)
     # "redis" needs redis_url; "memory" is the in-process limiter (tests, single instance) (D-65).
     rate_limit_backend: str = "memory"
 

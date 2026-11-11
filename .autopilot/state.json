@@ -20,6 +20,11 @@
       "pr": "35"
     },
     "P4-4": {
+      "status": "merged",
+      "sessions": 1,
+      "pr": "36"
+    },
+    "P4-5": {
       "status": "running",
       "sessions": 1
     }

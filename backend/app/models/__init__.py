@@ -18,6 +18,7 @@ from app.models.prompt_template import PromptTemplate
 from app.models.quiz import Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion
 from app.models.session_model import Session
 from app.models.storage_cleanup import StorageCleanup
+from app.models.study_export import StudyExport
 from app.models.study_material import StudyMaterial, StudyMaterialVersion
 from app.models.study_preferences import StudyGenerationPreferences
 from app.models.subject import Subject
@@ -54,6 +55,7 @@ __all__ = [
     "QuizQuestion",
     "Session",
     "StorageCleanup",
+    "StudyExport",
     "StudyGenerationPreferences",
     "StudyMaterial",
     "StudyMaterialVersion",
