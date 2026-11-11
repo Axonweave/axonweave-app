@@ -142,7 +142,9 @@ async def get_material(
     dispatcher: Dispatcher,
 ) -> StudyMaterialResponse:
     material = await _service(db, runtime, dispatcher).get_material(current_user, material_id)
-    return StudyMaterialResponse(data=await StudyLibraryService(db).present(current_user.id, material))
+    return StudyMaterialResponse(
+        data=await StudyLibraryService(db).present(current_user.id, material)
+    )
 
 
 def _materials(

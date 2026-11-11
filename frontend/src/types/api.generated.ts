@@ -3955,6 +3955,8 @@ export interface components {
             archived_at: string | null;
             /** Unavailable Document Ids */
             unavailable_document_ids?: string[];
+            /** Item Id */
+            item_id?: string | null;
         };
         /** StudyMaterialResponse */
         StudyMaterialResponse: {
