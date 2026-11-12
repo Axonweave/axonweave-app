@@ -210,6 +210,42 @@ class QuizAnswerInvalidError(StudyError):
     user_message = "An answer is not valid for its question."
 
 
+class QuizAttemptAbandonedError(StudyError):
+    code = "QUIZ_ATTEMPT_ABANDONED"
+    http_status = 409
+    user_message = "This attempt was abandoned. Start a new attempt to try the quiz again."
+
+
+class IdempotencyKeyReusedError(StudyError):
+    code = "IDEMPOTENCY_KEY_REUSED"
+    http_status = 409
+    user_message = "That idempotency key was already used for a different request."
+
+
+class NothingToEvaluateError(StudyError):
+    code = "NOTHING_TO_EVALUATE"
+    http_status = 409
+    user_message = "There are no answers waiting for evaluation."
+
+
+class EvaluationUnavailableError(StudyError):
+    code = "EVALUATION_UNAVAILABLE"
+    http_status = 503
+    user_message = "AI-assisted grading is not available right now."
+
+
+class EvaluationRateLimitedError(StudyError):
+    code = "EVALUATION_RATE_LIMITED"
+    http_status = 429
+    user_message = "Too many evaluation requests. Please try again shortly."
+
+
+class CompareNotPossibleError(StudyError):
+    code = "COMPARE_NOT_POSSIBLE"
+    http_status = 409
+    user_message = "Only two submitted attempts of the same quiz can be compared."
+
+
 class QuizAttemptLimitError(StudyError):
     code = "QUIZ_ATTEMPT_LIMIT"
     http_status = 409

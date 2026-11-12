@@ -126,6 +126,10 @@ class Settings(BaseSettings):
     study_cancel_poll_seconds: float = Field(default=1.0, ge=0.01, le=30)
     study_export_ttl_seconds: int = Field(default=3600, ge=60)
     study_exports_per_hour_per_user: int = Field(default=30, ge=1)
+    # Phase 5 (D-112): AI-assisted grading of short-answer and descriptive quiz answers.
+    quiz_ai_grading_enabled: bool = True
+    quiz_grading_max_output_tokens: int = Field(default=600, ge=100, le=4000)
+    quiz_evaluations_per_minute_per_user: int = Field(default=30, ge=1)
     # "redis" needs redis_url; "memory" is the in-process limiter (tests, single instance) (D-65).
     rate_limit_backend: str = "memory"
 
