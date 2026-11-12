@@ -136,6 +136,14 @@ class Settings(BaseSettings):
     revision_session_max_cards: int = Field(default=50, ge=1, le=200)
     revision_session_idle_minutes: int = Field(default=120, ge=5)
     revision_reviews_per_minute_per_user: int = Field(default=120, ge=1)
+    # Phase 5 analytics (D-108): transparent thresholds for topic labels. These are estimates from
+    # a handful of quiz answers, never a measurement of mastery.
+    analytics_strong_at: float = Field(default=80.0, ge=1, le=100)
+    analytics_needs_revision_below: float = Field(default=60.0, ge=1, le=100)
+    analytics_min_answers: int = Field(default=3, ge=1, le=50)
+    analytics_recent_attempts: int = Field(default=3, ge=1, le=20)
+    analytics_trend_delta: float = Field(default=10.0, ge=1, le=100)
+    analytics_max_attempts: int = Field(default=300, ge=10, le=2000)
     # "redis" needs redis_url; "memory" is the in-process limiter (tests, single instance) (D-65).
     rate_limit_backend: str = "memory"
 

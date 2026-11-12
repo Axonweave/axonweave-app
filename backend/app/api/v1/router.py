@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.modules.ai.routes import router as ai_router
+from app.modules.analytics.routes import router as analytics_router
 from app.modules.auth.email_routes import router as email_auth_router
 from app.modules.auth.routes import router as auth_router
 from app.modules.chapters.routes import router as chapters_router
@@ -39,6 +40,7 @@ router.include_router(flashcard_router)
 router.include_router(quiz_router)
 router.include_router(quiz_history_router)
 router.include_router(revision_router)
+router.include_router(analytics_router)
 router.include_router(revision_card_router)
 router.include_router(collection_router)
 router.include_router(library_router)
