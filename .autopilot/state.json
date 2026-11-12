@@ -25,8 +25,44 @@
       "pr": "36"
     },
     "P4-5": {
-      "status": "running",
+      "status": "merged",
       "sessions": 1
+    },
+    "P3-2": {
+      "status": "merged",
+      "sessions": 1
+    },
+    "P3-3": {
+      "status": "merged",
+      "sessions": 0
+    },
+    "P3-4": {
+      "status": "merged",
+      "sessions": 0
+    },
+    "P3-5": {
+      "status": "merged",
+      "sessions": 0
+    },
+    "P3-6": {
+      "status": "merged",
+      "sessions": 0
+    },
+    "P3-7": {
+      "status": "merged",
+      "sessions": 0
+    },
+    "P4-6": {
+      "status": "merged",
+      "sessions": 0
+    },
+    "P4-7": {
+      "status": "merged",
+      "sessions": 0
+    },
+    "P4-8": {
+      "status": "merged",
+      "sessions": 0
     }
   }
 }

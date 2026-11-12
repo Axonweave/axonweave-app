@@ -1,0 +1,3 @@
+# P5-6 - Phase 5 M6: Weak-topic detection and recommendations
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase5.md (M6), docs/PHASE5_SPEC.md sections 2.7, 2.8, 5.5, 9. Backend only.
+Implement every item under M6: transparent rule-based weak-topic detection and recommendations in the spec priority order, explanations built from real numbers, stored recommendations deduplicated while pending, complete and dismiss endpoints. The LLM may only rephrase an explanation from supplied facts; validate that its output introduces no new numbers, and make the whole feature work with the LLM disabled. Tests per M6. Never present a prediction as a verdict about the user's knowledge. Regenerate OpenAPI and types.

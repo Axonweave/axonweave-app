@@ -1,0 +1,3 @@
+# P5-8 - Phase 5 M8: Security, reliability, docs and acceptance
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase5.md (M8) and docs/PHASE5_SPEC.md sections 8 to 10 and 13. The pipeline stops after this task for a human to review.
+Do everything under M8: run all gates, OpenAPI-walk ownership and unauthenticated sweeps, answer-key leakage sweep, rate-limit and idempotency tests, reliability tests, Phase 1 to 4 regression, audits, the five documents and README/WORKFLOW updates, and docs/PHASE5_ACCEPTANCE.md walking section 10 line by line (Met / Partly / Not met with evidence; anything needing weeks of real study data, the live key or visual checks is at best Partly). Do not run live LLM checks; list them under HUMAN-NEEDED.

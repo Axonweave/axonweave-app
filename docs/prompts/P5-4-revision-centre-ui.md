@@ -1,0 +1,3 @@
+# P5-4 - Phase 5 M4: Revision Centre and review session UI
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase5.md (M4), docs/PHASE5_SPEC.md sections 2.4, 2.5, 6, 9. Frontend work.
+Implement every item under M4: Revision Centre dashboard with filters, sidebar entry, the review session screen (reveal, four ratings with keyboard shortcuts, progress, end session, saved automatically, summary at the end), safe retry without double-submitting a rating, mobile and accessibility. The spec's example numbers are illustrative: never hardcode sample data. Tests per M4. List visual checks under HUMAN-NEEDED.

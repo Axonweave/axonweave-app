@@ -1,0 +1,3 @@
+# P5-5 - Phase 5 M5: Topic performance and learning analytics backend
+Follow docs/AUTOPILOT.md. Read CLAUDE.md, docs/DECISIONS.md, docs/TASKS_Phase5.md (M5), docs/PHASE5_SPEC.md sections 2.6, 3, 5.4, 9 and docs/ASSESSMENT_ARCHITECTURE.md. Backend only.
+Implement every item under M5: topic performance with configurable thresholds and non-mastery wording, all analytics endpoints with subject, chapter and date filters, timezone-correct streaks and calendar, indexes, and a measured performance check on seeded data. Any stored aggregate must be fully recalculable from raw records with a test proving it. Add every test in the spec 9 analytics list, DST and timezone cases, per-user isolation and empty states. Regenerate OpenAPI and types.
