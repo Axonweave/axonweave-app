@@ -29,6 +29,7 @@ def generated_card_rows(cards: list[Any], sources: list[dict[str, Any]]) -> list
             "front": c.front,
             "back": c.back,
             "explanation": c.explanation or None,
+            "topic": c.topic or None,
             "card_type": c.card_type,
             "difficulty": c.difficulty,
             "source_references": card_references(c.source_refs, sources),

@@ -305,4 +305,5 @@ class _Gen:
         self.explanation = data.get("explanation") or ""
         self.card_type = data["card_type"]
         self.difficulty = data["difficulty"]
+        self.topic = data.get("topic") or ""
         self.source_refs = data.get("source_refs") or []

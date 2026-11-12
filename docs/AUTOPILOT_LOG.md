@@ -51,3 +51,14 @@ P4-7 | Attempt list response shape | Read `data.items` | The attempts endpoint r
 P4-8 | Live evaluation script | Read-only measure script plus human protocol; no separate live caller | The app already enforces job, token and quota caps; a second path could exceed them.
 P4-8 | Route security sweep | Enumerate routes from the app and require login on each | New routes are covered automatically.
 P4-8 | Acceptance statuses | Generation criteria are at best Partly | No live provider call, real document or visual check was run.
+P5-0 | Topic source | Add nullable topic to quiz_questions and flashcards, prompts v2 (D-102) | The bank's topic lived only in JSON; analytics needs a column.
+P5-0 | FSRS library | py-fsrs 6.3.2 (MIT) pinned (D-105) | Maintained, MIT, latest on PyPI, only typing-extensions dependency; verified on PyPI 2026-11-12.
+P5-0 | Stability/difficulty column type | double precision instead of DECIMAL (D-106) | Library uses floats; rounding would change schedules.
+P5-0 | Fuzzing | Off by default | Uses global random; determinism needed for tests and reproducible history.
+P5-0 | Spec 4.6 topic_performance | Not created; derived queries (D-108) | Task says derived first; stored aggregate only with a measured need.
+P5-0 | Downgrade of abandoned attempts | Delete abandoned attempts on downgrade | The old status check cannot hold them and they carry no result.
+P5-0 | Revision session cardinality | One active session per user (D-114) | Simple resume semantics; a partial unique index enforces it.
+P5-0 | Recommendation target_id | No FK; ownership re-checked on read | Targets are quizzes, cards, subjects or chapters.
+P5-0 | Descriptive grading usage kind | New request_kind evaluation in the M1 migration | Not needed until M1.
+P5-0 | Spec route names | Reuse /study/quizzes routes; new /revision, /analytics, /recommendations (D-113) | CLAUDE.md and the task forbid duplicate routes.
+P5-0 | Local tests | Run pytest inside the backend container | Host Python has no env config and .env must not be read.

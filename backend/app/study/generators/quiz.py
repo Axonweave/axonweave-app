@@ -93,6 +93,7 @@ class QuestionOut(BaseModel):
     rubric: list[Annotated[CleanStr, Field(min_length=1, max_length=MAX_RUBRIC_ITEM)]] = Field(
         default_factory=list, max_length=8
     )
+    topic: Annotated[CleanStr, Field(max_length=120)] = ""
     source_refs: list[int] = Field(default_factory=list, max_length=20)
 
 
@@ -128,7 +129,8 @@ _SHAPE = (
     'Return JSON: {"title": string, "description": string, "questions": [{"question": string, '
     '"question_type": string, "difficulty": "easy" | "medium" | "hard", "options": [{"id": '
     '"A", "text": string}], "correct_answers": [string], "explanation": string, "rubric": '
-    '[string], "source_refs": [integer]}]}. For choice questions correct_answers holds option ids.'
+    '[string], "topic": string, "source_refs": [integer]}]}. For choice questions '
+    "correct_answers holds option ids."
 )
 
 
