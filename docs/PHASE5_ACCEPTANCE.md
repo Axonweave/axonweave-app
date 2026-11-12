@@ -23,7 +23,7 @@ provider says so. Decisions: D-102 to D-120 in `DECISIONS.md`.
 | 15 | Analytics and study calendar correct | Met (API) / Partly (UI) | 16 analytics tests (empty account, filters, ranges, isolation). The calendar is a list of days, not a grid; no charts. A performance check on large seeded data was **not** run. |
 | 16 | All user data protected by ownership checks | Met | Every repository query filters by `user_id`; cross-user tests in the quiz, revision, analytics and recommendation suites return 404 or empty. |
 | 17 | Errors, retries, duplicate requests handled | Met | Idempotency keys on submit and review, concurrent submit/review tests, grading failure leaves `pending`. |
-| 18 | Phase 1 to 4 keep working | See test results below | |
+| 18 | Phase 1 to 4 keep working | Met | Full backend suite: 1346 passed, 41 skipped, 0 failed. Frontend Vitest: 255 passed. |
 
 ## Not built or not verified
 - Browser pages for quiz history and attempt comparison; a subject-performance view; charts.
