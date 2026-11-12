@@ -9,6 +9,7 @@ from app.modules.citations.routes import router as citations_router
 from app.modules.dashboard.routes import router as dashboard_router
 from app.modules.documents.routes import router as documents_router
 from app.modules.folders.routes import router as folders_router
+from app.modules.recommendations.routes import router as recommendations_router
 from app.modules.revision.routes import card_router as revision_card_router
 from app.modules.revision.routes import router as revision_router
 from app.modules.search.routes import router as search_router
@@ -41,6 +42,7 @@ router.include_router(quiz_router)
 router.include_router(quiz_history_router)
 router.include_router(revision_router)
 router.include_router(analytics_router)
+router.include_router(recommendations_router)
 router.include_router(revision_card_router)
 router.include_router(collection_router)
 router.include_router(library_router)
