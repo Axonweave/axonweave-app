@@ -55,6 +55,15 @@ class UploadOutcome:
 
 
 @dataclass
+class _Stored:
+    key: str
+    file_type: str
+    mime_type: str
+    size: int
+    checksum: str
+
+
+@dataclass
 class Download:
     document: Document
     stream: AsyncIterator[bytes]
@@ -162,8 +171,67 @@ class DocumentService:
         count: int,
         total_bytes: int,
     ) -> Document:
+        document_id = uuid.uuid4()
+        stored = await self._validate_and_store(
+            user_id=user.id,
+            document_id=document_id,
+            version=1,
+            part=part,
+            display=display,
+            count=count,
+            total_bytes=total_bytes,
+        )
+        key, size, detected = stored.key, stored.size, stored
+        try:
+            doc, job_id = await self._docs.create_with_version_and_job(
+                document_id=document_id,
+                user_id=user.id,
+                workspace_id=placement.workspace_id,
+                subject_id=placement.subject_id,
+                folder_id=placement.folder_id,
+                chapter_id=placement.chapter_id,
+                display_name=display,
+                original_filename=display,
+                file_type=detected.file_type,
+                mime_type=detected.mime_type,
+                file_size=size,
+                checksum=stored.checksum,
+                storage_key=key,
+                pipeline_version=PIPELINE_VERSION,
+            )
+            await self._db.commit()
+        except Exception:
+            await self._db.rollback()
+            await self._discard_object(key)
+            raise
+        await self._dispatch(job_id)
+        logger.info(
+            "document_uploaded",
+            user_id=str(user.id),
+            document_id=str(document_id),
+            file_type=detected.file_type,
+            size=size,
+        )
+        return doc
+
+    async def _validate_and_store(
+        self,
+        *,
+        user_id: uuid.UUID,
+        document_id: uuid.UUID,
+        version: int,
+        part: UploadFile,
+        display: str,
+        count: int,
+        total_bytes: int,
+        required_type: str | None = None,
+    ) -> "_Stored":
         f = part.file
         detected = detect_and_validate(f, extension_of(display), self._limits)
+        if required_type is not None and detected.file_type != required_type:
+            raise UploadRejected(
+                "FILE_TYPE_MISMATCH", "A replacement must be the same type of file.", 422
+            )
         size = f.seek(0, 2)
         f.seek(0)
         if count >= self._settings.doc_max_documents_per_user:
@@ -187,8 +255,7 @@ class DocumentService:
             digest.update(chunk)
         f.seek(0)
 
-        document_id = uuid.uuid4()
-        key = build_original_key(user.id, document_id, 1, detected.file_type)
+        key = build_original_key(user_id, document_id, version, detected.file_type)
 
         async def chunks() -> AsyncIterator[bytes]:
             while block := await run_in_threadpool(f.read, CHUNK):
@@ -204,39 +271,68 @@ class DocumentService:
         except StorageError as exc:
             logger.error("document_store_failed", code=exc.code)
             raise UploadRejected("STORAGE_UNAVAILABLE", "Storage is unavailable.", 503) from None
+        return _Stored(
+            key=key,
+            file_type=detected.file_type,
+            mime_type=detected.mime_type,
+            size=size,
+            checksum=digest.hexdigest(),
+        )
+
+    async def _discard_object(self, key: str) -> None:
+        try:  # do not leave an orphan object behind when the row could not be written
+            await self._storage.delete(key)
+        except StorageError as exc:
+            logger.error("document_orphan_cleanup_failed", code=exc.code)
+
+    async def replace_file(
+        self, *, user: User, document_id: uuid.UUID, part: UploadFile
+    ) -> Document:
+        """Add version N+1. The current active version stays searchable until the new one
+        completes (D-68); only then does the pipeline switch the pointer."""
+        self.require_processing()
+        doc = await self.get_owned(user_id=user.id, document_id=document_id)
+        latest = await self._latest_version(doc)
+        if await self._jobs.active_for_version(latest.id) is not None:
+            raise HTTPException(
+                409,
+                detail={"code": "PROCESSING_IN_PROGRESS", "message": "Processing is in progress."},
+            )
+        display = sanitise_display_name(part.filename)
+        _, total_bytes = await self._docs.usage_for_user(user.id)
+        number = doc.latest_version + 1
         try:
-            doc, job_id = await self._docs.create_with_version_and_job(
-                document_id=document_id,
+            stored = await self._validate_and_store(
                 user_id=user.id,
-                workspace_id=placement.workspace_id,
-                subject_id=placement.subject_id,
-                folder_id=placement.folder_id,
-                chapter_id=placement.chapter_id,
-                display_name=display,
-                original_filename=display,
-                file_type=detected.file_type,
-                mime_type=detected.mime_type,
-                file_size=size,
-                checksum=digest.hexdigest(),
-                storage_key=key,
+                document_id=doc.id,
+                version=number,
+                part=part,
+                display=display,
+                count=0,  # a replacement adds no document, only bytes
+                total_bytes=total_bytes,
+                required_type=doc.file_type,
+            )
+        except UploadRejected as exc:
+            raise HTTPException(
+                exc.status_code, detail={"code": exc.code, "message": exc.message}
+            ) from None
+        try:
+            job_id = await self._docs.add_version_and_job(
+                doc,
+                version_number=number,
+                storage_key=stored.key,
+                file_size=stored.size,
+                checksum=stored.checksum,
                 pipeline_version=PIPELINE_VERSION,
             )
             await self._db.commit()
         except Exception:
             await self._db.rollback()
-            try:  # do not leave an orphan object behind when the row could not be written
-                await self._storage.delete(key)
-            except StorageError as exc:
-                logger.error("document_orphan_cleanup_failed", code=exc.code)
+            await self._discard_object(stored.key)
             raise
         await self._dispatch(job_id)
-        logger.info(
-            "document_uploaded",
-            user_id=str(user.id),
-            document_id=str(document_id),
-            file_type=detected.file_type,
-            size=size,
-        )
+        logger.info("document_replaced", document_id=str(doc.id), version=number, size=stored.size)
+        await self._db.refresh(doc)
         return doc
 
     # ── reads and updates ────────────────────────────────────────────────────

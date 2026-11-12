@@ -216,6 +216,45 @@ class DocumentRepository:
         await self._db.flush()
         return doc, job.id
 
+    async def add_version_and_job(
+        self,
+        doc: Document,
+        *,
+        version_number: int,
+        storage_key: str,
+        file_size: int,
+        checksum: str,
+        pipeline_version: str,
+    ) -> uuid.UUID:
+        """Add a queued version and job. `active_version` is not touched: the old version stays
+        the searchable one until the new one completes. The caller commits."""
+        version = DocumentVersion(
+            document_id=doc.id,
+            user_id=doc.user_id,
+            version_number=version_number,
+            storage_key=storage_key,
+            file_size=file_size,
+            checksum=checksum,
+            processing_status="queued",
+        )
+        self._db.add(version)
+        await self._db.flush()
+        job = DocumentProcessingJob(
+            user_id=doc.user_id,
+            document_id=doc.id,
+            document_version_id=version.id,
+            pipeline_version=pipeline_version,
+            status="queued",
+            stage="queued",
+        )
+        self._db.add(job)
+        doc.latest_version = version_number
+        doc.file_size = file_size
+        doc.checksum = checksum
+        doc.processing_status = "queued"
+        await self._db.flush()
+        return job.id
+
     async def move(
         self,
         doc: Document,
@@ -328,3 +367,12 @@ class DocumentRepository:
         """Make this version the searchable one (one transaction with the chunk swap)."""
         doc.active_version = version.version_number
         await self._db.flush()
+        # Older versions stop being searchable now; their chunks are dropped in the same
+        # transaction (their files stay, so the history is kept).
+        await self._db.execute(
+            delete(DocumentChunk).where(
+                DocumentChunk.document_id == doc.id,
+                DocumentChunk.user_id == doc.user_id,
+                DocumentChunk.document_version_id != version.id,
+            )
+        )

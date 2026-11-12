@@ -52,8 +52,12 @@ def _uuid_field(form: object, name: str, *, required: bool) -> uuid.UUID | None:
         raise _http(422, "INVALID_UPLOAD", f"{name} is invalid.") from None
 
 
-async def read_upload_form(request: Request, settings: Settings) -> UploadForm:
-    limit = settings.doc_max_files_per_request * settings.doc_max_file_bytes + _OVERHEAD
+async def read_upload_form(
+    request: Request, settings: Settings, *, single_file: bool = False
+) -> UploadForm:
+    """`single_file` is the replace-file form: exactly one file, no placement fields."""
+    max_files = 1 if single_file else settings.doc_max_files_per_request
+    limit = max_files * settings.doc_max_file_bytes + _OVERHEAD
     declared = request.headers.get("content-length")
     if declared is not None and declared.isdigit() and int(declared) > limit:
         raise _too_large()
@@ -75,7 +79,7 @@ async def read_upload_form(request: Request, settings: Settings) -> UploadForm:
 
     limited = Request(request.scope, counting_receive)
     try:
-        form = await limited.form(max_files=settings.doc_max_files_per_request + 1, max_fields=10)
+        form = await limited.form(max_files=max_files + 1, max_fields=10)
     except BodyTooLargeError:
         raise _too_large() from None
     except MultiPartException:
@@ -84,8 +88,16 @@ async def read_upload_form(request: Request, settings: Settings) -> UploadForm:
     files = [v for v in form.getlist("files") if isinstance(v, UploadFile)]
     if not files:
         raise _http(422, "NO_FILES", "Attach at least one file in the 'files' field.")
-    if len(files) > settings.doc_max_files_per_request:
+    if len(files) > max_files:
         raise _http(422, "TOO_MANY_FILES", "Too many files in one request.")
+    if single_file:
+        return UploadForm(
+            workspace_id=uuid.UUID(int=0),
+            subject_id=None,
+            folder_id=None,
+            chapter_id=None,
+            files=files,
+        )
     return UploadForm(
         workspace_id=_uuid_field(form, "workspace_id", required=True),  # type: ignore[arg-type]
         subject_id=_uuid_field(form, "subject_id", required=False),

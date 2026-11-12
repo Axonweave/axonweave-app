@@ -116,6 +116,29 @@ async def upload_documents(
     )
 
 
+@router.post("/{document_id}/replace", response_model=DocumentResponse)
+async def replace_document_file(
+    document_id: uuid.UUID,
+    request: Request,
+    current_user: ActiveUser,
+    db: DbSession,
+    storage: Storage,
+    scanner: Scan,
+    settings: AppSettings,
+    limiter: Annotated[RateLimiter, Depends(get_rate_limiter)],
+) -> DocumentResponse:
+    """Upload a new version of the file (multipart field `files`, same file type). The current
+    version stays active and searchable until the new one completes."""
+    service = _service(db, storage, scanner, settings)
+    service.require_processing()
+    await limiter.check(
+        f"doc_upload:{current_user.id}", settings.doc_uploads_per_minute_per_user, 60
+    )
+    form = await read_upload_form(request, settings, single_file=True)
+    doc = await service.replace_file(user=current_user, document_id=document_id, part=form.files[0])
+    return DocumentResponse(data=DocumentOut.model_validate(doc))
+
+
 @router.get("", response_model=DocumentListResponse)
 async def list_documents(
     current_user: ActiveUser,

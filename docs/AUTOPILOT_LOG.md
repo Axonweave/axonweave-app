@@ -51,3 +51,4 @@ P4-7 | Attempt list response shape | Read `data.items` | The attempts endpoint r
 P4-8 | Live evaluation script | Read-only measure script plus human protocol; no separate live caller | The app already enforces job, token and quota caps; a second path could exceed them.
 P4-8 | Route security sweep | Enumerate routes from the app and require login on each | New routes are covered automatically.
 P4-8 | Acceptance statuses | Generation criteria are at best Partly | No live provider call, real document or visual check was run.
+P3-2 | docs/API for P3-2 already merged; what to do | built only missing replace-file flow | audit showed all else present
