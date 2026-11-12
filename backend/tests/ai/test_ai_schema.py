@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.model_registry import build_registry
-from app.ai.prompts.registry import PROMPTS
+from app.ai.prompts.registry import PROMPTS, active_prompt
 from app.ai.sync import PromptImmutableError, sync_models, sync_prompts
 from app.models.ai_usage_record import AiUsageRecord
 from app.models.conversation import Conversation
@@ -276,7 +276,9 @@ async def test_sync_is_idempotent_and_marks_one_default(db_session: AsyncSession
     assert [m.provider_model_id for m in models if m.is_default] == ["fake-model"]
     prompts = (await db_session.execute(select(PromptTemplate))).scalars().all()
     assert len(prompts) == len(PROMPTS)
-    assert all(p.is_active for p in prompts)
+    # Only the highest version of each key is active; older released versions stay stored (D-41).
+    latest = {key: active_prompt(key).version for key in {p.prompt_key for p in PROMPTS}}
+    assert {(p.prompt_key, p.version) for p in prompts if p.is_active} == set(latest.items())
 
 
 async def test_sync_does_nothing_without_a_provider(db_session: AsyncSession) -> None:
