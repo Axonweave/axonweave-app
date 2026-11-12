@@ -23,6 +23,15 @@ const TASKS = [
   ["P4-6", "P4-6-ui-generation-library.md", "Generation and library UI"],
   ["P4-7", "P4-7-ui-quiz-export-preferences.md", "Quiz, export and preferences UI"],
   ["P4-8", "P4-8-phase4-closeout.md", "Phase 4 closeout", { pauseAfter: true }],
+  ["P5-0", "P5-0-review-schema-fsrs.md", "Review, schema and FSRS"],
+  ["P5-1", "P5-1-quiz-assessment-backend.md", "Quiz assessment backend"],
+  ["P5-2", "P5-2-quiz-assessment-ui.md", "Quiz assessment UI"],
+  ["P5-3", "P5-3-spaced-repetition-backend.md", "Spaced repetition backend"],
+  ["P5-4", "P5-4-revision-centre-ui.md", "Revision Centre UI"],
+  ["P5-5", "P5-5-topic-analytics-backend.md", "Topic performance and analytics backend"],
+  ["P5-6", "P5-6-weak-topics-recommendations.md", "Weak topics and recommendations"],
+  ["P5-7", "P5-7-analytics-ui.md", "Analytics, calendar and recommendations UI"],
+  ["P5-8", "P5-8-phase5-closeout.md", "Phase 5 closeout", { pauseAfter: true }],
 ].map(([id, file, title, o = {}]) => ({ id, file, title, ...o }));
 
 const args = process.argv.slice(2);
@@ -43,10 +52,7 @@ const isWin = process.platform === "win32";
 const log = (...a) => console.log(`[${new Date().toISOString().slice(11, 19)}]`, ...a);
 const die = (m) => { console.error("\nSTOPPED: " + m); process.exit(1); };
 
-// With shell: true on Windows, args containing spaces or quotes are split by the shell.
-const winQuote = (a) => (/[\s"]/.test(a) ? `"${a.replace(/"/g, '\\"')}"` : a);
 function run(cmd, cmdArgs, opts = {}) {
-  if (isWin) cmdArgs = cmdArgs.map(winQuote);
   const r = spawnSync(cmd, cmdArgs, {
     cwd: ROOT, encoding: "utf8", shell: isWin, maxBuffer: 64 * 1024 * 1024, ...opts,
   });
@@ -78,7 +84,12 @@ function preflight() {
     log("WARNING: docs/PHASE4_SPEC.md is missing; Phase 4 tasks will block until you add it.");
   }
   if (!fs.existsSync(path.join(ROOT, "docs/PHASE3_SPEC.md"))) die("Missing docs/PHASE3_SPEC.md");
-  if (TASKS.some((t) => t.id.startsWith("P4")) && !fs.existsSync(path.join(ROOT, "docs/TASKS_Phase4.md"))) die("Missing docs/TASKS_Phase4.md");
+  for (const n of ["4", "5"]) {
+    if (TASKS.some((t) => t.id.startsWith("P" + n)) && !fs.existsSync(path.join(ROOT, `docs/TASKS_Phase${n}.md`))) die(`Missing docs/TASKS_Phase${n}.md`);
+  }
+  if (TASKS.some((t) => t.id.startsWith("P5")) && !fs.existsSync(path.join(ROOT, "docs/PHASE5_SPEC.md"))) {
+    log("WARNING: docs/PHASE5_SPEC.md is missing; Phase 5 tasks will block until you add it.");
+  }
 }
 
 const q = (a) => (isWin && /[ ()&|<>^]/.test(a) ? `"${a}"` : a);
@@ -152,15 +163,10 @@ function waitForChecks(pr) {
   // `gh pr checks --watch --fail-fast` exits non-zero if any check fails.
   // Give GitHub a moment to register the workflow runs first.
   spawnSync(isWin ? "timeout" : "sleep", isWin ? ["/t", "20", "/nobreak"] : ["20"], { shell: isWin });
-  // No --required: the repo has no required checks, so that flag always reports none.
-  let seen = gh("pr", "checks", pr);
-  for (let i = 0; i < 9 && /no checks reported/i.test(seen.out); i++) {
-    spawnSync(isWin ? "timeout" : "sleep", isWin ? ["/t", "20", "/nobreak"] : ["20"], { shell: isWin });
-    seen = gh("pr", "checks", pr);
-  }
-  if (/no checks reported/i.test(seen.out)) {
-    log("No checks reported after 3 minutes. Treating as NOT green for safety.");
-    return { green: false, out: seen.out };
+  const noChecks = gh("pr", "checks", pr, "--required");
+  if (/no checks reported|no required checks/i.test(noChecks.out)) {
+    log("No checks reported. Treating as NOT green for safety.");
+    return { green: false, out: noChecks.out };
   }
   const r = gh("pr", "checks", pr, "--watch", "--fail-fast");
   return { green: r.code === 0, out: r.out };
