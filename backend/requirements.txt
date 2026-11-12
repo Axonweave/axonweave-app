@@ -37,3 +37,6 @@ boto3==1.43.125
 
 # Multipart form parsing for document upload (Phase 3 M2). Version verified 2026-11-09.
 python-multipart==0.0.33
+
+# Phase 5 spaced repetition (D-105). py-fsrs, MIT, verified 2026-11-12 (v6.3.2, only dependency typing-extensions).
+fsrs==6.3.2

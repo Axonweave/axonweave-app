@@ -16,6 +16,12 @@ from app.models.message_citation import MessageCitation
 from app.models.password_reset_token import PasswordResetToken
 from app.models.prompt_template import PromptTemplate
 from app.models.quiz import Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion
+from app.models.revision import (
+    FlashcardReview,
+    FlashcardScheduling,
+    RevisionRecommendation,
+    RevisionSession,
+)
 from app.models.session_model import Session
 from app.models.storage_cleanup import StorageCleanup
 from app.models.study_export import StudyExport
@@ -38,6 +44,10 @@ __all__ = [
     "DocumentVersion",
     "EmailVerificationToken",
     "Folder",
+    "FlashcardReview",
+    "FlashcardScheduling",
+    "RevisionRecommendation",
+    "RevisionSession",
     "Flashcard",
     "FlashcardSet",
     "GenerationJob",

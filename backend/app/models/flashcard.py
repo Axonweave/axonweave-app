@@ -65,6 +65,8 @@ class Flashcard(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         CheckConstraint("display_order >= 0", name="ck_flashcards_order"),
         Index("ix_flashcards_set_order", "flashcard_set_id", "display_order"),
         Index("ix_flashcards_user", "user_id"),
+        # target of the composite ownership FKs of Phase 5 (scheduling, reviews)
+        UniqueConstraint("id", "user_id", name="uq_flashcards_id_user"),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
@@ -87,3 +89,5 @@ class Flashcard(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     revision: Mapped[int] = mapped_column(
         Integer, nullable=False, default=1, server_default=text("1")
     )
+    # Short topic label (D-102); NULL for cards generated before Phase 5 or typed by hand.
+    topic: Mapped[str | None] = mapped_column(String(120), nullable=True)
