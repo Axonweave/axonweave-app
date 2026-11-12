@@ -72,3 +72,7 @@ Phase 4 M3/M7 already created `quizzes`, `quiz_questions`, `quiz_attempts`, `qui
 
 ## Out of scope (spec section 12, do not start)
 Knowledge graph, concept relationship extraction, prerequisite mapping, learner knowledge modelling, misconception detection, adaptive learning paths, research features, AI viva, simulations, audio revision, multilingual learning.
+
+
+## Status (branch `phase5/complete`, one stacked PR)
+Built: M1 quiz assessment backend, M3 spaced repetition backend (FSRS), M5 analytics backend, M6 recommendations backend, results-screen extension (M2 part), Revision Centre, session runner and Progress page (M4, M7 part). Not built: quiz history/compare pages, review-marks UI beyond Phase 4, Playwright tests, dashboard additions. See `PHASE5_ACCEPTANCE.md` for the line-by-line status. Nothing here is ticked as merged; tick tasks when the PR is merged.
