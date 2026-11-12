@@ -25,6 +25,7 @@ def generated_question_rows(
             "correct_answers": list(q.correct_answers),
             "rubric": list(q.rubric),
             "explanation": q.explanation or None,
+            "topic": q.topic or None,
             "source_references": card_references(q.source_refs, sources),
         }
         for q in questions

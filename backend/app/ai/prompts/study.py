@@ -64,8 +64,8 @@ formula and example of your part; drop only repetition. Keep technical terms exa
 )
 
 FLASHCARDS_KEY = "study_flashcards"
-FLASHCARDS_VERSION = 1
-FLASHCARDS = (
+FLASHCARDS_VERSION = 2
+FLASHCARDS_V1 = (
     COMMON
     + """
 6. You are writing flashcards. Each card tests ONE concept that the passages actually state; never \
@@ -74,11 +74,19 @@ concise, and the terminology exactly as in the material.
 7. Never write two cards that ask for the same thing. Do not copy a long passage into a card.
 8. Every card must carry the source numbers of the passages it is based on in "source_refs"."""
 )
+# Version 2 (Phase 5, D-102): adds a short topic label so results can be grouped by topic.
+FLASHCARDS = (
+    FLASHCARDS_V1
+    + """
+9. Give every card a short "topic" label (a few words, at most 120 characters) naming the \
+topic or section of the material it belongs to. Reuse exactly the same label for cards on the \
+same topic."""
+)
 
 
 QUIZ_KEY = "study_quiz"
-QUIZ_VERSION = 1
-QUIZ = (
+QUIZ_VERSION = 2
+QUIZ_V1 = (
     COMMON
     + """
 6. You are writing quiz questions. Each question tests ONE idea that the passages actually state; \
@@ -89,6 +97,14 @@ answer in the question or make the correct option stand out by length or wording
 questions about the same thing.
 8. Every question must carry the source numbers of the passages it is based on in "source_refs". \
 For multiple choice and multiple select, "correct_answers" holds option ids such as "A"."""
+)
+# Version 2 (Phase 5, D-102): adds a short topic label so results can be grouped by topic.
+QUIZ = (
+    QUIZ_V1
+    + """
+9. Give every question a short "topic" label (a few words, at most 120 characters) naming the \
+topic or section of the material it tests. Reuse exactly the same label for questions on the \
+same topic."""
 )
 
 

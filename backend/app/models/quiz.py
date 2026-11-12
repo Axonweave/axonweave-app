@@ -83,6 +83,7 @@ class QuizQuestion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         CheckConstraint("display_order >= 0", name="ck_quiz_questions_order"),
         Index("ix_quiz_questions_quiz_order", "quiz_id", "display_order"),
         Index("ix_quiz_questions_user", "user_id"),
+        Index("ix_quiz_questions_user_topic", "user_id", "topic"),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
@@ -102,6 +103,8 @@ class QuizQuestion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         JSONB, nullable=False, server_default=text("'[]'::jsonb")
     )
     display_order: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Short topic label (D-102); NULL for questions generated before Phase 5 or without a label.
+    topic: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
 
 class QuizAttempt(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -117,7 +120,25 @@ class QuizAttempt(UUIDPrimaryKeyMixin, TimestampMixin, Base):
             name="fk_quiz_attempts_quiz_owner",
         ),
         UniqueConstraint("id", "user_id", name="uq_quiz_attempts_id_user"),
-        CheckConstraint("status IN ('in_progress', 'submitted')", name="ck_quiz_attempts_status"),
+        CheckConstraint(
+            "status IN ('in_progress', 'submitted', 'abandoned')", name="ck_quiz_attempts_status"
+        ),
+        CheckConstraint(
+            "evaluation_status IN ('not_required', 'pending', 'completed', 'failed')",
+            name="ck_quiz_attempts_evaluation_status",
+        ),
+        CheckConstraint(
+            "time_taken_seconds IS NULL OR time_taken_seconds >= 0",
+            name="ck_quiz_attempts_time_taken",
+        ),
+        Index(
+            "uq_quiz_attempts_submit_key",
+            "user_id",
+            "submit_idempotency_key",
+            unique=True,
+            postgresql_where=text("submit_idempotency_key IS NOT NULL"),
+        ),
+        Index("ix_quiz_attempts_user_submitted", "user_id", "submitted_at"),
         Index("ix_quiz_attempts_quiz_user", "quiz_id", "user_id", "started_at"),
         # at most one open attempt per quiz and user (resume instead of a second one)
         Index(
@@ -151,6 +172,17 @@ class QuizAttempt(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     total_questions: Mapped[int | None] = mapped_column(Integer, nullable=True)
     graded_questions: Mapped[int | None] = mapped_column(Integer, nullable=True)
     percentage: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
+    # Phase 5 (D-103). Counts are NULL on attempts submitted before Phase 5.
+    correct_answers: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    incorrect_answers: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    unanswered: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_score: Mapped[Decimal | None] = mapped_column(Numeric(7, 2), nullable=True)
+    time_taken_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    abandoned_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    evaluation_status: Mapped[str] = mapped_column(
+        String(12), nullable=False, default="not_required", server_default=text("'not_required'")
+    )
+    submit_idempotency_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 
 class QuizAttemptAnswer(UUIDPrimaryKeyMixin, Base):
@@ -173,6 +205,15 @@ class QuizAttemptAnswer(UUIDPrimaryKeyMixin, Base):
         ),
         UniqueConstraint("attempt_id", "question_id", name="uq_quiz_attempt_answers_pair"),
         Index("ix_quiz_attempt_answers_attempt", "attempt_id"),
+        Index("ix_quiz_attempt_answers_user_question", "user_id", "question_id"),
+        CheckConstraint(
+            "grading_method IN ('auto', 'ai', 'self_assessment')",
+            name="ck_quiz_attempt_answers_grading_method",
+        ),
+        CheckConstraint(
+            "evaluation_status IN ('graded', 'not_graded', 'pending', 'failed')",
+            name="ck_quiz_attempt_answers_evaluation_status",
+        ),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
@@ -185,3 +226,20 @@ class QuizAttemptAnswer(UUIDPrimaryKeyMixin, Base):
     )
     feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Phase 5 (D-104). `max_score` is the points available for this question (1 for objective).
+    max_score: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2), nullable=False, default=Decimal(1), server_default=text("1")
+    )
+    grading_method: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="auto", server_default=text("'auto'")
+    )
+    evaluation_status: Mapped[str] = mapped_column(
+        String(12), nullable=False, default="graded", server_default=text("'graded'")
+    )
+    ai_assisted: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false")
+    )
+    # Structured descriptive-grading detail (explanation, missing points); never the key text.
+    evaluation_detail: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    evaluation_error_code: Mapped[str | None] = mapped_column(String(48), nullable=True)
+    evaluated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

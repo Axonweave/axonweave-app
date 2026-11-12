@@ -48,6 +48,7 @@ class CardOut(BaseModel):
     card_type: CardType
     difficulty: Difficulty
     explanation: Annotated[CleanStr, Field(max_length=MAX_EXPLANATION)] = ""
+    topic: Annotated[CleanStr, Field(max_length=120)] = ""
     source_refs: list[int] = Field(default_factory=list, max_length=20)
 
 
@@ -72,7 +73,8 @@ _TYPE_TEXT = {
 _SHAPE = (
     'Return JSON: {"title": string, "cards": [{"front": string, "back": string, "card_type": '
     '"basic" | "definition" | "concept" | "comparison" | "fill_in_the_blank" | "application", '
-    '"difficulty": "easy" | "medium" | "hard", "explanation": string, "source_refs": [integer]}]}'
+    '"difficulty": "easy" | "medium" | "hard", "explanation": string, "topic": string, '
+    '"source_refs": [integer]}]}'
 )
 
 
