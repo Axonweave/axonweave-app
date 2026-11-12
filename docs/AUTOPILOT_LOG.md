@@ -51,6 +51,7 @@ P4-7 | Attempt list response shape | Read `data.items` | The attempts endpoint r
 P4-8 | Live evaluation script | Read-only measure script plus human protocol; no separate live caller | The app already enforces job, token and quota caps; a second path could exceed them.
 P4-8 | Route security sweep | Enumerate routes from the app and require login on each | New routes are covered automatically.
 P4-8 | Acceptance statuses | Generation criteria are at best Partly | No live provider call, real document or visual check was run.
+P3-2 | docs/API for P3-2 already merged; what to do | built only missing replace-file flow | audit showed all else present
 P5-0 | Topic source | Add nullable topic to quiz_questions and flashcards, prompts v2 (D-102) | The bank's topic lived only in JSON; analytics needs a column.
 P5-0 | FSRS library | py-fsrs 6.3.2 (MIT) pinned (D-105) | Maintained, MIT, latest on PyPI, only typing-extensions dependency; verified on PyPI 2026-11-12.
 P5-0 | Stability/difficulty column type | double precision instead of DECIMAL (D-106) | Library uses floats; rounding would change schedules.

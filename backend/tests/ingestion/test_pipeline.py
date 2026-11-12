@@ -222,6 +222,8 @@ class TestFailures:
     async def test_unprocessable_documents_fail_with_a_safe_code(
         self, env: Env, file_type, data_factory, code
     ):
+        if file_type == "pdf":
+            pytest.importorskip("fitz")  # PyMuPDF is a worker-image dependency
         document_id, job_id = await env.add(file_type, data_factory())
         assert await run_job(env.deps(), job_id) == pipeline.FAILED
         snap = await env.snapshot(document_id)
