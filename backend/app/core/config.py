@@ -130,6 +130,12 @@ class Settings(BaseSettings):
     quiz_ai_grading_enabled: bool = True
     quiz_grading_max_output_tokens: int = Field(default=600, ge=100, le=4000)
     quiz_evaluations_per_minute_per_user: int = Field(default=30, ge=1)
+    # Phase 5 spaced repetition (D-107, D-114)
+    revision_desired_retention: float = Field(default=0.9, ge=0.70, le=0.99)
+    revision_new_cards_per_day: int = Field(default=20, ge=0, le=500)
+    revision_session_max_cards: int = Field(default=50, ge=1, le=200)
+    revision_session_idle_minutes: int = Field(default=120, ge=5)
+    revision_reviews_per_minute_per_user: int = Field(default=120, ge=1)
     # "redis" needs redis_url; "memory" is the in-process limiter (tests, single instance) (D-65).
     rate_limit_backend: str = "memory"
 
