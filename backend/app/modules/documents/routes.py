@@ -305,7 +305,7 @@ async def download_document(
         headers={
             **_NO_STORE,
             "Content-Disposition": _content_disposition("attachment", doc.original_filename),
-            "Content-Length": str(doc.file_size),
+            "Content-Length": str(result.size),
         },
     )
 
@@ -338,7 +338,7 @@ async def inline_document(
             **_NO_STORE,
             "Content-Disposition": _content_disposition("inline", doc.original_filename),
             "Content-Security-Policy": "sandbox; default-src 'none'",
-            "Content-Length": str(doc.file_size),
+            "Content-Length": str(result.size),
         },
     )
 

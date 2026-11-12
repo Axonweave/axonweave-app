@@ -56,6 +56,12 @@ async def _complete_v1(db: AsyncSession, doc_id: str) -> DocumentVersion:
         )
     )
     ver.processing_status = "completed"
+    for job in (
+        await db.execute(
+            select(DocumentProcessingJob).where(DocumentProcessingJob.document_version_id == ver.id)
+        )
+    ).scalars():
+        job.status = "succeeded"
     await DocumentRepository(db).activate_version(doc, ver)
     doc.processing_status = "completed"
     await db.commit()
@@ -77,7 +83,7 @@ class TestReplaceFile:
         assert f"users/{alice.user.id}/documents/{doc['id']}/v2/original.pdf" in storage.keys()
         assert len(storage.keys()) == 2
         jobs = (await db_session.execute(select(DocumentProcessingJob))).scalars().all()
-        assert sorted(j.status for j in jobs) == ["queued", "queued"]
+        assert sorted(j.status for j in jobs) == ["queued", "succeeded"]  # v2 queued, v1 done
         # Old chunks are still there and still belong to the active version.
         chunks = (await db_session.execute(select(DocumentChunk))).scalars().all()
         assert len(chunks) == 1

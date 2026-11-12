@@ -130,6 +130,7 @@ class TestProcessingDetails:
     async def test_failed_processing_reports_a_safe_code(
         self, client: AsyncClient, alice: Actor, storage: InMemoryStorageBackend
     ):
+        pytest.importorskip("fitz")  # PyMuPDF is a worker-image dependency
         doc = await upload_one(client, alice, "a.pdf", make_pdf(b"not parseable"))
         assert await process(storage, await only_job(doc["id"])) == pipeline.FAILED
         status = (await call(client, alice, "GET", f"/documents/{doc['id']}/status")).json()["data"]

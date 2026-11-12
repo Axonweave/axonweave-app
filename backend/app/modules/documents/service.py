@@ -67,6 +67,7 @@ class _Stored:
 class Download:
     document: Document
     stream: AsyncIterator[bytes]
+    size: int
 
 
 class DocumentService:
@@ -410,8 +411,12 @@ class DocumentService:
     async def open_original(self, *, user_id: uuid.UUID, document_id: uuid.UUID) -> Download:
         """Ownership first, then the bytes stream (D-64). The storage key never leaves here."""
         doc = await self.get_owned(user_id=user_id, document_id=document_id)
+        # The active version is what readers and search see (D-68); a replacement that is
+        # still processing must not change what a download returns. Never-processed
+        # documents have no active version yet, so they serve the latest upload.
+        served = doc.active_version if doc.active_version is not None else doc.latest_version
         version = await self._docs.get_version(
-            document_id=doc.id, user_id=user_id, version_number=doc.latest_version
+            document_id=doc.id, user_id=user_id, version_number=served
         )
         if version is None:
             raise _not_found("DOCUMENT_NOT_FOUND", "Document not found.")
@@ -425,7 +430,9 @@ class DocumentService:
         if not present:  # row without object: report it before any header is sent
             logger.error("document_object_missing", document_id=str(doc.id))
             raise _not_found("DOCUMENT_FILE_MISSING", "The document file is not available.")
-        return Download(document=doc, stream=self._storage.open(version.storage_key))
+        return Download(
+            document=doc, stream=self._storage.open(version.storage_key), size=version.file_size
+        )
 
     # -- processing control (M3) ---------------------------------------------
 
