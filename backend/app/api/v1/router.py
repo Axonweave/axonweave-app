@@ -16,6 +16,7 @@ from app.modules.knowledge.misconception_routes import router as knowledge_misco
 from app.modules.knowledge.routes import router as knowledge_router
 from app.modules.recommendations.learner_routes import router as learner_recommendations_router
 from app.modules.recommendations.routes import router as recommendations_router
+from app.modules.research.routes import router as research_router
 from app.modules.revision.routes import card_router as revision_card_router
 from app.modules.revision.routes import router as revision_router
 from app.modules.search.routes import router as search_router
@@ -58,3 +59,4 @@ router.include_router(knowledge_learner_router)
 router.include_router(knowledge_dashboard_router)
 router.include_router(knowledge_misconception_router)
 router.include_router(learner_recommendations_router)
+router.include_router(research_router)

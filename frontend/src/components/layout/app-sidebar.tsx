@@ -43,12 +43,12 @@ const primaryNav: NavItem[] = [
   { label: "AI Tutor", href: "/ai-tutor", icon: BrainCircuit },
   { label: "Knowledge Graph", href: "/knowledge", icon: Network },
   { label: "Learner Intelligence", href: "/insights", icon: Gauge },
+  { label: "Research Studio", href: "/research", icon: FlaskConical },
   { label: "Revision", href: "/revision", icon: RotateCcw },
   { label: "Progress", href: "/progress", icon: ClipboardCheck },
 ];
 
 const comingSoonNav: NavItem[] = [
-  { label: "Research Studio", href: "#", icon: FlaskConical, disabled: true },
   { label: "Favourites", href: "#", icon: Star, disabled: true },
 ];
 
