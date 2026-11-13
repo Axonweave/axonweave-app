@@ -17,6 +17,20 @@ export type QuizQuestion = S["QuizQuestionOut"];
 export type QuizAttempt = S["AttemptOut"];
 export type QuizAttemptSummary = S["AttemptSummary"];
 export type QuizResult = S["ResultOut"];
+export type QuizHistory = S["HistoryOut"];
+export type QuizHistoryItem = S["HistoryItem"];
+export type QuizCompare = S["CompareOut"];
+
+export interface QuizHistoryFilters {
+  quiz_id?: string;
+  subject_id?: string;
+  chapter_id?: string;
+  status?: "in_progress" | "submitted" | "abandoned";
+  date_from?: string;
+  date_to?: string;
+  limit?: number;
+  offset?: number;
+}
 
 export type GenerationType =
   | "summary"
@@ -197,6 +211,14 @@ export const studyApi = {
       .post<QuizAttempt>(`/study/quizzes/${enc(quizId)}/attempts/${enc(attemptId)}/submit`, {
         answers,
       })
+      .then((r) => r.data),
+  history: (filters: QuizHistoryFilters = {}) =>
+    api
+      .get<QuizHistory>(`/study/quiz-attempts${query({ limit: 20, ...filters })}`)
+      .then((r) => r.data),
+  compare: (quizId: string, first: string, second: string) =>
+    api
+      .get<QuizCompare>(`/study/quizzes/${enc(quizId)}/attempts/compare${query({ first, second })}`)
       .then((r) => r.data),
   result: (quizId: string, attemptId: string) =>
     api

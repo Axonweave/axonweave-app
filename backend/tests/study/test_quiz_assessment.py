@@ -438,6 +438,7 @@ class TestHistoryAndCompare:
         await run_attempt(client, alice, quiz_id, t, right=False)
         rows = (await _call(client, alice, "GET", "/study/quiz-attempts")).json()["data"]
         assert rows["total"] == 2 and rows["items"][0]["quiz_title"]
+        assert rows["items"][0]["study_material_id"]  # the results page route needs it
         one = (
             await _call(client, alice, "GET", f"/study/quiz-attempts?quiz_id={quiz_id}&limit=1")
         ).json()["data"]

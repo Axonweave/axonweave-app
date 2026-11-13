@@ -397,6 +397,7 @@ async def attempt_history(
                     **_summary(a).model_dump(),
                     quiz_id=quiz.id,
                     quiz_title=quiz.title,
+                    study_material_id=material.id,
                     subject_id=material.subject_id,
                     chapter_id=material.chapter_id,
                 )

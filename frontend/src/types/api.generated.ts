@@ -3863,6 +3863,11 @@ export interface components {
             quiz_id: string;
             /** Quiz Title */
             quiz_title: string;
+            /**
+             * Study Material Id
+             * Format: uuid
+             */
+            study_material_id: string;
             /** Subject Id */
             subject_id: string | null;
             /** Chapter Id */

@@ -217,6 +217,7 @@ class HistoryItem(AttemptSummary):
 
     quiz_id: uuid.UUID
     quiz_title: str
+    study_material_id: uuid.UUID
     subject_id: uuid.UUID | None
     chapter_id: uuid.UUID | None
 
