@@ -36,6 +36,7 @@ from app.models.user import User
 from app.repositories.chapter_repository import ChapterRepository
 from app.repositories.knowledge_graph_repository import KnowledgeGraphRepository
 from app.repositories.knowledge_repository import KnowledgeRepository
+from app.repositories.learner_evidence_repository import LearnerEvidenceRepository
 from app.repositories.subject_repository import SubjectRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 
@@ -559,7 +560,7 @@ class KnowledgeGraphService:
         """Fold `merged` into `survivor` in one transaction: aliases, evidence and relationships
         move over (duplicates and self-loops are dropped), blanks are filled, an audit row is kept
         and the merged concept is removed. Learner evidence (Milestone 6.5) must also be
-        re-pointed here once it exists."""
+        re-pointed to the survivor as well."""
         if survivor_id == merged_id:
             raise InvalidMergeError()
         survivor = await self._node(user, survivor_id)
@@ -587,6 +588,8 @@ class KnowledgeGraphService:
                 moved_aliases += 1
 
         evidence_moved = await self._g.move_node_evidence(uid, merged.id, survivor.id)
+        # learner evidence and question/card links follow the surviving concept (spec 13)
+        await LearnerEvidenceRepository(self._db).repoint_node(uid, merged.id, survivor.id)
 
         edges_moved = edges_dropped = 0
         for edge in await self._g.edges_of_node(uid, merged.id):

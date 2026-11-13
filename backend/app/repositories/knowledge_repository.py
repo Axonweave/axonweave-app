@@ -155,10 +155,14 @@ class KnowledgeRepository:
         retried or repeated extraction never duplicates evidence. Returns the number inserted."""
         added = 0
         for row in rows:
+            # rowcount is unreliable (-1) for this driver; RETURNING says if a row was inserted
             result = await self._db.execute(
-                pg_insert(KnowledgeEvidence).values(**row).on_conflict_do_nothing()
+                pg_insert(KnowledgeEvidence)
+                .values(**row)
+                .on_conflict_do_nothing()
+                .returning(KnowledgeEvidence.id)
             )
-            added += int(result.rowcount or 0)
+            added += 1 if result.first() is not None else 0
         return added
 
     async def mark_stale(

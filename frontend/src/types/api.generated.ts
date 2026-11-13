@@ -2717,6 +2717,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge/learner/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sync Evidence
+         * @description Ingest new quiz answers and flashcard reviews. Safe to repeat; nothing is counted twice.
+         */
+        post: operations["sync_evidence_api_v1_knowledge_learner_sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Evidence Summary */
+        get: operations["evidence_summary_api_v1_knowledge_learner_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Evidence */
+        get: operations["list_evidence_api_v1_knowledge_learner_evidence_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Links */
+        get: operations["list_links_api_v1_knowledge_learner_links_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/links/{link_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Link */
+        post: operations["confirm_link_api_v1_knowledge_learner_links__link_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/links/{link_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Link */
+        post: operations["reject_link_api_v1_knowledge_learner_links__link_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3362,6 +3467,69 @@ export interface components {
             second_percentage: number | null;
             /** Change */
             change: number | null;
+        };
+        /** ConceptLinkListResponse */
+        ConceptLinkListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ConceptLinkOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ConceptLinkOut */
+        ConceptLinkOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Source Type */
+            source_type: string;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Knowledge Node Id
+             * Format: uuid
+             */
+            knowledge_node_id: string;
+            /** Node Name */
+            node_name: string;
+            /** Source Label */
+            source_label: string | null;
+            /** Method */
+            method: string;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ConceptLinkResponse */
+        ConceptLinkResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ConceptLinkOut"];
         };
         /** ContentResponse */
         ContentResponse: {
@@ -4546,6 +4714,62 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** LearnerEvidenceListResponse */
+        LearnerEvidenceListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["LearnerEvidenceOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** LearnerEvidenceOut */
+        LearnerEvidenceOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Knowledge Node Id */
+            knowledge_node_id: string | null;
+            /** Source Type */
+            source_type: string;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Source Event Id
+             * Format: uuid
+             */
+            source_event_id: string;
+            /** Topic */
+            topic: string | null;
+            /** Evidence Value */
+            evidence_value: number;
+            /** Evidence Metadata */
+            evidence_metadata: {
+                [key: string]: unknown;
+            };
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
         };
         /** LibraryItemOut */
         LibraryItemOut: {
@@ -6378,47 +6602,23 @@ export interface components {
             /** Idempotency Key */
             idempotency_key?: string | null;
         };
-        /** SummaryOut */
-        SummaryOut: {
-            /** Total Cards */
-            total_cards: number;
-            /** Due Today */
-            due_today: number;
-            /** Overdue */
-            overdue: number;
-            /** New */
-            new: number;
-            /** Learning */
-            learning: number;
-            /** Review */
-            review: number;
-            /** Suspended */
-            suspended: number;
-            /** Reviewed Today */
-            reviewed_today: number;
-            /** Daily Completion */
-            daily_completion: number | null;
-            /** New Cards Remaining Today */
-            new_cards_remaining_today: number;
-            /** Upcoming */
-            upcoming: components["schemas"]["UpcomingDayOut"][];
-            /** Subjects */
-            subjects: components["schemas"]["SubjectStatusOut"][];
-            /** Recent */
-            recent: components["schemas"]["RecentReviewOut"][];
-            /** Timezone */
-            timezone: string;
-            /** Desired Retention */
-            desired_retention: number;
+        /** SyncOut */
+        SyncOut: {
+            /** Ingested */
+            ingested: number;
+            /** Remapped */
+            remapped: number;
+            /** More */
+            more: boolean;
         };
-        /** SummaryResponse */
-        SummaryResponse: {
+        /** SyncResponse */
+        SyncResponse: {
             /**
              * Success
              * @default true
              */
             success: boolean;
-            data: components["schemas"]["SummaryOut"];
+            data: components["schemas"]["SyncOut"];
         };
         /** ThresholdsOut */
         ThresholdsOut: {
@@ -6978,6 +7178,24 @@ export interface components {
              */
             stream: boolean;
         };
+        /** SummaryOut */
+        app__modules__knowledge__learner_schemas__SummaryOut: {
+            /** Total */
+            total: number;
+            /** Unmapped */
+            unmapped: number;
+            /** Proposed Links */
+            proposed_links: number;
+        };
+        /** SummaryResponse */
+        app__modules__knowledge__learner_schemas__SummaryResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["app__modules__knowledge__learner_schemas__SummaryOut"];
+        };
         /** SessionListResponse */
         app__modules__revision__schemas__SessionListResponse: {
             /**
@@ -7026,6 +7244,48 @@ export interface components {
              * @default false
              */
             resumed: boolean;
+        };
+        /** SummaryOut */
+        app__modules__revision__schemas__SummaryOut: {
+            /** Total Cards */
+            total_cards: number;
+            /** Due Today */
+            due_today: number;
+            /** Overdue */
+            overdue: number;
+            /** New */
+            new: number;
+            /** Learning */
+            learning: number;
+            /** Review */
+            review: number;
+            /** Suspended */
+            suspended: number;
+            /** Reviewed Today */
+            reviewed_today: number;
+            /** Daily Completion */
+            daily_completion: number | null;
+            /** New Cards Remaining Today */
+            new_cards_remaining_today: number;
+            /** Upcoming */
+            upcoming: components["schemas"]["UpcomingDayOut"][];
+            /** Subjects */
+            subjects: components["schemas"]["SubjectStatusOut"][];
+            /** Recent */
+            recent: components["schemas"]["RecentReviewOut"][];
+            /** Timezone */
+            timezone: string;
+            /** Desired Retention */
+            desired_retention: number;
+        };
+        /** SummaryResponse */
+        app__modules__revision__schemas__SummaryResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["app__modules__revision__schemas__SummaryOut"];
         };
         /** PreferencesResponse */
         app__modules__study__preferences_service__PreferencesResponse: {
@@ -11696,7 +11956,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SummaryResponse"];
+                    "application/json": components["schemas"]["app__modules__revision__schemas__SummaryResponse"];
                 };
             };
             /** @description Validation Error */
@@ -13604,6 +13864,207 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CandidateResolveResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_evidence_api_v1_knowledge_learner_sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evidence_summary_api_v1_knowledge_learner_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__knowledge__learner_schemas__SummaryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_evidence_api_v1_knowledge_learner_evidence_get: {
+        parameters: {
+            query?: {
+                node_id?: string | null;
+                workspace_id?: string | null;
+                unmapped?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerEvidenceListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_links_api_v1_knowledge_learner_links_get: {
+        parameters: {
+            query?: {
+                status?: ("confirmed" | "proposed" | "rejected") | null;
+                workspace_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptLinkListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_link_api_v1_knowledge_learner_links__link_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptLinkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_link_api_v1_knowledge_learner_links__link_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptLinkResponse"];
                 };
             };
             /** @description Validation Error */

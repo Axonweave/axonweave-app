@@ -140,3 +140,9 @@ class InvalidCandidateActionError(KnowledgeError):
     code = "KNOWLEDGE_INVALID_ACTION"
     http_status = 422
     user_message = "That action is not valid for this suggestion."
+
+
+class ConceptLinkNotFoundError(KnowledgeError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Concept link not found."
