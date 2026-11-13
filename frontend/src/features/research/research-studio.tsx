@@ -25,6 +25,20 @@ import { DraftsWorkspace } from "./drafts-workspace";
 import { GapsWorkspace } from "./gaps-workspace";
 import { MatrixWorkspace } from "./matrix-workspace";
 import { PaperLibrary } from "./paper-library";
+import { ResearchDashboardPanel } from "./research-dashboard";
+
+const TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "papers", label: "Papers and analysis" },
+  { id: "comparison", label: "Comparison" },
+  { id: "matrix", label: "Evidence matrix" },
+  { id: "gaps", label: "Research gaps" },
+  { id: "contradictions", label: "Contradictions" },
+  { id: "citations", label: "Citations" },
+  { id: "writing", label: "Writing studio" },
+  { id: "graph", label: "Knowledge graph" },
+] as const;
+type TabId = (typeof TABS)[number]["id"];
 
 const SELECT = "border-input bg-background h-9 rounded-md border px-2 text-sm";
 const FIELD = "border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm";
@@ -372,6 +386,7 @@ export function ResearchStudio() {
   const [mode, setMode] = useState<"none" | "create" | "edit">("none");
   const [selected, setSelected] = useState<ResearchProject | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [tab, setTab] = useState<TabId>("overview");
 
   const workspaces = useAsync(() => workspacesApi.list().then((r) => r.data), []);
   const activeWorkspace = workspaceId || workspaces.data?.[0]?.id || "";
@@ -548,34 +563,60 @@ export function ResearchStudio() {
         />
       )}
 
-      {mode === "none" && selected && <PaperLibrary key={selected.id} project={selected} />}
-
       {mode === "none" && selected && (
-        <ComparisonWorkspace key={`cmp-${selected.id}`} project={selected} />
+        <nav aria-label="Project sections">
+          <div role="tablist" className="flex flex-wrap gap-1 border-b">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                role="tab"
+                id={`rs-tab-${t.id}`}
+                aria-selected={tab === t.id}
+                aria-controls="rs-tabpanel"
+                type="button"
+                className={`rounded-t-md px-3 py-1.5 text-sm ${
+                  tab === t.id
+                    ? "bg-muted text-foreground font-medium"
+                    : "text-muted-foreground hover:bg-muted/50"
+                }`}
+                onClick={() => setTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </nav>
       )}
 
       {mode === "none" && selected && (
-        <MatrixWorkspace key={`mx-${selected.id}`} project={selected} />
+        <div role="tabpanel" id="rs-tabpanel" aria-labelledby={`rs-tab-${tab}`}>
+          {tab === "overview" && (
+            <ResearchDashboardPanel key={`dash-${selected.id}`} projectId={selected.id} />
+          )}
+          {tab === "papers" && <PaperLibrary key={selected.id} project={selected} />}
+          {tab === "comparison" && (
+            <ComparisonWorkspace key={`cmp-${selected.id}`} project={selected} />
+          )}
+          {tab === "matrix" && <MatrixWorkspace key={`mx-${selected.id}`} project={selected} />}
+          {tab === "gaps" && <GapsWorkspace key={`gap-${selected.id}`} project={selected} />}
+          {tab === "contradictions" && (
+            <ContradictionsWorkspace key={`con-${selected.id}`} project={selected} />
+          )}
+          {tab === "citations" && (
+            <CitationsWorkspace key={`cit-${selected.id}`} project={selected} />
+          )}
+          {tab === "writing" && <DraftsWorkspace key={`drf-${selected.id}`} project={selected} />}
+          {tab === "graph" && (
+            <ConceptLinksWorkspace key={`kg-${selected.id}`} project={selected} />
+          )}
+        </div>
       )}
 
-      {mode === "none" && selected && (
-        <ContradictionsWorkspace key={`con-${selected.id}`} project={selected} />
-      )}
-
-      {mode === "none" && selected && (
-        <GapsWorkspace key={`gap-${selected.id}`} project={selected} />
-      )}
-
-      {mode === "none" && selected && (
-        <CitationsWorkspace key={`cit-${selected.id}`} project={selected} />
-      )}
-
-      {mode === "none" && selected && (
-        <DraftsWorkspace key={`drf-${selected.id}`} project={selected} />
-      )}
-
-      {mode === "none" && selected && (
-        <ConceptLinksWorkspace key={`kg-${selected.id}`} project={selected} />
+      {!selected && mode === "none" && (
+        <ResearchDashboardPanel
+          key={`all-${activeWorkspace}`}
+          workspaceId={activeWorkspace || undefined}
+        />
       )}
 
       <AsyncSection
@@ -602,6 +643,7 @@ export function ResearchStudio() {
                 }`}
                 onClick={() => {
                   setMode("none");
+                  setTab("overview");
                   setSelected(p);
                 }}
               >

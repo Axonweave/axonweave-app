@@ -24,6 +24,11 @@ vi.mock("@/lib/api/research", async (orig) => ({
     deleteProject: api.remove,
   },
 }));
+vi.mock("./research-dashboard", () => ({
+  ResearchDashboardPanel: ({ projectId }: { projectId?: string }) => (
+    <div>{projectId ? "Project dashboard" : "Research dashboard"}</div>
+  ),
+}));
 vi.mock("./paper-library", () => ({ PaperLibrary: () => <div>Paper library</div> }));
 vi.mock("./contradictions-workspace", () => ({
   ContradictionsWorkspace: () => <div>Contradictions</div>,
@@ -149,5 +154,20 @@ describe("ResearchStudio", () => {
     const dialog = await screen.findByRole("alertdialog");
     await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
     await waitFor(() => expect(api.remove).toHaveBeenCalledWith("p1"));
+  });
+
+  it("navigates project sections with tabs", async () => {
+    render(<ResearchStudio />);
+    await screen.findByText("Protein folding review");
+    expect(await screen.findByText("Research dashboard")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("Protein folding review"));
+    expect(await screen.findByText("Project dashboard")).toBeInTheDocument();
+    const tabs = screen.getByRole("tablist");
+    expect(within(tabs).getAllByRole("tab")).toHaveLength(9);
+    await userEvent.click(within(tabs).getByRole("tab", { name: "Research gaps" }));
+    expect(await screen.findByText("Gaps")).toBeInTheDocument();
+    expect(within(screen.getByRole("tabpanel")).queryByText("Citations")).toBeNull();
+    await userEvent.click(within(tabs).getByRole("tab", { name: "Knowledge graph" }));
+    expect(await screen.findByText("Concept links")).toBeInTheDocument();
   });
 });

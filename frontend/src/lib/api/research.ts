@@ -180,6 +180,7 @@ export function citeMarker(paperId: string): string {
   return `{{cite:${paperId}}}`;
 }
 
+export type ResearchDashboard = S["ResearchDashboardOut"];
 export type ConceptLink = S["ResearchConceptLinkOut"];
 export type ConceptResearch = S["ResearchConceptResearchOut"];
 export type ConceptLinkStatus = "suggested" | "confirmed" | "rejected";
@@ -377,6 +378,14 @@ export interface PaperFilters {
 const enc = encodeURIComponent;
 
 export const researchApi = {
+  dashboard: (workspaceId?: string) =>
+    api
+      .get<ResearchDashboard>(`/research/dashboard${query({ workspace_id: workspaceId })}`)
+      .then((r) => r.data),
+  projectDashboard: (projectId: string) =>
+    api
+      .get<ResearchDashboard>(`/research/projects/${enc(projectId)}/dashboard`)
+      .then((r) => r.data),
   listProjects: (f: ProjectFilters) =>
     getPaged<ResearchProject>(`/research/projects${query({ ...f })}`),
   createProject: (body: ProjectCreate) =>

@@ -21,6 +21,7 @@ from app.modules.research.citation_routes import router as research_citation_rou
 from app.modules.research.comparison_routes import router as research_comparison_router
 from app.modules.research.concept_routes import router as research_concept_router
 from app.modules.research.contradiction_routes import router as research_contradiction_router
+from app.modules.research.dashboard_routes import router as research_dashboard_router
 from app.modules.research.draft_routes import router as research_draft_router
 from app.modules.research.gap_routes import router as research_gap_router
 from app.modules.research.matrix_routes import router as research_matrix_router
@@ -78,3 +79,4 @@ router.include_router(research_contradiction_router)
 router.include_router(research_citation_router)
 router.include_router(research_draft_router)
 router.include_router(research_concept_router)
+router.include_router(research_dashboard_router)

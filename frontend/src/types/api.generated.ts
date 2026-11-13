@@ -3950,6 +3950,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/research/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Research Dashboard */
+        get: operations["research_dashboard_api_v1_research_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/projects/{project_id}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Dashboard */
+        get: operations["project_dashboard_api_v1_research_projects__project_id__dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8424,6 +8458,63 @@ export interface components {
             quote: string | null;
             /** Page Number */
             page_number: number | null;
+        };
+        /** ResearchDashboardActivity */
+        ResearchDashboardActivity: {
+            /** Kind */
+            kind: string;
+            /** Title */
+            title: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Project Title */
+            project_title: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+        };
+        /** ResearchDashboardCounts */
+        ResearchDashboardCounts: {
+            /** Active Projects */
+            active_projects: number | null;
+            /** Papers */
+            papers: number;
+            /** Papers Analysed */
+            papers_analysed: number;
+            /** Papers Awaiting */
+            papers_awaiting: number;
+            /** Papers Failed */
+            papers_failed: number;
+            /** Comparisons */
+            comparisons: number;
+            /** Matrices */
+            matrices: number;
+            /** Candidate Gaps */
+            candidate_gaps: number;
+            /** Contradictions To Review */
+            contradictions_to_review: number;
+            /** Drafts In Progress */
+            drafts_in_progress: number;
+        };
+        /** ResearchDashboardOut */
+        ResearchDashboardOut: {
+            counts: components["schemas"]["ResearchDashboardCounts"];
+            /** Recent */
+            recent: components["schemas"]["ResearchDashboardActivity"][];
+        };
+        /** ResearchDashboardResponse */
+        ResearchDashboardResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchDashboardOut"];
         };
         /** ResearchDraftCheckOut */
         ResearchDraftCheckOut: {
@@ -20479,6 +20570,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResearchConceptResearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    research_dashboard_api_v1_research_dashboard_get: {
+        parameters: {
+            query?: {
+                workspace_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDashboardResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_dashboard_api_v1_research_projects__project_id__dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDashboardResponse"];
                 };
             };
             /** @description Validation Error */
