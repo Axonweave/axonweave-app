@@ -156,3 +156,16 @@ def safe_analysis_message(code: str | None) -> str | None:
     if not code:
         return None
     return _MESSAGES.get(code, _MESSAGES[INTERNAL])
+
+
+# Paper comparison (M7.4) ─────────────────────────────────────────────────────
+class ComparisonNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Comparison not found."
+
+
+class PaperNotAnalysedError(ResearchError):
+    code = "RESEARCH_PAPER_NOT_ANALYSED"
+    http_status = 422
+    user_message = "Every paper in a comparison needs a completed analysis first."

@@ -19,6 +19,107 @@ export type AnalysisSection = S["PaperSectionOut"];
 export type AnalysisClaim = S["PaperClaimOut"];
 export type PaperNote = S["PaperNoteOut"];
 export type SectionId = AnalysisSection["section"];
+export type ResearchComparison = S["ResearchComparisonOut"];
+export type ComparisonSummary = S["ResearchComparisonSummary"];
+export type ComparisonDimension = S["ResearchComparisonCreate"]["dimensions"] extends
+  (infer D)[] | null | undefined
+  ? D
+  : never;
+
+export interface CompareEvidence {
+  quote: string;
+  page_number: number | null;
+  document_id: string | null;
+}
+export interface CompareItem {
+  text: string;
+  label: string | null;
+  origin: "reported" | "ai_inferred";
+  evidence: CompareEvidence[];
+}
+export interface CompareCell {
+  paper_id: string;
+  reported: boolean;
+  items: CompareItem[];
+}
+export interface CompareRow {
+  dimension: string;
+  label: string;
+  status: "complete" | "partial" | "not_reported";
+  cells: CompareCell[];
+  similarities: string[];
+  differences: { paper_id: string; terms: string[] }[];
+  not_reported_for: string[];
+  directly_comparable: boolean | null;
+}
+export interface CompareResult {
+  papers: { paper_id: string; title: string; version_number: number }[];
+  rows: CompareRow[];
+  comparability: {
+    dataset: string;
+    metrics: string;
+    setup: string;
+    methodology: string;
+    results_directly_comparable: boolean;
+    warnings: string[];
+  };
+}
+
+export const COMPARE_DIMENSIONS: { id: ComparisonDimension; label: string }[] = [
+  { id: "research_problem", label: "Research problem" },
+  { id: "objectives", label: "Objectives and research questions" },
+  { id: "methodology", label: "Methodology" },
+  { id: "models", label: "Models and algorithms" },
+  { id: "dataset", label: "Dataset" },
+  { id: "sample_size", label: "Sample size" },
+  { id: "metrics", label: "Evaluation metrics" },
+  { id: "setup", label: "Experimental setup and evaluation" },
+  { id: "results", label: "Results" },
+  { id: "contributions", label: "Contributions" },
+  { id: "limitations", label: "Limitations" },
+  { id: "future_work", label: "Future work" },
+];
+export const COMPARE_NOT_REPORTED = "Not reported.";
+
+/** CSV text of a comparison. Cells that could be read as spreadsheet formulas are neutralised. */
+export function comparisonToCsv(result: CompareResult, notes: Record<string, string>): string {
+  const esc = (v: string) => {
+    const safe = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
+  const title = new Map(result.papers.map((p) => [p.paper_id, p.title]));
+  const head = [
+    "Dimension",
+    ...result.papers.map((p) => p.title),
+    "Similarities",
+    "Differences",
+    "Notes",
+  ];
+  const lines = [head.map(esc).join(",")];
+  for (const row of result.rows) {
+    const cells = result.papers.map((p) => {
+      const cell = row.cells.find((c) => c.paper_id === p.paper_id);
+      if (!cell || !cell.reported) return COMPARE_NOT_REPORTED;
+      return cell.items
+        .map((i) => {
+          const q = i.evidence[0];
+          return q
+            ? `${i.text} [“${q.quote}”${q.page_number ? `, p. ${q.page_number}` : ""}]`
+            : i.text;
+        })
+        .join(" | ");
+    });
+    const diffs = row.differences
+      .map((d) => `${title.get(d.paper_id) ?? ""}: ${d.terms.join(", ")}`)
+      .join(" | ");
+    lines.push(
+      [row.label, ...cells, row.similarities.join(", "), diffs, notes[row.dimension] ?? ""]
+        .map(esc)
+        .join(","),
+    );
+  }
+  return lines.join("\n");
+}
 
 /** The analysis tabs, in reading order. Every section is shown even when nothing was found. */
 export const ANALYSIS_SECTIONS: { id: SectionId; label: string }[] = [
@@ -156,6 +257,22 @@ export const researchApi = {
   editNote: (noteId: string, body: string) =>
     api.patch<PaperNote>(`/research/notes/${enc(noteId)}`, { body }).then((r) => r.data),
   deleteNote: (noteId: string) => api.delete<unknown>(`/research/notes/${enc(noteId)}`),
+  listComparisons: (projectId: string) =>
+    getPaged<ComparisonSummary>(
+      `/research/projects/${enc(projectId)}/comparisons${query({ limit: 50 })}`,
+    ),
+  createComparison: (
+    projectId: string,
+    body: { title: string; paper_ids: string[]; dimensions?: ComparisonDimension[] | null },
+  ) =>
+    api
+      .post<ResearchComparison>(`/research/projects/${enc(projectId)}/comparisons`, body)
+      .then((r) => r.data),
+  getComparison: (id: string) =>
+    api.get<ResearchComparison>(`/research/comparisons/${enc(id)}`).then((r) => r.data),
+  patchComparison: (id: string, body: { title?: string; notes?: Record<string, string> }) =>
+    api.patch<ResearchComparison>(`/research/comparisons/${enc(id)}`, body).then((r) => r.data),
+  deleteComparison: (id: string) => api.delete<unknown>(`/research/comparisons/${enc(id)}`),
   duplicates: (projectId: string) =>
     api
       .get<DuplicateCandidate[]>(`/research/projects/${enc(projectId)}/papers/duplicates`)

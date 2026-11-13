@@ -25,6 +25,7 @@ vi.mock("@/lib/api/research", async (orig) => ({
   },
 }));
 vi.mock("./paper-library", () => ({ PaperLibrary: () => <div>Paper library</div> }));
+vi.mock("./comparison-workspace", () => ({ ComparisonWorkspace: () => <div>Comparisons</div> }));
 vi.mock("@/lib/api/workspaces", () => ({
   workspacesApi: { list: vi.fn().mockResolvedValue({ data: [{ id: "w1", name: "Personal" }] }) },
 }));

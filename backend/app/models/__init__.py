@@ -33,6 +33,8 @@ from app.models.password_reset_token import PasswordResetToken
 from app.models.prompt_template import PromptTemplate
 from app.models.quiz import Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion
 from app.models.research import (
+    ResearchComparison,
+    ResearchComparisonPaper,
     ResearchEvidence,
     ResearchPaper,
     ResearchPaperDuplicateReview,
@@ -101,6 +103,8 @@ __all__ = [
     "QuizQuestion",
     "Session",
     "StorageCleanup",
+    "ResearchComparison",
+    "ResearchComparisonPaper",
     "ResearchEvidence",
     "ResearchPaper",
     "ResearchPaperExtraction",

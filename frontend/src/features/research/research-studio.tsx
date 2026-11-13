@@ -17,6 +17,7 @@ import {
   type ResearchProject,
 } from "@/lib/api/research";
 import { workspacesApi } from "@/lib/api/workspaces";
+import { ComparisonWorkspace } from "./comparison-workspace";
 import { PaperLibrary } from "./paper-library";
 
 const SELECT = "border-input bg-background h-9 rounded-md border px-2 text-sm";
@@ -542,6 +543,10 @@ export function ResearchStudio() {
       )}
 
       {mode === "none" && selected && <PaperLibrary key={selected.id} project={selected} />}
+
+      {mode === "none" && selected && (
+        <ComparisonWorkspace key={`cmp-${selected.id}`} project={selected} />
+      )}
 
       <AsyncSection
         title="Research projects"

@@ -360,3 +360,61 @@ class ResearchPaperNote(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     section: Mapped[str | None] = mapped_column(String(24), nullable=True)
     body: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class ResearchComparison(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A saved comparison of two or more papers of one project (Phase 7 M7.4). `comparison_result`
+    is a snapshot built from each paper's analysis at creation time, so it stays readable (and
+    honest about which analysis versions it used) when a paper is analysed again. `notes` are the
+    researcher's own words per dimension and never change extracted claims."""
+
+    __tablename__ = "research_comparisons"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_project_id", "user_id"],
+            ["research_projects.id", "research_projects.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_comparisons_project_owner",
+        ),
+        UniqueConstraint("id", "user_id", name="uq_research_comparisons_id_user"),
+        Index("ix_research_comparisons_project", "user_id", "research_project_id", "created_at"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    comparison_configuration: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    comparison_result: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    notes: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+
+
+class ResearchComparisonPaper(UUIDPrimaryKeyMixin, Base):
+    """Which papers a comparison covers, in display order. Removing a paper removes it here; the
+    saved snapshot keeps what was compared."""
+
+    __tablename__ = "research_comparison_papers"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["comparison_id", "user_id"],
+            ["research_comparisons.id", "research_comparisons.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_comparison_papers_cmp_owner",
+        ),
+        ForeignKeyConstraint(
+            ["research_paper_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_comparison_papers_paper_owner",
+        ),
+        UniqueConstraint("comparison_id", "research_paper_id", name="uq_research_cmp_paper"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    comparison_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    extraction_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    position: Mapped[int] = mapped_column(Integer, nullable=False)

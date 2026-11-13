@@ -3345,6 +3345,43 @@ export interface paths {
         patch: operations["edit_note_api_v1_research_notes__note_id__patch"];
         trace?: never;
     };
+    "/api/v1/research/projects/{project_id}/comparisons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Comparisons */
+        get: operations["list_comparisons_api_v1_research_projects__project_id__comparisons_get"];
+        put?: never;
+        /** Create Comparison */
+        post: operations["create_comparison_api_v1_research_projects__project_id__comparisons_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/comparisons/{comparison_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Comparison */
+        get: operations["get_comparison_api_v1_research_comparisons__comparison_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Comparison */
+        delete: operations["delete_comparison_api_v1_research_comparisons__comparison_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Comparison */
+        patch: operations["edit_comparison_api_v1_research_comparisons__comparison_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7307,6 +7344,118 @@ export interface components {
         ReorderRequest: {
             /** Card Ids */
             card_ids: string[];
+        };
+        /** ResearchComparisonCreate */
+        ResearchComparisonCreate: {
+            /** Title */
+            title: string;
+            /** Paper Ids */
+            paper_ids: string[];
+            /** Dimensions */
+            dimensions?: ("research_problem" | "objectives" | "methodology" | "models" | "dataset" | "sample_size" | "metrics" | "setup" | "results" | "contributions" | "limitations" | "future_work")[] | null;
+        };
+        /** ResearchComparisonListResponse */
+        ResearchComparisonListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ResearchComparisonSummary"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ResearchComparisonOut */
+        ResearchComparisonOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Title */
+            title: string;
+            /** Paper Ids */
+            paper_ids: string[];
+            /** Configuration */
+            configuration: {
+                [key: string]: unknown;
+            };
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            };
+            /** Notes */
+            notes: {
+                [key: string]: string;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ResearchComparisonPatch
+         * @description Only the title and the researcher's own notes can change; extracted claims never do.
+         */
+        ResearchComparisonPatch: {
+            /** Title */
+            title?: string | null;
+            /** Notes */
+            notes?: {
+                [key: string]: string;
+            } | null;
+        };
+        /** ResearchComparisonResponse */
+        ResearchComparisonResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchComparisonOut"];
+        };
+        /** ResearchComparisonSummary */
+        ResearchComparisonSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Title */
+            title: string;
+            /** Paper Count */
+            paper_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
@@ -16948,6 +17097,180 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaperNoteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_comparisons_api_v1_research_projects__project_id__comparisons_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchComparisonListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_comparison_api_v1_research_projects__project_id__comparisons_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchComparisonCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchComparisonResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_comparison_api_v1_research_comparisons__comparison_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchComparisonResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_comparison_api_v1_research_comparisons__comparison_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_comparison_api_v1_research_comparisons__comparison_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comparison_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchComparisonPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchComparisonResponse"];
                 };
             };
             /** @description Validation Error */
