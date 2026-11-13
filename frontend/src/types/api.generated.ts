@@ -2420,6 +2420,303 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge/extract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Extractions */
+        get: operations["list_extractions_api_v1_knowledge_extract_get"];
+        put?: never;
+        /**
+         * Create Extraction
+         * @description 202 for a new job; 200 with `existing: true` when an identical request is already running.
+         */
+        post: operations["create_extraction_api_v1_knowledge_extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/extract/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Extraction */
+        get: operations["get_extraction_api_v1_knowledge_extract__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/extract/{job_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Extraction */
+        post: operations["cancel_extraction_api_v1_knowledge_extract__job_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Graph */
+        get: operations["get_graph_api_v1_knowledge_graph_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/graph/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Graph Overview */
+        get: operations["get_graph_overview_api_v1_knowledge_graph_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/graph/expand": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Expand Graph */
+        get: operations["expand_graph_api_v1_knowledge_graph_expand_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/nodes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Nodes */
+        get: operations["list_nodes_api_v1_knowledge_nodes_get"];
+        put?: never;
+        /** Create Node */
+        post: operations["create_node_api_v1_knowledge_nodes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/nodes/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Merge Nodes */
+        post: operations["merge_nodes_api_v1_knowledge_nodes_merge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/nodes/{node_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Node */
+        get: operations["get_node_api_v1_knowledge_nodes__node_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Node */
+        delete: operations["delete_node_api_v1_knowledge_nodes__node_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Node */
+        patch: operations["update_node_api_v1_knowledge_nodes__node_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/knowledge/nodes/{node_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive Node */
+        post: operations["archive_node_api_v1_knowledge_nodes__node_id__archive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/nodes/{node_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Node */
+        post: operations["restore_node_api_v1_knowledge_nodes__node_id__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/nodes/{node_id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Node Evidence */
+        get: operations["get_node_evidence_api_v1_knowledge_nodes__node_id__evidence_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/relationships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Relationship */
+        post: operations["create_relationship_api_v1_knowledge_relationships_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/relationships/{relationship_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Relationship */
+        delete: operations["delete_relationship_api_v1_knowledge_relationships__relationship_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Relationship */
+        patch: operations["update_relationship_api_v1_knowledge_relationships__relationship_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/knowledge/relationships/{relationship_id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Relationship Evidence */
+        get: operations["get_relationship_evidence_api_v1_knowledge_relationships__relationship_id__evidence_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/duplicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Duplicate Candidates */
+        get: operations["list_duplicate_candidates_api_v1_knowledge_duplicates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/duplicates/{candidate_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve Duplicate Candidate */
+        post: operations["resolve_duplicate_candidate_api_v1_knowledge_duplicates__candidate_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2762,6 +3059,68 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["CalendarOut"];
+        };
+        /** CandidateListResponse */
+        CandidateListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["CandidateOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** CandidateOut */
+        CandidateOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Status */
+            status: string;
+            /** Signals */
+            signals: string[];
+            node_a: components["schemas"]["NodeOut"];
+            node_b: components["schemas"]["NodeOut"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** CandidateResolve */
+        CandidateResolve: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "merge" | "keep_separate" | "related" | "ignore";
+            /** Survivor Id */
+            survivor_id?: string | null;
+        };
+        /** CandidateResolveResponse */
+        CandidateResolveResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
         };
         /** CapabilitiesOut */
         CapabilitiesOut: {
@@ -3399,6 +3758,80 @@ export interface components {
             success: boolean;
             data: components["schemas"]["DueListOut"];
         };
+        /** EdgeCreate */
+        EdgeCreate: {
+            /**
+             * Source Node Id
+             * Format: uuid
+             */
+            source_node_id: string;
+            /**
+             * Target Node Id
+             * Format: uuid
+             */
+            target_node_id: string;
+            /**
+             * Relationship Type
+             * @enum {string}
+             */
+            relationship_type: "IS_A" | "PART_OF" | "PREREQUISITE_OF" | "DEPENDS_ON" | "RELATED_TO" | "CONTRASTS_WITH" | "USES" | "APPLIED_IN" | "EXAMPLE_OF";
+            /** Description */
+            description?: string | null;
+        };
+        /** EdgeOut */
+        EdgeOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /**
+             * Source Node Id
+             * Format: uuid
+             */
+            source_node_id: string;
+            /**
+             * Target Node Id
+             * Format: uuid
+             */
+            target_node_id: string;
+            /** Relationship Type */
+            relationship_type: string;
+            /** Description */
+            description: string | null;
+            /** Confidence */
+            confidence: number | null;
+            /** Statement Kind */
+            statement_kind: string;
+            /** Origin */
+            origin: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** EdgePatch */
+        EdgePatch: {
+            /** Relationship Type */
+            relationship_type?: ("IS_A" | "PART_OF" | "PREREQUISITE_OF" | "DEPENDS_ON" | "RELATED_TO" | "CONTRASTS_WITH" | "USES" | "APPLIED_IN" | "EXAMPLE_OF") | null;
+            /** Description */
+            description?: string | null;
+        };
+        /** EdgeResponse */
+        EdgeResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["EdgeOut"];
+        };
         /** EditCardRequest */
         EditCardRequest: {
             /** Front */
@@ -3443,6 +3876,69 @@ export interface components {
              * @default true
              */
             ai_assisted: boolean;
+        };
+        /** EvidenceListResponse */
+        EvidenceListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["EvidenceOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** EvidenceOut */
+        EvidenceOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Knowledge Node Id */
+            knowledge_node_id: string | null;
+            /** Knowledge Edge Id */
+            knowledge_edge_id: string | null;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Document Name */
+            document_name: string;
+            /**
+             * Document Version Id
+             * Format: uuid
+             */
+            document_version_id: string;
+            /** Chunk Index */
+            chunk_index: number;
+            /** Chunk Id */
+            chunk_id: string | null;
+            /** Page Number */
+            page_number: number | null;
+            /** Slide Number */
+            slide_number: number | null;
+            /** Quote */
+            quote: string;
+            /** Evidence Type */
+            evidence_type: string;
+            /** Extraction Method */
+            extraction_method: string;
+            /** Confidence */
+            confidence: number | null;
+            /** Stale */
+            stale: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** ExportOut */
         ExportOut: {
@@ -3493,6 +3989,98 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["ExportOut"];
+        };
+        /**
+         * ExtractRequest
+         * @description Which document to extract concepts from. Ownership is verified in the service (a foreign id
+         *     is a 404 exactly like a missing one); the client never supplies a user or workspace id.
+         */
+        ExtractRequest: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+        };
+        /** ExtractionJobListResponse */
+        ExtractionJobListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ExtractionJobOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ExtractionJobOut */
+        ExtractionJobOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "retrieving_sources" | "extracting" | "validating" | "saving" | "completed" | "failed" | "cancelled";
+            /** Progress */
+            progress: number;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message?: string | null;
+            /** Cancel Requested */
+            cancel_requested: boolean;
+            /** Extraction Version */
+            extraction_version: string;
+            /** Source Stats */
+            source_stats: {
+                [key: string]: unknown;
+            } | null;
+            /** Result Stats */
+            result_stats: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Completed At */
+            completed_at: string | null;
+            /**
+             * Existing
+             * @default false
+             */
+            existing: boolean;
+        };
+        /** ExtractionJobResponse */
+        ExtractionJobResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ExtractionJobOut"];
         };
         /** FeedbackOut */
         FeedbackOut: {
@@ -3811,6 +4399,52 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** GraphOut */
+        GraphOut: {
+            /** Nodes */
+            nodes: components["schemas"]["NodeOut"][];
+            /** Edges */
+            edges: components["schemas"]["EdgeOut"][];
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
+            /** Node Limit */
+            node_limit: number;
+            /** Total Nodes */
+            total_nodes?: number | null;
+        };
+        /** GraphOverviewOut */
+        GraphOverviewOut: {
+            /** Total Nodes */
+            total_nodes: number;
+            /** Total Edges */
+            total_edges: number;
+            /** Node Types */
+            node_types: {
+                [key: string]: number;
+            };
+            graph: components["schemas"]["GraphOut"];
+        };
+        /** GraphOverviewResponse */
+        GraphOverviewResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["GraphOverviewOut"];
+        };
+        /** GraphResponse */
+        GraphResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["GraphOut"];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -4008,6 +4642,22 @@ export interface components {
             success: boolean;
             data: components["schemas"]["UserOut"];
         };
+        /**
+         * MergeRequest
+         * @description `merged_id` is folded into `survivor_id` and then removed (an audit row is kept).
+         */
+        MergeRequest: {
+            /**
+             * Survivor Id
+             * Format: uuid
+             */
+            survivor_id: string;
+            /**
+             * Merged Id
+             * Format: uuid
+             */
+            merged_id: string;
+        };
         /** MessageListResponse */
         MessageListResponse: {
             /**
@@ -4123,6 +4773,207 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["ModelOut"];
+        };
+        /** NodeCreate */
+        NodeCreate: {
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Subject Id */
+            subject_id?: string | null;
+            /** Chapter Id */
+            chapter_id?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Node Type
+             * @default concept
+             * @enum {string}
+             */
+            node_type: "concept" | "topic" | "subtopic" | "term" | "algorithm" | "method" | "formula" | "model" | "theory" | "principle" | "entity" | "example" | "application";
+            /** Description */
+            description?: string | null;
+            /** Definition */
+            definition?: string | null;
+            /** Difficulty */
+            difficulty?: ("introductory" | "intermediate" | "advanced") | null;
+            /** Aliases */
+            aliases?: string[];
+        };
+        /** NodeDetailOut */
+        NodeDetailOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Definition */
+            definition: string | null;
+            /** Node Type */
+            node_type: string;
+            /** Difficulty */
+            difficulty: string | null;
+            /** Origin */
+            origin: string;
+            /** Edited By User */
+            edited_by_user: boolean;
+            /** Confidence */
+            confidence: number | null;
+            /** Archived At */
+            archived_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Aliases */
+            aliases?: string[];
+            /**
+             * Evidence Count
+             * @default 0
+             */
+            evidence_count: number;
+            /**
+             * Degree
+             * @default 0
+             */
+            degree: number;
+            /** Prerequisites */
+            prerequisites?: components["schemas"]["RelatedNodeOut"][];
+            /** Dependents */
+            dependents?: components["schemas"]["RelatedNodeOut"][];
+            /** Related */
+            related?: components["schemas"]["RelatedNodeOut"][];
+        };
+        /** NodeDetailResponse */
+        NodeDetailResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["NodeDetailOut"];
+        };
+        /** NodeListResponse */
+        NodeListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["NodeOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** NodeOut */
+        NodeOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Definition */
+            definition: string | null;
+            /** Node Type */
+            node_type: string;
+            /** Difficulty */
+            difficulty: string | null;
+            /** Origin */
+            origin: string;
+            /** Edited By User */
+            edited_by_user: boolean;
+            /** Confidence */
+            confidence: number | null;
+            /** Archived At */
+            archived_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Aliases */
+            aliases?: string[];
+            /**
+             * Evidence Count
+             * @default 0
+             */
+            evidence_count: number;
+            /**
+             * Degree
+             * @default 0
+             */
+            degree: number;
+        };
+        /**
+         * NodePatch
+         * @description Only the fields that are sent change. Any edit marks the concept as user-edited, so a later
+         *     extraction never overwrites it (spec 9.5).
+         */
+        NodePatch: {
+            /** Name */
+            name?: string | null;
+            /** Node Type */
+            node_type?: ("concept" | "topic" | "subtopic" | "term" | "algorithm" | "method" | "formula" | "model" | "theory" | "principle" | "entity" | "example" | "application") | null;
+            /** Description */
+            description?: string | null;
+            /** Definition */
+            definition?: string | null;
+            /** Difficulty */
+            difficulty?: ("introductory" | "intermediate" | "advanced") | null;
+            /** Aliases */
+            aliases?: string[] | null;
+        };
+        /** NodeResponse */
+        NodeResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["NodeOut"];
         };
         /** OptionOut */
         OptionOut: {
@@ -4657,6 +5508,11 @@ export interface components {
             code: string;
             /** Message */
             message: string;
+        };
+        /** RelatedNodeOut */
+        RelatedNodeOut: {
+            node: components["schemas"]["NodeOut"];
+            edge: components["schemas"]["EdgeOut"];
         };
         /** ReorderChaptersRequest */
         ReorderChaptersRequest: {
@@ -11977,6 +12833,777 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_extractions_api_v1_knowledge_extract_get: {
+        parameters: {
+            query?: {
+                status?: ("pending" | "retrieving_sources" | "extracting" | "validating" | "saving" | "completed" | "failed" | "cancelled") | null;
+                document_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionJobListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_extraction_api_v1_knowledge_extract_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_extraction_api_v1_knowledge_extract__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_extraction_api_v1_knowledge_extract__job_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_graph_api_v1_knowledge_graph_get: {
+        parameters: {
+            query?: {
+                workspace_id?: string | null;
+                subject_id?: string | null;
+                node_type?: ("concept" | "topic" | "subtopic" | "term" | "algorithm" | "method" | "formula" | "model" | "theory" | "principle" | "entity" | "example" | "application") | null;
+                q?: string | null;
+                relationship_types?: ("IS_A" | "PART_OF" | "PREREQUISITE_OF" | "DEPENDS_ON" | "RELATED_TO" | "CONTRASTS_WITH" | "USES" | "APPLIED_IN" | "EXAMPLE_OF")[] | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_graph_overview_api_v1_knowledge_graph_overview_get: {
+        parameters: {
+            query?: {
+                workspace_id?: string | null;
+                subject_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphOverviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    expand_graph_api_v1_knowledge_graph_expand_get: {
+        parameters: {
+            query: {
+                node_id: string;
+                depth?: number;
+                limit?: number;
+                relationship_types?: ("IS_A" | "PART_OF" | "PREREQUISITE_OF" | "DEPENDS_ON" | "RELATED_TO" | "CONTRASTS_WITH" | "USES" | "APPLIED_IN" | "EXAMPLE_OF")[] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_nodes_api_v1_knowledge_nodes_get: {
+        parameters: {
+            query?: {
+                workspace_id?: string | null;
+                subject_id?: string | null;
+                node_type?: ("concept" | "topic" | "subtopic" | "term" | "algorithm" | "method" | "formula" | "model" | "theory" | "principle" | "entity" | "example" | "application") | null;
+                q?: string | null;
+                archived?: boolean;
+                sort?: "name" | "created_at" | "updated_at";
+                order?: "asc" | "desc";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_node_api_v1_knowledge_nodes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NodeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    merge_nodes_api_v1_knowledge_nodes_merge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_node_api_v1_knowledge_nodes__node_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_node_api_v1_knowledge_nodes__node_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_node_api_v1_knowledge_nodes__node_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NodePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_node_api_v1_knowledge_nodes__node_id__archive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_node_api_v1_knowledge_nodes__node_id__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_node_evidence_api_v1_knowledge_nodes__node_id__evidence_get: {
+        parameters: {
+            query?: {
+                include_stale?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_relationship_api_v1_knowledge_relationships_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EdgeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EdgeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_relationship_api_v1_knowledge_relationships__relationship_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationship_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_relationship_api_v1_knowledge_relationships__relationship_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationship_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EdgePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EdgeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_relationship_evidence_api_v1_knowledge_relationships__relationship_id__evidence_get: {
+        parameters: {
+            query?: {
+                include_stale?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                relationship_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_duplicate_candidates_api_v1_knowledge_duplicates_get: {
+        parameters: {
+            query?: {
+                workspace_id?: string | null;
+                status?: ("open" | "merged" | "kept_separate" | "related" | "ignored") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_duplicate_candidate_api_v1_knowledge_duplicates__candidate_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidate_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CandidateResolve"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidateResolveResponse"];
                 };
             };
             /** @description Validation Error */
