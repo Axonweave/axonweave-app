@@ -17,6 +17,10 @@ adds document upload, storage, extraction/OCR, chunking, embeddings, retrieval a
   library, versioning, export): `docs/PHASE4_SPEC.md`; design: `docs/STUDY_GENERATION_ARCHITECTURE.md`; tasks: `docs/TASKS_Phase4.md`;
   status: `docs/PHASE4_ACCEPTANCE.md`; security: `docs/GENERATION_SECURITY.md`; decisions D-78 to D-101. Quiz answer keys never leave
   the backend before submission; browser tests seed materials with `backend/scripts/seed_study_e2e.py`.
+- Phase 6 "Learner Intelligence and Knowledge Graph" (concept extraction, PostgreSQL knowledge graph, learner evidence,
+  explainable mastery, misconceptions, graph-aware recommendations): spec `docs/axonweave-phase6-7-specs/PHASE6_SPEC.md`;
+  assessment: `docs/PHASE6_7_REPOSITORY_ASSESSMENT.md`; decisions D-122 to D-126. Code in `backend/app/knowledge/`. Phase 7
+  (Research Studio) is not started; research analysis stays out until the Phase 6 gate passes.
 - Product context: `docs/Axonweave_PRD.docx` (background only).
 - Decisions for things the spec leaves open: `docs/DECISIONS.md` (follow them; do not invent alternatives).
 - Who owns what / task board: `docs/TASKS_Phase1.md`, `docs/TASKS_Phase2.md`.
@@ -82,7 +86,7 @@ No business logic in route handlers. No SQL outside repositories.
     - `FakeProvider` is for tests and local UI development only and must refuse to run when `APP_ENV=production`.
     - Never hardcode model ids or prices from memory; verify them (D-38, D-39). Unknown cost is NULL, not 0.
     - The app must run with no provider configured (AI endpoints return 503 `LLM_NOT_CONFIGURED`).
-    - Do not implement anything in Phase 2 spec section 24 that Phase 3 does not cover (flashcards, quizzes, knowledge graph, audio, agents, tool execution).
+    - Do not implement anything in Phase 2 spec section 24 that Phase 3 does not cover (flashcards, quizzes, audio, agents, tool execution). The knowledge graph is allowed from Phase 6 (D-122).
 13. **Documents and RAG (Phase 3).**
     - Uploaded documents are untrusted input: validate magic bytes, enforce limits while streaming, never serve uploaded HTML, never execute or follow anything inside them.
     - Extraction, OCR and parsing run only in the Celery worker (never in the API process), with timeouts and memory limits.
@@ -93,7 +97,7 @@ No business logic in route handlers. No SQL outside repositories.
     - `FakeEmbeddingProvider` and the in-memory storage backend refuse `APP_ENV=production`. Never hardcode embedding model ids from memory (D-69).
     - No SDK for storage or embeddings outside its own package (`storage/s3_backend.py`, `embeddings/*_provider.py`); tests enforce it.
     - The app must run without Redis, worker, storage or embedder: only document endpoints answer 503.
-    - Do not implement anything in Phase 3 spec section 24 (flashcard/quiz/study-guide generation, spaced repetition, adaptive learning, knowledge graph, research analysis, audio/podcast, video).
+    - Do not implement anything in Phase 3 spec section 24 (flashcard/quiz/study-guide generation, spaced repetition, adaptive learning, research analysis, audio/podcast, video). Knowledge graph work is Phase 6 (D-122 to D-126).
     - No copyrighted documents in git; fixtures are generated in code; real test files go in `testdata-private/` (ignored).
 14. UTC timestamps in DB, IANA timezone strings, UUID primary keys, FK constraints, indexes, explicit delete/archive behaviour.
 15. Every schema change = a new Alembic migration. **Never edit a migration that is merged to main.** Exactly one Alembic head on main.

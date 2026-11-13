@@ -45,6 +45,14 @@ BEAT_SCHEDULE: dict[str, dict[str, Any]] = {
         "task": "study.sweep_stale_jobs",
         "schedule": 120.0,
     },
+    "dispatch-pending-extraction-jobs": {
+        "task": "knowledge.dispatch_pending",
+        "schedule": 60.0,
+    },
+    "sweep-stale-extraction-jobs": {
+        "task": "knowledge.sweep_stale_jobs",
+        "schedule": 120.0,
+    },
 }
 
 
@@ -54,7 +62,7 @@ def create_celery_app(settings: Settings | None = None) -> Celery:
         "axonweave",
         broker=cfg.celery_broker_url or "memory://",
         backend=cfg.celery_result_backend or None,
-        include=["app.ingestion.tasks", "app.study.tasks"],
+        include=["app.ingestion.tasks", "app.study.tasks", "app.knowledge.tasks"],
     )
     app.conf.update(
         # Celery itself also reads CELERY_BROKER_URL from the environment and lets it win; our

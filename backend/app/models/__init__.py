@@ -10,6 +10,15 @@ from app.models.email_verification_token import EmailVerificationToken
 from app.models.flashcard import Flashcard, FlashcardSet
 from app.models.folder import Folder
 from app.models.generation_job import GenerationJob
+from app.models.knowledge import (
+    KnowledgeDuplicateCandidate,
+    KnowledgeEdge,
+    KnowledgeEvidence,
+    KnowledgeExtractionJob,
+    KnowledgeMergeHistory,
+    KnowledgeNode,
+    KnowledgeNodeAlias,
+)
 from app.models.llm_provider import LLMModel, LLMModelPrice, LLMProvider
 from app.models.message import Message, MessageFeedback
 from app.models.message_citation import MessageCitation
@@ -51,6 +60,13 @@ __all__ = [
     "Flashcard",
     "FlashcardSet",
     "GenerationJob",
+    "KnowledgeDuplicateCandidate",
+    "KnowledgeEdge",
+    "KnowledgeEvidence",
+    "KnowledgeExtractionJob",
+    "KnowledgeMergeHistory",
+    "KnowledgeNode",
+    "KnowledgeNodeAlias",
     "LLMModel",
     "LLMModelPrice",
     "LLMProvider",

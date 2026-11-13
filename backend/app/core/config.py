@@ -124,6 +124,20 @@ class Settings(BaseSettings):
     study_task_hard_time_limit_seconds: int = Field(default=600, ge=20)
     study_stale_job_seconds: int = Field(default=900, ge=30)
     study_cancel_poll_seconds: float = Field(default=1.0, ge=0.01, le=30)
+    # Phase 6 knowledge extraction (D-124). Counts toward the daily token quota.
+    knowledge_extraction_model: str = ""
+    knowledge_extraction_version: str = "k1"
+    knowledge_max_concepts_per_job: int = Field(default=100, ge=1, le=500)
+    knowledge_max_relationships_per_job: int = Field(default=200, ge=1, le=1000)
+    knowledge_max_active_jobs_per_user: int = Field(default=2, ge=1)
+    knowledge_requests_per_minute_per_user: int = Field(default=6, ge=1)
+    knowledge_max_batches: int = Field(default=12, ge=1, le=50)
+    knowledge_max_input_tokens: int = Field(default=30_000, ge=500)
+    knowledge_max_output_tokens: int = Field(default=6000, ge=200)
+    knowledge_job_timeout_seconds: int = Field(default=540, ge=5)
+    knowledge_task_soft_time_limit_seconds: int = Field(default=570, ge=10)
+    knowledge_task_hard_time_limit_seconds: int = Field(default=600, ge=20)
+    knowledge_stale_job_seconds: int = Field(default=900, ge=30)
     study_export_ttl_seconds: int = Field(default=3600, ge=60)
     study_exports_per_hour_per_user: int = Field(default=30, ge=1)
     # Phase 5 (D-112): AI-assisted grading of short-answer and descriptive quiz answers.
@@ -250,6 +264,13 @@ class Settings(BaseSettings):
             raise ValueError("STUDY task soft time limit must be below the hard limit")
         if self.study_job_timeout_seconds >= self.study_task_soft_time_limit_seconds:
             raise ValueError("STUDY_JOB_TIMEOUT_SECONDS must be below the task soft time limit")
+        if (
+            self.knowledge_task_soft_time_limit_seconds
+            >= self.knowledge_task_hard_time_limit_seconds
+        ):
+            raise ValueError("KNOWLEDGE task soft time limit must be below the hard limit")
+        if self.knowledge_job_timeout_seconds >= self.knowledge_task_soft_time_limit_seconds:
+            raise ValueError("KNOWLEDGE_JOB_TIMEOUT_SECONDS must be below the task soft time limit")
         if self.embedding_provider and self.embedding_dimensions != EMBEDDING_COLUMN_DIMENSIONS:
             raise ValueError(
                 "EMBEDDING_DIMENSIONS does not match the vector column "
