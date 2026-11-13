@@ -35,6 +35,7 @@ from app.models.quiz import Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion
 from app.models.research import (
     ResearchComparison,
     ResearchComparisonPaper,
+    ResearchContradiction,
     ResearchEvidence,
     ResearchEvidenceMatrix,
     ResearchEvidenceMatrixColumn,
@@ -108,6 +109,7 @@ __all__ = [
     "StorageCleanup",
     "ResearchComparison",
     "ResearchComparisonPaper",
+    "ResearchContradiction",
     "ResearchEvidence",
     "ResearchEvidenceMatrix",
     "ResearchEvidenceMatrixColumn",

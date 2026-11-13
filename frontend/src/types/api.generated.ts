@@ -3596,6 +3596,59 @@ export interface paths {
         patch: operations["edit_gap_api_v1_research_gaps__gap_id__patch"];
         trace?: never;
     };
+    "/api/v1/research/projects/{project_id}/contradictions/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Contradictions */
+        post: operations["generate_contradictions_api_v1_research_projects__project_id__contradictions_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/projects/{project_id}/contradictions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Contradictions */
+        get: operations["list_contradictions_api_v1_research_projects__project_id__contradictions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/contradictions/{contradiction_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Contradiction */
+        get: operations["get_contradiction_api_v1_research_contradictions__contradiction_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Contradiction */
+        delete: operations["delete_contradiction_api_v1_research_contradictions__contradiction_id__delete"];
+        options?: never;
+        head?: never;
+        /** Review Contradiction */
+        patch: operations["review_contradiction_api_v1_research_contradictions__contradiction_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7670,6 +7723,104 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** ResearchContradictionGenerate */
+        ResearchContradictionGenerate: {
+            /** Paper Ids */
+            paper_ids?: string[] | null;
+        };
+        /** ResearchContradictionListResponse */
+        ResearchContradictionListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ResearchContradictionOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ResearchContradictionOut */
+        ResearchContradictionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            claim_a: components["schemas"]["ResearchContradictionSide"];
+            claim_b: components["schemas"]["ResearchContradictionSide"];
+            /** Conditions */
+            conditions: {
+                [key: string]: unknown;
+            };
+            /** Category */
+            category: string;
+            /** Explanation */
+            explanation: string;
+            /** Confidence Label */
+            confidence_label: string;
+            /** Review Status */
+            review_status: string;
+            /** Researcher Explanation */
+            researcher_explanation: string | null;
+            /** Analysis Version */
+            analysis_version: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ResearchContradictionPatch */
+        ResearchContradictionPatch: {
+            /** Review Status */
+            review_status?: ("unreviewed" | "genuine" | "context_dependent" | "dismissed") | null;
+            /** Researcher Explanation */
+            researcher_explanation?: string | null;
+        };
+        /** ResearchContradictionResponse */
+        ResearchContradictionResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchContradictionOut"];
+        };
+        /** ResearchContradictionSide */
+        ResearchContradictionSide: {
+            /**
+             * Paper Id
+             * Format: uuid
+             */
+            paper_id: string;
+            /** Paper Title */
+            paper_title: string;
+            /** Claim Type */
+            claim_type: string;
+            /** Claim Text */
+            claim_text: string;
+            /** Evidence Id */
+            evidence_id: string | null;
+            /** Quote */
+            quote: string | null;
+            /** Page Number */
+            page_number: number | null;
         };
         /** ResearchGapEvidenceOut */
         ResearchGapEvidenceOut: {
@@ -18425,6 +18576,182 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResearchGapResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_contradictions_api_v1_research_projects__project_id__contradictions_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchContradictionGenerate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchContradictionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_contradictions_api_v1_research_projects__project_id__contradictions_get: {
+        parameters: {
+            query?: {
+                category?: ("genuine" | "context_dependent" | "metric_incompatible" | "insufficient_evidence") | null;
+                review_status?: ("unreviewed" | "genuine" | "context_dependent" | "dismissed") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchContradictionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_contradiction_api_v1_research_contradictions__contradiction_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contradiction_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchContradictionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_contradiction_api_v1_research_contradictions__contradiction_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contradiction_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_contradiction_api_v1_research_contradictions__contradiction_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                contradiction_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchContradictionPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchContradictionResponse"];
                 };
             };
             /** @description Validation Error */

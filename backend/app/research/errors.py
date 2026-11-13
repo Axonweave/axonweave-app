@@ -213,3 +213,16 @@ class NoAnalysedPapersError(ResearchError):
     code = "RESEARCH_NO_ANALYSED_PAPERS"
     http_status = 422
     user_message = "Analyse at least one paper in this project first."
+
+
+# Contradictions (M7.7)
+class ContradictionNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Contradiction not found."
+
+
+class NeedTwoAnalysedPapersError(ResearchError):
+    code = "RESEARCH_NEED_TWO_ANALYSED_PAPERS"
+    http_status = 422
+    user_message = "Analyse at least two papers in this project first."

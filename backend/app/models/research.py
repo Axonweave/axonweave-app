@@ -617,3 +617,87 @@ class ResearchGapEvidence(UUIDPrimaryKeyMixin, Base):
     evidence_role: Mapped[str] = mapped_column(String(16), nullable=False)
     claim_type: Mapped[str] = mapped_column(String(24), nullable=False)
     claim_text: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+CONTRADICTION_CATEGORIES = (
+    "genuine",
+    "context_dependent",
+    "metric_incompatible",
+    "insufficient_evidence",
+)
+CONTRADICTION_CONFIDENCE = ("moderate", "low")
+CONTRADICTION_REVIEW = ("unreviewed", "genuine", "context_dependent", "dismissed")
+
+
+class ResearchContradiction(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A pair of claims from two papers of one project that appear to conflict (Phase 7 M7.7). The
+    claim text, quotation and page are copied so the record stays readable after a re-analysis; the
+    evidence ids are optional links that become NULL if the evidence row is replaced."""
+
+    __tablename__ = "research_contradictions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_project_id", "user_id"],
+            ["research_projects.id", "research_projects.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_contradictions_project_owner",
+        ),
+        ForeignKeyConstraint(
+            ["paper_a_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_contradictions_paper_a_owner",
+        ),
+        ForeignKeyConstraint(
+            ["paper_b_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_contradictions_paper_b_owner",
+        ),
+        UniqueConstraint("id", "user_id", name="uq_research_contradictions_id_user"),
+        CheckConstraint(
+            f"category IN ({_sql(CONTRADICTION_CATEGORIES)})", name="ck_research_contradictions_cat"
+        ),
+        CheckConstraint(
+            f"confidence_label IN ({_sql(CONTRADICTION_CONFIDENCE)})",
+            name="ck_research_contradictions_conf",
+        ),
+        CheckConstraint(
+            f"review_status IN ({_sql(CONTRADICTION_REVIEW)})",
+            name="ck_research_contradictions_review",
+        ),
+        Index(
+            "ix_research_contradictions_project", "user_id", "research_project_id", "review_status"
+        ),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    paper_a_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    paper_b_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    claim_a_text: Mapped[str] = mapped_column(Text, nullable=False)
+    claim_b_text: Mapped[str] = mapped_column(Text, nullable=False)
+    claim_a_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    claim_b_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    evidence_a_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("research_evidence.id", ondelete="SET NULL"), nullable=True
+    )
+    evidence_b_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("research_evidence.id", ondelete="SET NULL"), nullable=True
+    )
+    quote_a: Mapped[str | None] = mapped_column(Text, nullable=True)
+    quote_b: Mapped[str | None] = mapped_column(Text, nullable=True)
+    page_a: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    page_b: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    conditions: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    category: Mapped[str] = mapped_column(String(24), nullable=False)
+    explanation: Mapped[str] = mapped_column(Text, nullable=False)
+    confidence_label: Mapped[str] = mapped_column(String(10), nullable=False)
+    review_status: Mapped[str] = mapped_column(String(24), nullable=False, default="unreviewed")
+    researcher_explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    analysis_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)

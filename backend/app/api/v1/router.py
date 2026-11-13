@@ -18,6 +18,7 @@ from app.modules.recommendations.learner_routes import router as learner_recomme
 from app.modules.recommendations.routes import router as recommendations_router
 from app.modules.research.analysis_routes import router as research_analysis_router
 from app.modules.research.comparison_routes import router as research_comparison_router
+from app.modules.research.contradiction_routes import router as research_contradiction_router
 from app.modules.research.gap_routes import router as research_gap_router
 from app.modules.research.matrix_routes import router as research_matrix_router
 from app.modules.research.paper_routes import router as research_papers_router
@@ -70,3 +71,4 @@ router.include_router(research_analysis_router)
 router.include_router(research_comparison_router)
 router.include_router(research_matrix_router)
 router.include_router(research_gap_router)
+router.include_router(research_contradiction_router)

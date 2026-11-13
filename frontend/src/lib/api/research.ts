@@ -85,6 +85,22 @@ export type MatrixColumn = S["ResearchMatrixColumnOut"];
 export type MatrixRow = S["ResearchMatrixRowOut"];
 export type MatrixCell = S["ResearchMatrixCellOut"];
 
+export type ResearchContradiction = S["ResearchContradictionOut"];
+export type ContradictionPatch = S["ResearchContradictionPatch"];
+
+export const CONTRADICTION_CATEGORY_LABELS: Record<string, string> = {
+  genuine: "Genuine conflicting findings",
+  context_dependent: "Different conditions",
+  metric_incompatible: "Incompatible metrics",
+  insufficient_evidence: "Insufficient evidence",
+};
+export const CONTRADICTION_REVIEW_LABELS: Record<string, string> = {
+  unreviewed: "Not reviewed",
+  genuine: "Marked genuine",
+  context_dependent: "Marked context-dependent",
+  dismissed: "Dismissed",
+};
+
 export type ResearchGap = S["ResearchGapOut"];
 export type GapEvidence = S["ResearchGapEvidenceOut"];
 export type GapPatch = S["ResearchGapPatch"];
@@ -381,6 +397,22 @@ export const researchApi = {
       .then((r) => r.data),
   matrixRefresh: (id: string) =>
     api.post<ResearchMatrix>(`/research/matrices/${enc(id)}/refresh`).then((r) => r.data),
+  listContradictions: (projectId: string, f: { category?: string; review_status?: string } = {}) =>
+    getPaged<ResearchContradiction>(
+      `/research/projects/${enc(projectId)}/contradictions${query({ ...f, limit: 100 })}`,
+    ),
+  generateContradictions: (projectId: string) =>
+    api
+      .post<ResearchContradiction[]>(
+        `/research/projects/${enc(projectId)}/contradictions/generate`,
+        {},
+      )
+      .then((r) => r.data),
+  patchContradiction: (id: string, body: ContradictionPatch) =>
+    api
+      .patch<ResearchContradiction>(`/research/contradictions/${enc(id)}`, body)
+      .then((r) => r.data),
+  deleteContradiction: (id: string) => api.delete<unknown>(`/research/contradictions/${enc(id)}`),
   listGaps: (projectId: string, f: { category?: string; status?: string } = {}) =>
     getPaged<ResearchGap>(
       `/research/projects/${enc(projectId)}/gaps${query({ ...f, limit: 100 })}`,
