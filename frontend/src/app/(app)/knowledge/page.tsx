@@ -1,6 +1,11 @@
 import { KnowledgeExplorer } from "@/features/knowledge/knowledge-explorer";
 
-export default function KnowledgePage() {
+export default async function KnowledgePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ node?: string }>;
+}) {
+  const { node } = await searchParams;
   return (
     <div className="min-w-0 space-y-6">
       <div>
@@ -10,7 +15,7 @@ export default function KnowledgePage() {
           came from. Only you can see this.
         </p>
       </div>
-      <KnowledgeExplorer />
+      <KnowledgeExplorer initialNodeId={node} />
     </div>
   );
 }

@@ -21,12 +21,12 @@ from app.modules.knowledge.learner_schemas import (
     ConceptStateListResponse,
     ConceptStateOut,
     ConceptStateResponse,
+    EvidenceSummaryOut,
+    EvidenceSummaryResponse,
     LearnerEvidenceListResponse,
     LearnerEvidenceOut,
     RecalculateOut,
     RecalculateResponse,
-    SummaryOut,
-    SummaryResponse,
     SyncOut,
     SyncResponse,
 )
@@ -63,10 +63,10 @@ async def sync_evidence(current_user: ActiveUser, db: DbSession) -> SyncResponse
     )
 
 
-@router.get("/summary", response_model=SummaryResponse)
-async def evidence_summary(current_user: ActiveUser, db: DbSession) -> SummaryResponse:
+@router.get("/summary", response_model=EvidenceSummaryResponse)
+async def evidence_summary(current_user: ActiveUser, db: DbSession) -> EvidenceSummaryResponse:
     data = await LearnerEvidenceRepository(db).summary(current_user.id)
-    return SummaryResponse(data=SummaryOut(**data))
+    return EvidenceSummaryResponse(data=EvidenceSummaryOut(**data))
 
 
 @router.get("/evidence", response_model=LearnerEvidenceListResponse)

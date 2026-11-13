@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Library,
   Network,
+  Gauge,
   Sparkles,
   Star,
   ChevronLeft,
@@ -41,6 +42,7 @@ const primaryNav: NavItem[] = [
   { label: "Study materials", href: "/study", icon: Sparkles },
   { label: "AI Tutor", href: "/ai-tutor", icon: BrainCircuit },
   { label: "Knowledge Graph", href: "/knowledge", icon: Network },
+  { label: "Learner Intelligence", href: "/insights", icon: Gauge },
   { label: "Revision", href: "/revision", icon: RotateCcw },
   { label: "Progress", href: "/progress", icon: ClipboardCheck },
 ];

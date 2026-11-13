@@ -40,7 +40,7 @@ const MAX_CANVAS_NODES = 300;
 
 type View = "graph" | "list" | "duplicates";
 
-export function KnowledgeExplorer() {
+export function KnowledgeExplorer({ initialNodeId }: { initialNodeId?: string }) {
   const { toast } = useToast();
   const [view, setView] = useState<View>("graph");
   const [workspaceId, setWorkspaceId] = useState("");
@@ -49,7 +49,7 @@ export function KnowledgeExplorer() {
   const [relTypes, setRelTypes] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [q, setQ] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialNodeId ?? null);
   const [offset, setOffset] = useState(0);
   const [version, setVersion] = useState(0);
   // expansions belong to the base graph they were loaded on; a new base graph discards them

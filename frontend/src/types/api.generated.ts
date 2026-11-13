@@ -2880,6 +2880,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge/learner/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard */
+        get: operations["dashboard_api_v1_knowledge_learner_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/knowledge/learner/misconceptions/detect": {
         parameters: {
             query?: never;
@@ -4415,6 +4432,24 @@ export interface components {
              */
             created_at: string;
         };
+        /** EvidenceSummaryOut */
+        EvidenceSummaryOut: {
+            /** Total */
+            total: number;
+            /** Unmapped */
+            unmapped: number;
+            /** Proposed Links */
+            proposed_links: number;
+        };
+        /** EvidenceSummaryResponse */
+        EvidenceSummaryResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["EvidenceSummaryOut"];
+        };
         /** ExportOut */
         ExportOut: {
             /**
@@ -5022,6 +5057,50 @@ export interface components {
              */
             created_at: string;
         };
+        /** LearnerConceptRowOut */
+        LearnerConceptRowOut: {
+            /**
+             * Node Id
+             * Format: uuid
+             */
+            node_id: string;
+            /** Name */
+            name: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string | null;
+            /** State */
+            state: string;
+            /** Mastery */
+            mastery: number | null;
+            /** Confidence */
+            confidence: number;
+            /** Evidence Count */
+            evidence_count: number;
+            /** Connections */
+            connections: number;
+        };
+        /** LearnerDashboardOut */
+        LearnerDashboardOut: {
+            overview: components["schemas"]["LearnerOverviewOut"];
+            /** Subjects */
+            subjects: components["schemas"]["LearnerSubjectOut"][];
+            /** Concepts */
+            concepts: components["schemas"]["LearnerConceptRowOut"][];
+            gaps: components["schemas"]["LearnerGapsOut"];
+            /** Note */
+            note: string;
+        };
+        /** LearnerDashboardResponse */
+        LearnerDashboardResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["LearnerDashboardOut"];
+        };
         /** LearnerEvidenceListResponse */
         LearnerEvidenceListResponse: {
             /**
@@ -5077,6 +5156,100 @@ export interface components {
              * Format: date-time
              */
             occurred_at: string;
+        };
+        /** LearnerGapConceptOut */
+        LearnerGapConceptOut: {
+            /**
+             * Node Id
+             * Format: uuid
+             */
+            node_id: string;
+            /** Name */
+            name: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string | null;
+            /** State */
+            state: string;
+            /** Mastery */
+            mastery: number | null;
+            /** Kind */
+            kind?: string | null;
+            /**
+             * Needed For
+             * @default []
+             */
+            needed_for: string[];
+            /** Evidence Count */
+            evidence_count?: number | null;
+            /** Connections */
+            connections?: number | null;
+            /** Next Review At */
+            next_review_at?: string | null;
+        };
+        /** LearnerGapMisconceptionOut */
+        LearnerGapMisconceptionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Node Id
+             * Format: uuid
+             */
+            node_id: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string;
+            /** Confidence */
+            confidence: number;
+            /** Tentative */
+            tentative: boolean;
+            /** Evidence Count */
+            evidence_count: number;
+            /** Status */
+            status: string;
+        };
+        /** LearnerGapsOut */
+        LearnerGapsOut: {
+            /** Weak */
+            weak: components["schemas"]["LearnerGapConceptOut"][];
+            /** Missing Prerequisites */
+            missing_prerequisites: components["schemas"]["LearnerGapConceptOut"][];
+            /** Misconceptions */
+            misconceptions: components["schemas"]["LearnerGapMisconceptionOut"][];
+            /** Unassessed Important */
+            unassessed_important: components["schemas"]["LearnerGapConceptOut"][];
+            /** Needs Revision */
+            needs_revision: components["schemas"]["LearnerGapConceptOut"][];
+        };
+        /** LearnerOverviewOut */
+        LearnerOverviewOut: {
+            /** Tracked */
+            tracked: number;
+            /** Assessed */
+            assessed: number;
+            /** Sufficient Evidence */
+            sufficient_evidence: number;
+            /** Strong */
+            strong: number;
+            /** Proficient */
+            proficient: number;
+            /** Developing */
+            developing: number;
+            /** Weak */
+            weak: number;
+            /** Insufficient Evidence */
+            insufficient_evidence: number;
+            /** Unassessed */
+            unassessed: number;
+            /** Misconceptions */
+            misconceptions: number;
+            /** Recommendations */
+            recommendations: number;
         };
         /** LearnerRecommendationListOut */
         LearnerRecommendationListOut: {
@@ -5137,6 +5310,29 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["LearnerRecommendationOut"];
+        };
+        /** LearnerSubjectOut */
+        LearnerSubjectOut: {
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string | null;
+            /** Total */
+            total: number;
+            /** Assessed */
+            assessed: number;
+            /** Distribution */
+            distribution: {
+                [key: string]: number;
+            };
+            /** Weak */
+            weak: string[];
+            /** Strong */
+            strong: string[];
+            /** Unassessed */
+            unassessed: number;
+            /** Missing Prerequisites */
+            missing_prerequisites: number;
         };
         /** LibraryItemOut */
         LibraryItemOut: {
@@ -7117,6 +7313,48 @@ export interface components {
             /** Idempotency Key */
             idempotency_key?: string | null;
         };
+        /** SummaryOut */
+        SummaryOut: {
+            /** Total Cards */
+            total_cards: number;
+            /** Due Today */
+            due_today: number;
+            /** Overdue */
+            overdue: number;
+            /** New */
+            new: number;
+            /** Learning */
+            learning: number;
+            /** Review */
+            review: number;
+            /** Suspended */
+            suspended: number;
+            /** Reviewed Today */
+            reviewed_today: number;
+            /** Daily Completion */
+            daily_completion: number | null;
+            /** New Cards Remaining Today */
+            new_cards_remaining_today: number;
+            /** Upcoming */
+            upcoming: components["schemas"]["UpcomingDayOut"][];
+            /** Subjects */
+            subjects: components["schemas"]["SubjectStatusOut"][];
+            /** Recent */
+            recent: components["schemas"]["RecentReviewOut"][];
+            /** Timezone */
+            timezone: string;
+            /** Desired Retention */
+            desired_retention: number;
+        };
+        /** SummaryResponse */
+        SummaryResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["SummaryOut"];
+        };
         /** SyncOut */
         SyncOut: {
             /** Ingested */
@@ -7693,24 +7931,6 @@ export interface components {
              */
             stream: boolean;
         };
-        /** SummaryOut */
-        app__modules__knowledge__learner_schemas__SummaryOut: {
-            /** Total */
-            total: number;
-            /** Unmapped */
-            unmapped: number;
-            /** Proposed Links */
-            proposed_links: number;
-        };
-        /** SummaryResponse */
-        app__modules__knowledge__learner_schemas__SummaryResponse: {
-            /**
-             * Success
-             * @default true
-             */
-            success: boolean;
-            data: components["schemas"]["app__modules__knowledge__learner_schemas__SummaryOut"];
-        };
         /** SessionListResponse */
         app__modules__revision__schemas__SessionListResponse: {
             /**
@@ -7759,48 +7979,6 @@ export interface components {
              * @default false
              */
             resumed: boolean;
-        };
-        /** SummaryOut */
-        app__modules__revision__schemas__SummaryOut: {
-            /** Total Cards */
-            total_cards: number;
-            /** Due Today */
-            due_today: number;
-            /** Overdue */
-            overdue: number;
-            /** New */
-            new: number;
-            /** Learning */
-            learning: number;
-            /** Review */
-            review: number;
-            /** Suspended */
-            suspended: number;
-            /** Reviewed Today */
-            reviewed_today: number;
-            /** Daily Completion */
-            daily_completion: number | null;
-            /** New Cards Remaining Today */
-            new_cards_remaining_today: number;
-            /** Upcoming */
-            upcoming: components["schemas"]["UpcomingDayOut"][];
-            /** Subjects */
-            subjects: components["schemas"]["SubjectStatusOut"][];
-            /** Recent */
-            recent: components["schemas"]["RecentReviewOut"][];
-            /** Timezone */
-            timezone: string;
-            /** Desired Retention */
-            desired_retention: number;
-        };
-        /** SummaryResponse */
-        app__modules__revision__schemas__SummaryResponse: {
-            /**
-             * Success
-             * @default true
-             */
-            success: boolean;
-            data: components["schemas"]["app__modules__revision__schemas__SummaryOut"];
         };
         /** PreferencesResponse */
         app__modules__study__preferences_service__PreferencesResponse: {
@@ -12471,7 +12649,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__modules__revision__schemas__SummaryResponse"];
+                    "application/json": components["schemas"]["SummaryResponse"];
                 };
             };
             /** @description Validation Error */
@@ -14440,7 +14618,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__modules__knowledge__learner_schemas__SummaryResponse"];
+                    "application/json": components["schemas"]["EvidenceSummaryResponse"];
                 };
             };
             /** @description Validation Error */
@@ -14680,6 +14858,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecalculateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dashboard_api_v1_knowledge_learner_dashboard_get: {
+        parameters: {
+            query?: {
+                workspace_id?: string | null;
+                subject_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerDashboardResponse"];
                 };
             };
             /** @description Validation Error */

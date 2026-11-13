@@ -19,15 +19,15 @@ class SyncResponse(BaseModel):
     data: SyncOut
 
 
-class SummaryOut(BaseModel):
+class EvidenceSummaryOut(BaseModel):
     total: int
     unmapped: int
     proposed_links: int
 
 
-class SummaryResponse(BaseModel):
+class EvidenceSummaryResponse(BaseModel):
     success: bool = True
-    data: SummaryOut
+    data: EvidenceSummaryOut
 
 
 class LearnerEvidenceOut(BaseModel):
