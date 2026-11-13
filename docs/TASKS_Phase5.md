@@ -72,3 +72,7 @@ Phase 4 M3/M7 already created `quizzes`, `quiz_questions`, `quiz_attempts`, `qui
 
 ## Out of scope (spec section 12, do not start)
 Knowledge graph, concept relationship extraction, prerequisite mapping, learner knowledge modelling, misconception detection, adaptive learning paths, research features, AI viva, simulations, audio revision, multilingual learning.
+
+
+## Status (branch `phase5/complete`, one stacked PR)
+Built: M1 quiz assessment backend, M3 spaced repetition backend (FSRS), M5 analytics backend, M6 recommendations backend, results-screen extension (M2 part), Revision Centre, session runner and Progress page (M4, M7 part). Also built since: quiz history and compare page, subject table, charts, calendar grid, dashboard revision widget, and `e2e/revision.spec.ts` (D-121). Shared files touched: `dashboard/page.tsx` (one widget) and `quiz_schemas.py`/`quiz_routes.py` (`study_material_id` on history items). Also: subject, chapter and date filters, an analytics load-check script, and a green full Playwright run (137 passed, 0 failed). Not built: per-user retention setting (D-107, D-120). Open: the one 42 second query seen on the first load-check run (see `PHASE5_ACCEPTANCE.md`). See `PHASE5_ACCEPTANCE.md` for the line-by-line status. Nothing here is ticked as merged; tick tasks when the PR is merged.

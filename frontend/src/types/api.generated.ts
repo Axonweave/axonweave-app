@@ -1641,6 +1641,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/study/quizzes/{quiz_id}/attempts/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Compare Attempts
+         * @description Two submitted attempts of this quiz, oldest first, with per-question and per-topic change.
+         */
+        get: operations["compare_attempts_api_v1_study_quizzes__quiz_id__attempts_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/study/quizzes/{quiz_id}/attempts/{attempt_id}": {
         parameters: {
             query?: never;
@@ -1652,7 +1672,8 @@ export interface paths {
         get: operations["get_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete Attempt */
+        delete: operations["delete_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1684,8 +1705,48 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Submit Attempt */
+        /**
+         * Submit Attempt
+         * @description Idempotent: submitting again (or with the same idempotency key) returns the same result.
+         */
         post: operations["submit_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quizzes/{quiz_id}/attempts/{attempt_id}/abandon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Abandon Attempt */
+        post: operations["abandon_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__abandon_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quizzes/{quiz_id}/attempts/{attempt_id}/evaluation/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry Evaluation
+         * @description Grade the written answers that are still waiting (provider was down, output unusable).
+         */
+        post: operations["retry_evaluation_api_v1_study_quizzes__quiz_id__attempts__attempt_id__evaluation_retry_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1704,6 +1765,482 @@ export interface paths {
          * @description The only route that returns correct answers and explanations: 409 until submitted.
          */
         get: operations["get_results_api_v1_study_quizzes__quiz_id__results__attempt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/quiz-attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Attempt History
+         * @description Attempts across all the user's quizzes, newest first, with allow-listed filters.
+         */
+        get: operations["attempt_history_api_v1_study_quiz_attempts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Due Cards
+         * @description Cards due by the end of the user's local day (overdue ones included), oldest due first.
+         */
+        get: operations["due_cards_api_v1_revision_due_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/overdue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overdue Cards */
+        get: operations["overdue_cards_api_v1_revision_overdue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** New Cards */
+        get: operations["new_cards_api_v1_revision_new_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Filtered Cards
+         * @description Any bucket (due, overdue, new, suspended, all) with the subject and chapter filters.
+         */
+        get: operations["filtered_cards_api_v1_revision_cards_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Summary */
+        get: operations["summary_api_v1_revision_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sessions */
+        get: operations["list_sessions_api_v1_revision_sessions_get"];
+        put?: never;
+        /**
+         * Start Session
+         * @description Starts a session over the due cards, or returns the active one (200) so a refresh
+         *     resumes it. 409 NOTHING_DUE when there is nothing to revise.
+         */
+        post: operations["start_session_api_v1_revision_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Session */
+        get: operations["get_session_api_v1_revision_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/sessions/{session_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete Session */
+        post: operations["complete_session_api_v1_revision_sessions__session_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/revision/sessions/{session_id}/abandon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Abandon Session */
+        post: operations["abandon_session_api_v1_revision_sessions__session_id__abandon_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_api_v1_analytics_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/quiz-performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Quiz Performance */
+        get: operations["quiz_performance_api_v1_analytics_quiz_performance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/subject-performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Subject Performance */
+        get: operations["subject_performance_api_v1_analytics_subject_performance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/topic-performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Topic Performance */
+        get: operations["topic_performance_api_v1_analytics_topic_performance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/revision-activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Revision Activity */
+        get: operations["revision_activity_api_v1_analytics_revision_activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/study-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Study Calendar */
+        get: operations["study_calendar_api_v1_analytics_study_calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/study-calendar/{day}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Study Calendar Day */
+        get: operations["study_calendar_day_api_v1_analytics_study_calendar__day__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/streaks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Streaks */
+        get: operations["streaks_api_v1_analytics_streaks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recommendations/revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Revision Recommendations */
+        get: operations["revision_recommendations_api_v1_recommendations_revision_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recommendations/weak-topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weak Topics */
+        get: operations["weak_topics_api_v1_recommendations_weak_topics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recommendations/{recommendation_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete */
+        post: operations["complete_api_v1_recommendations__recommendation_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recommendations/{recommendation_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss */
+        post: operations["dismiss_api_v1_recommendations__recommendation_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/cards/{card_id}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Card Schedule */
+        get: operations["card_schedule_api_v1_study_flashcards_cards__card_id__schedule_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/cards/{card_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Review Card
+         * @description Idempotent on `idempotency_key`: a retry returns the stored event with duplicate=true.
+         */
+        post: operations["review_card_api_v1_study_flashcards_cards__card_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/cards/{card_id}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Suspend Card */
+        patch: operations["suspend_card_api_v1_study_flashcards_cards__card_id__suspend_patch"];
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/cards/{card_id}/unsuspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Unsuspend Card */
+        patch: operations["unsuspend_card_api_v1_study_flashcards_cards__card_id__unsuspend_patch"];
+        trace?: never;
+    };
+    "/api/v1/study/flashcards/cards/{card_id}/review-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Review History */
+        get: operations["review_history_api_v1_study_flashcards_cards__card_id__review_history_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1887,6 +2424,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityDayOut */
+        ActivityDayOut: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Reviews */
+            reviews: number;
+            /** Again */
+            again: number;
+            /** Hard */
+            hard: number;
+            /** Good */
+            good: number;
+            /** Easy */
+            easy: number;
+            /** Sessions */
+            sessions: number;
+        };
         /** ActivityItem */
         ActivityItem: {
             /**
@@ -2061,7 +2618,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "in_progress" | "submitted";
+            status: "in_progress" | "submitted" | "abandoned";
             /**
              * Started At
              * Format: date-time
@@ -2098,6 +2655,14 @@ export interface components {
             graded_questions: number | null;
             /** Percentage */
             percentage: number | null;
+            /**
+             * Evaluation Status
+             * @default not_required
+             * @enum {string}
+             */
+            evaluation_status: "not_required" | "pending" | "completed" | "failed";
+            /** Time Taken Seconds */
+            time_taken_seconds?: number | null;
         };
         /** AttemptResponse */
         AttemptResponse: {
@@ -2119,7 +2684,7 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "in_progress" | "submitted";
+            status: "in_progress" | "submitted" | "abandoned";
             /**
              * Started At
              * Format: date-time
@@ -2137,6 +2702,14 @@ export interface components {
             graded_questions: number | null;
             /** Percentage */
             percentage: number | null;
+            /**
+             * Evaluation Status
+             * @default not_required
+             * @enum {string}
+             */
+            evaluation_status: "not_required" | "pending" | "completed" | "failed";
+            /** Time Taken Seconds */
+            time_taken_seconds?: number | null;
         };
         /** AuthResponse */
         AuthResponse: {
@@ -2146,6 +2719,49 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["UserOut"];
+        };
+        /** CalendarDayOut */
+        CalendarDayOut: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Quiz Attempts */
+            quiz_attempts: number;
+            /** Revision Sessions */
+            revision_sessions: number;
+            /** Reviews */
+            reviews: number;
+            /** Activities */
+            activities: number;
+        };
+        /** CalendarOut */
+        CalendarOut: {
+            /** Days */
+            days: components["schemas"]["CalendarDayOut"][];
+            streak: components["schemas"]["StreakOut"];
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Timezone */
+            timezone: string;
+        };
+        /** CalendarResponse */
+        CalendarResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["CalendarOut"];
         };
         /** CapabilitiesOut */
         CapabilitiesOut: {
@@ -2323,6 +2939,70 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["CitationOut"];
+        };
+        /** CompareOut */
+        CompareOut: {
+            first: components["schemas"]["AttemptSummary"];
+            second: components["schemas"]["AttemptSummary"];
+            /** Score Change */
+            score_change: number | null;
+            /** Percentage Change */
+            percentage_change: number | null;
+            /** Time Change Seconds */
+            time_change_seconds: number | null;
+            /** Questions */
+            questions: components["schemas"]["CompareQuestionOut"][];
+            /** Topics */
+            topics: components["schemas"]["CompareTopicOut"][];
+            /** Note */
+            note: string;
+        };
+        /** CompareQuestionOut */
+        CompareQuestionOut: {
+            /**
+             * Question Id
+             * Format: uuid
+             */
+            question_id: string;
+            /** Question */
+            question: string;
+            /** Topic */
+            topic: string | null;
+            /**
+             * First
+             * @enum {string}
+             */
+            first: "correct" | "incorrect" | "partial" | "unanswered" | "pending" | "not_graded";
+            /**
+             * Second
+             * @enum {string}
+             */
+            second: "correct" | "incorrect" | "partial" | "unanswered" | "pending" | "not_graded";
+            /**
+             * Movement
+             * @enum {string}
+             */
+            movement: "improved" | "declined" | "same";
+        };
+        /** CompareResponse */
+        CompareResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["CompareOut"];
+        };
+        /** CompareTopicOut */
+        CompareTopicOut: {
+            /** Topic */
+            topic: string | null;
+            /** First Percentage */
+            first_percentage: number | null;
+            /** Second Percentage */
+            second_percentage: number | null;
+            /** Change */
+            change: number | null;
         };
         /** ContentResponse */
         ContentResponse: {
@@ -2506,12 +3186,101 @@ export interface components {
             success: boolean;
             data: components["schemas"]["DashboardStats"];
         };
+        /** DayDetailOut */
+        DayDetailOut: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Quizzes */
+            quizzes: components["schemas"]["DayQuizOut"][];
+            /** Sessions */
+            sessions: components["schemas"]["DaySessionOut"][];
+            /** Reviews */
+            reviews: number;
+            /** Rating Distribution */
+            rating_distribution: {
+                [key: string]: number;
+            };
+            /** Timezone */
+            timezone: string;
+        };
+        /** DayDetailResponse */
+        DayDetailResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["DayDetailOut"];
+        };
+        /** DayQuizOut */
+        DayQuizOut: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Quiz Id
+             * Format: uuid
+             */
+            quiz_id: string;
+            /** Quiz Title */
+            quiz_title: string;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /** Percentage */
+            percentage: number | null;
+            /** Time Taken Seconds */
+            time_taken_seconds: number | null;
+        };
+        /** DaySessionOut */
+        DaySessionOut: {
+            /**
+             * Session Id
+             * Format: uuid
+             */
+            session_id: string;
+            /**
+             * Completed At
+             * Format: date-time
+             */
+            completed_at: string;
+            /** Reviewed Cards */
+            reviewed_cards: number;
+            /** Total Cards */
+            total_cards: number;
+            /** Duration Seconds */
+            duration_seconds: number | null;
+        };
         /** DeleteAccountRequest */
         DeleteAccountRequest: {
             /** Password */
             password: string;
             /** Confirmation */
             confirmation: string;
+        };
+        /** DeleteOut */
+        DeleteOut: {
+            /**
+             * Deleted
+             * @default true
+             */
+            deleted: boolean;
+        };
+        /** DeleteResponse */
+        DeleteResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["DeleteOut"];
         };
         /** DocumentListResponse */
         DocumentListResponse: {
@@ -2588,6 +3357,48 @@ export interface components {
             success: boolean;
             data: components["schemas"]["DocumentOut"];
         };
+        /** DueCardOut */
+        DueCardOut: {
+            card: components["schemas"]["RevisionCardOut"];
+            schedule: components["schemas"]["ScheduleOut"];
+        };
+        /** DueListOut */
+        DueListOut: {
+            /** Items */
+            items: components["schemas"]["DueCardOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            /**
+             * Day Start
+             * Format: date-time
+             */
+            day_start: string;
+            /**
+             * Day End
+             * Format: date-time
+             */
+            day_end: string;
+            /** Timezone */
+            timezone: string;
+        };
+        /** DueListResponse */
+        DueListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["DueListOut"];
+        };
         /** EditCardRequest */
         EditCardRequest: {
             /** Front */
@@ -2615,6 +3426,23 @@ export interface components {
             payload: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * EvaluationOut
+         * @description What the AI grader wrote for one written answer. It never contains the reference answer.
+         */
+        EvaluationOut: {
+            /** Explanation */
+            explanation: string;
+            /** Covered Points */
+            covered_points: string[];
+            /** Missing Points */
+            missing_points: string[];
+            /**
+             * Ai Assisted
+             * @default true
+             */
+            ai_assisted: boolean;
         };
         /** ExportOut */
         ExportOut: {
@@ -2988,6 +3816,83 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * HistoryItem
+         * @description One attempt in the cross-quiz history.
+         */
+        HistoryItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "in_progress" | "submitted" | "abandoned";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Auto Submitted */
+            auto_submitted: boolean;
+            /** Score */
+            score: number | null;
+            /** Total Questions */
+            total_questions: number | null;
+            /** Graded Questions */
+            graded_questions: number | null;
+            /** Percentage */
+            percentage: number | null;
+            /**
+             * Evaluation Status
+             * @default not_required
+             * @enum {string}
+             */
+            evaluation_status: "not_required" | "pending" | "completed" | "failed";
+            /** Time Taken Seconds */
+            time_taken_seconds?: number | null;
+            /**
+             * Quiz Id
+             * Format: uuid
+             */
+            quiz_id: string;
+            /** Quiz Title */
+            quiz_title: string;
+            /**
+             * Study Material Id
+             * Format: uuid
+             */
+            study_material_id: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
+        };
+        /** HistoryOut */
+        HistoryOut: {
+            /** Items */
+            items: components["schemas"]["HistoryItem"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** HistoryResponse */
+        HistoryResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["HistoryOut"];
+        };
         /** JobOut */
         JobOut: {
             /** Status */
@@ -3226,6 +4131,54 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** OverviewOut */
+        OverviewOut: {
+            /** Quizzes Attempted */
+            quizzes_attempted: number;
+            /** Quiz Attempts */
+            quiz_attempts: number;
+            /** Average Quiz Percentage */
+            average_quiz_percentage: number | null;
+            /** Flashcards Reviewed */
+            flashcards_reviewed: number;
+            /** Distinct Cards Reviewed */
+            distinct_cards_reviewed: number;
+            /** Revision Sessions */
+            revision_sessions: number;
+            /** Time Spent Seconds */
+            time_spent_seconds: number;
+            /** Quiz Time Seconds */
+            quiz_time_seconds: number;
+            /** Revision Time Seconds */
+            revision_time_seconds: number;
+            /** Current Streak Days */
+            current_streak_days: number;
+            /** Longest Streak Days */
+            longest_streak_days: number;
+            /** Due Today */
+            due_today: number;
+            /** Overdue */
+            overdue: number;
+            /** Topics Needing Attention */
+            topics_needing_attention: number;
+            /** Reviews Today */
+            reviews_today: number;
+            /** Quiz Attempts Today */
+            quiz_attempts_today: number;
+            /** Timezone */
+            timezone: string;
+            /** Note */
+            note: string;
+        };
+        /** OverviewResponse */
+        OverviewResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["OverviewOut"];
+        };
         /** PageOut */
         PageOut: {
             /** Number */
@@ -3461,6 +4414,59 @@ export interface components {
              */
             created_at: string;
         };
+        /** QuizPerformanceOut */
+        QuizPerformanceOut: {
+            /** Points */
+            points: components["schemas"]["QuizPointOut"][];
+            /** Attempts */
+            attempts: number;
+            /** Average Percentage */
+            average_percentage: number | null;
+            /** Note */
+            note: string;
+        };
+        /** QuizPerformanceResponse */
+        QuizPerformanceResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["QuizPerformanceOut"];
+        };
+        /** QuizPointOut */
+        QuizPointOut: {
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Quiz Id
+             * Format: uuid
+             */
+            quiz_id: string;
+            /** Quiz Title */
+            quiz_title: string;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /**
+             * Local Date
+             * Format: date
+             */
+            local_date: string;
+            /** Percentage */
+            percentage: number | null;
+            /** Score */
+            score: number | null;
+            /** Max Score */
+            max_score: number | null;
+            /** Evaluation Status */
+            evaluation_status: string;
+        };
         /** QuizQuestionOut */
         QuizQuestionOut: {
             /**
@@ -3499,6 +4505,24 @@ export interface components {
             success: boolean;
             data: components["schemas"]["QuizOut"];
         };
+        /** RecentReviewOut */
+        RecentReviewOut: {
+            /**
+             * Card Id
+             * Format: uuid
+             */
+            card_id: string;
+            /**
+             * Rating
+             * @enum {string}
+             */
+            rating: "again" | "hard" | "good" | "easy";
+            /**
+             * Reviewed At
+             * Format: date-time
+             */
+            reviewed_at: string;
+        };
         /** RecentSubjectItem */
         RecentSubjectItem: {
             /**
@@ -3530,6 +4554,65 @@ export interface components {
             success: boolean;
             /** Data */
             data: components["schemas"]["RecentSubjectItem"][];
+        };
+        /** RecommendationListOut */
+        RecommendationListOut: {
+            /** Items */
+            items: components["schemas"]["RecommendationOut"][];
+            /** Note */
+            note: string;
+        };
+        /** RecommendationListResponse */
+        RecommendationListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["RecommendationListOut"];
+        };
+        /** RecommendationOut */
+        RecommendationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Recommendation Type
+             * @enum {string}
+             */
+            recommendation_type: "quiz" | "flashcard" | "topic" | "chapter";
+            /** Topic Name */
+            topic_name: string | null;
+            /** Reason */
+            reason: string;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "low" | "medium" | "high";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "completed" | "dismissed";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Completed At */
+            completed_at: string | null;
+        };
+        /** RecommendationResponse */
+        RecommendationResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["RecommendationOut"];
         };
         /**
          * RegenerateCardsRequest
@@ -3645,6 +4728,36 @@ export interface components {
             note: string;
             /** Questions */
             questions: components["schemas"]["ResultQuestionOut"][];
+            /**
+             * Max Score
+             * @default 0
+             */
+            max_score: number;
+            /**
+             * Evaluation Status
+             * @default not_required
+             * @enum {string}
+             */
+            evaluation_status: "not_required" | "pending" | "completed" | "failed";
+            /**
+             * Pending Evaluations
+             * @default 0
+             */
+            pending_evaluations: number;
+            /**
+             * Ai Assisted Questions
+             * @default 0
+             */
+            ai_assisted_questions: number;
+            /** Topic Performance */
+            topic_performance?: components["schemas"]["TopicResultOut"][];
+            /** Suggested Topics */
+            suggested_topics?: string[];
+            /**
+             * Suggested Topics Note
+             * @default
+             */
+            suggested_topics_note: string;
         };
         /**
          * ResultQuestionOut
@@ -3678,7 +4791,21 @@ export interface components {
              * Grading
              * @enum {string}
              */
-            grading: "auto" | "self_assessment";
+            grading: "auto" | "ai" | "self_assessment";
+            /** Topic */
+            topic?: string | null;
+            /**
+             * Ai Assisted
+             * @default false
+             */
+            ai_assisted: boolean;
+            /**
+             * Evaluation Status
+             * @default graded
+             * @enum {string}
+             */
+            evaluation_status: "graded" | "not_graded" | "pending" | "failed";
+            evaluation?: components["schemas"]["EvaluationOut"] | null;
             /** Is Correct */
             is_correct: boolean | null;
             /** Awarded Score */
@@ -3703,12 +4830,222 @@ export interface components {
             success: boolean;
             data: components["schemas"]["ResultOut"];
         };
+        /** ReviewEventOut */
+        ReviewEventOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Card Id
+             * Format: uuid
+             */
+            card_id: string;
+            /** Session Id */
+            session_id: string | null;
+            /**
+             * Rating
+             * @enum {string}
+             */
+            rating: "again" | "hard" | "good" | "easy";
+            /**
+             * Reviewed At
+             * Format: date-time
+             */
+            reviewed_at: string;
+            /** Elapsed Days */
+            elapsed_days: number;
+            /** Scheduled Days */
+            scheduled_days: number;
+            /** Response Time Ms */
+            response_time_ms: number | null;
+            /** Previous State */
+            previous_state: {
+                [key: string]: unknown;
+            };
+            /** Resulting State */
+            resulting_state: {
+                [key: string]: unknown;
+            };
+            /** Scheduler Version */
+            scheduler_version: string;
+        };
+        /** ReviewHistoryOut */
+        ReviewHistoryOut: {
+            /** Items */
+            items: components["schemas"]["ReviewEventOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ReviewHistoryResponse */
+        ReviewHistoryResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ReviewHistoryOut"];
+        };
+        /** ReviewOut */
+        ReviewOut: {
+            review: components["schemas"]["ReviewEventOut"];
+            schedule: components["schemas"]["ScheduleOut"];
+            /**
+             * Duplicate
+             * @default false
+             */
+            duplicate: boolean;
+        };
+        /** ReviewRequest */
+        ReviewRequest: {
+            /**
+             * Rating
+             * @enum {string}
+             */
+            rating: "again" | "hard" | "good" | "easy";
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Response Time Ms */
+            response_time_ms?: number | null;
+            /** Session Id */
+            session_id?: string | null;
+        };
+        /** ReviewResponse */
+        ReviewResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ReviewOut"];
+        };
+        /** RevisionActivityOut */
+        RevisionActivityOut: {
+            /** Days */
+            days: components["schemas"]["ActivityDayOut"][];
+            /** Total Reviews */
+            total_reviews: number;
+            /** Rating Distribution */
+            rating_distribution: {
+                [key: string]: number;
+            };
+            /** Average Response Ms */
+            average_response_ms: number | null;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Timezone */
+            timezone: string;
+        };
+        /** RevisionActivityResponse */
+        RevisionActivityResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["RevisionActivityOut"];
+        };
+        /** RevisionCardOut */
+        RevisionCardOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Front */
+            front: string;
+            /** Back */
+            back: string;
+            /** Explanation */
+            explanation: string | null;
+            /** Card Type */
+            card_type: string;
+            /** Difficulty */
+            difficulty: string;
+            /** Topic */
+            topic: string | null;
+            /** Source References */
+            source_references: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Study Material Id
+             * Format: uuid
+             */
+            study_material_id: string;
+            /** Material Title */
+            material_title: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
+        };
         /** SaveAnswersRequest */
         SaveAnswersRequest: {
             /** Answers */
             answers?: components["schemas"]["AnswerItem"][];
             /** Flagged */
             flagged?: string[] | null;
+        };
+        /** ScheduleOut */
+        ScheduleOut: {
+            /**
+             * Card Id
+             * Format: uuid
+             */
+            card_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "new" | "learning" | "review" | "relearning";
+            /**
+             * Due At
+             * Format: date-time
+             */
+            due_at: string;
+            /** Stability */
+            stability: number | null;
+            /** Difficulty */
+            difficulty: number | null;
+            /** Elapsed Days */
+            elapsed_days: number;
+            /** Scheduled Days */
+            scheduled_days: number;
+            /** Repetitions */
+            repetitions: number;
+            /** Lapses */
+            lapses: number;
+            /** Suspended */
+            suspended: boolean;
+            /** Last Review At */
+            last_review_at: string | null;
+            /** Retrievability */
+            retrievability: number | null;
+            /** Scheduler Version */
+            scheduler_version: string;
+        };
+        /** ScheduleResponse */
+        ScheduleResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ScheduleOut"];
         };
         /** SearchData */
         SearchData: {
@@ -3823,49 +5160,115 @@ export interface components {
             success: boolean;
             data: components["schemas"]["SendMessageData"];
         };
-        /** SessionListResponse */
-        SessionListResponse: {
-            /**
-             * Success
-             * @default true
-             */
-            success: boolean;
-            /** Data */
-            data: components["schemas"]["SessionOut"][];
+        /** SessionCardOut */
+        SessionCardOut: {
+            card: components["schemas"]["RevisionCardOut"];
+            schedule: components["schemas"]["ScheduleOut"];
+            /** Reviewed */
+            reviewed: boolean;
         };
-        /** SessionOut */
-        SessionOut: {
+        /** SessionDetailOut */
+        SessionDetailOut: {
             /**
              * Id
              * Format: uuid
              */
             id: string;
             /**
-             * Created At
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "completed" | "abandoned";
+            /**
+             * Started At
              * Format: date-time
              */
-            created_at: string;
+            started_at: string;
+            /** Completed At */
+            completed_at: string | null;
             /**
-             * Last Used At
+             * Last Activity At
              * Format: date-time
              */
-            last_used_at: string;
+            last_activity_at: string;
+            /** Total Cards */
+            total_cards: number;
+            /** Reviewed Cards */
+            reviewed_cards: number;
+            /** Duration Seconds */
+            duration_seconds: number | null;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
             /**
-             * Expires At
-             * Format: date-time
-             */
-            expires_at: string;
-            /** User Agent */
-            user_agent: string | null;
-            /** Ip Address */
-            ip_address: string | null;
-            /** Remember Me */
-            remember_me: boolean;
-            /**
-             * Is Current
+             * Resumed
              * @default false
              */
-            is_current: boolean;
+            resumed: boolean;
+            /** Cards */
+            cards: components["schemas"]["SessionCardOut"][];
+            summary?: components["schemas"]["SessionSummaryOut"] | null;
+        };
+        /** SessionDetailResponse */
+        SessionDetailResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["SessionDetailOut"];
+        };
+        /** SessionListOut */
+        SessionListOut: {
+            /** Items */
+            items: components["schemas"]["app__modules__revision__schemas__SessionOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** SessionResponse */
+        SessionResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["app__modules__revision__schemas__SessionOut"];
+        };
+        /** SessionStartRequest */
+        SessionStartRequest: {
+            /** Subject Id */
+            subject_id?: string | null;
+            /** Chapter Id */
+            chapter_id?: string | null;
+            /** Limit */
+            limit?: number | null;
+            /**
+             * Include New
+             * @default true
+             */
+            include_new: boolean;
+        };
+        /** SessionSummaryOut */
+        SessionSummaryOut: {
+            /** Reviewed Cards */
+            reviewed_cards: number;
+            /** Total Cards */
+            total_cards: number;
+            /** Rating Distribution */
+            rating_distribution: {
+                [key: string]: number;
+            };
+            /** Duration Seconds */
+            duration_seconds: number | null;
+            /** Average Response Ms */
+            average_response_ms: number | null;
+            /** Next Due At */
+            next_due_at: string | null;
         };
         /** SourcePassageOut */
         SourcePassageOut: {
@@ -3925,6 +5328,28 @@ export interface components {
             text?: string | null;
             /** Workspace Id */
             workspace_id?: string | null;
+        };
+        /** StreakOut */
+        StreakOut: {
+            /** Current Streak Days */
+            current_streak_days: number;
+            /** Longest Streak Days */
+            longest_streak_days: number;
+            /** Last Active Date */
+            last_active_date: string | null;
+            /** Active Days Total */
+            active_days_total: number;
+            /** Message */
+            message: string;
+        };
+        /** StreakResponse */
+        StreakResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["StreakOut"];
         };
         /** StudyMaterialOut */
         StudyMaterialOut: {
@@ -4037,6 +5462,37 @@ export interface components {
              */
             updated_at: string;
         };
+        /** SubjectPerformanceItem */
+        SubjectPerformanceItem: {
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string | null;
+            /** Quiz Attempts */
+            quiz_attempts: number;
+            /** Average Quiz Percentage */
+            average_quiz_percentage: number | null;
+            /** Last Attempt At */
+            last_attempt_at: string | null;
+            /** Reviews */
+            reviews: number;
+            /** Hard Or Again Share */
+            hard_or_again_share: number | null;
+        };
+        /** SubjectPerformanceOut */
+        SubjectPerformanceOut: {
+            /** Items */
+            items: components["schemas"]["SubjectPerformanceItem"][];
+        };
+        /** SubjectPerformanceResponse */
+        SubjectPerformanceResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["SubjectPerformanceOut"];
+        };
         /** SubjectResponse */
         SubjectResponse: {
             /**
@@ -4046,10 +5502,146 @@ export interface components {
             success: boolean;
             data: components["schemas"]["SubjectOut"];
         };
+        /** SubjectStatusOut */
+        SubjectStatusOut: {
+            /** Subject Id */
+            subject_id: string | null;
+            /** Subject Name */
+            subject_name: string | null;
+            /** Total */
+            total: number;
+            /** Due */
+            due: number;
+            /** New */
+            new: number;
+        };
         /** SubmitRequest */
         SubmitRequest: {
             /** Answers */
             answers?: components["schemas"]["AnswerItem"][];
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /** SummaryOut */
+        SummaryOut: {
+            /** Total Cards */
+            total_cards: number;
+            /** Due Today */
+            due_today: number;
+            /** Overdue */
+            overdue: number;
+            /** New */
+            new: number;
+            /** Learning */
+            learning: number;
+            /** Review */
+            review: number;
+            /** Suspended */
+            suspended: number;
+            /** Reviewed Today */
+            reviewed_today: number;
+            /** Daily Completion */
+            daily_completion: number | null;
+            /** New Cards Remaining Today */
+            new_cards_remaining_today: number;
+            /** Upcoming */
+            upcoming: components["schemas"]["UpcomingDayOut"][];
+            /** Subjects */
+            subjects: components["schemas"]["SubjectStatusOut"][];
+            /** Recent */
+            recent: components["schemas"]["RecentReviewOut"][];
+            /** Timezone */
+            timezone: string;
+            /** Desired Retention */
+            desired_retention: number;
+        };
+        /** SummaryResponse */
+        SummaryResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["SummaryOut"];
+        };
+        /** ThresholdsOut */
+        ThresholdsOut: {
+            /** Strong At */
+            strong_at: number;
+            /** Needs Revision Below */
+            needs_revision_below: number;
+            /** Min Answers */
+            min_answers: number;
+            /** Recent Attempts */
+            recent_attempts: number;
+            /** Trend Delta */
+            trend_delta: number;
+        };
+        /** TopicOut */
+        TopicOut: {
+            /** Topic */
+            topic: string;
+            /** Attempts */
+            attempts: number;
+            /** Answers */
+            answers: number;
+            /** Correct */
+            correct: number;
+            /** Accuracy */
+            accuracy: number | null;
+            /** Recent Accuracy */
+            recent_accuracy: number | null;
+            /** Previous Accuracy */
+            previous_accuracy: number | null;
+            /** Trend */
+            trend: ("improving" | "steady" | "declining") | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "strong" | "developing" | "needs_revision" | "not_enough_data";
+            /** Status Label */
+            status_label: string;
+            /** Last Attempt At */
+            last_attempt_at: string | null;
+        };
+        /** TopicPerformanceOut */
+        TopicPerformanceOut: {
+            /** Items */
+            items: components["schemas"]["TopicOut"][];
+            thresholds: components["schemas"]["ThresholdsOut"];
+            /** Note */
+            note: string;
+        };
+        /** TopicPerformanceResponse */
+        TopicPerformanceResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["TopicPerformanceOut"];
+        };
+        /** TopicResultOut */
+        TopicResultOut: {
+            /** Topic */
+            topic: string | null;
+            /** Questions */
+            questions: number;
+            /** Correct */
+            correct: number;
+            /** Percentage */
+            percentage: number | null;
+        };
+        /** UpcomingDayOut */
+        UpcomingDayOut: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Count */
+            count: number;
         };
         /** UpdateChapterRequest */
         UpdateChapterRequest: {
@@ -4407,6 +5999,33 @@ export interface components {
             success: boolean;
             data: components["schemas"]["VersionOut"];
         };
+        /** WeakTopicListOut */
+        WeakTopicListOut: {
+            /** Items */
+            items: components["schemas"]["WeakTopicOut"][];
+            /** Note */
+            note: string;
+        };
+        /** WeakTopicListResponse */
+        WeakTopicListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["WeakTopicListOut"];
+        };
+        /** WeakTopicOut */
+        WeakTopicOut: {
+            /** Topic */
+            topic: string;
+            /** Accuracy */
+            accuracy: number | null;
+            /** Answers */
+            answers: number;
+            /** Trend */
+            trend: string | null;
+        };
         /** WorkspaceListResponse */
         WorkspaceListResponse: {
             /**
@@ -4503,6 +6122,55 @@ export interface components {
              */
             stream: boolean;
         };
+        /** SessionListResponse */
+        app__modules__revision__schemas__SessionListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["SessionListOut"];
+        };
+        /** SessionOut */
+        app__modules__revision__schemas__SessionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "completed" | "abandoned";
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Completed At */
+            completed_at: string | null;
+            /**
+             * Last Activity At
+             * Format: date-time
+             */
+            last_activity_at: string;
+            /** Total Cards */
+            total_cards: number;
+            /** Reviewed Cards */
+            reviewed_cards: number;
+            /** Duration Seconds */
+            duration_seconds: number | null;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Chapter Id */
+            chapter_id: string | null;
+            /**
+             * Resumed
+             * @default false
+             */
+            resumed: boolean;
+        };
         /** PreferencesResponse */
         app__modules__study__preferences_service__PreferencesResponse: {
             /**
@@ -4533,6 +6201,50 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["UserPreferencesOut"];
+        };
+        /** SessionListResponse */
+        app__modules__users__schemas__SessionListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["app__modules__users__schemas__SessionOut"][];
+        };
+        /** SessionOut */
+        app__modules__users__schemas__SessionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Last Used At
+             * Format: date-time
+             */
+            last_used_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** User Agent */
+            user_agent: string | null;
+            /** Ip Address */
+            ip_address: string | null;
+            /** Remember Me */
+            remember_me: boolean;
+            /**
+             * Is Current
+             * @default false
+             */
+            is_current: boolean;
         };
     };
     responses: never;
@@ -5013,7 +6725,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SessionListResponse"];
+                    "application/json": components["schemas"]["app__modules__users__schemas__SessionListResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8641,6 +10353,42 @@ export interface operations {
             };
         };
     };
+    compare_attempts_api_v1_study_quizzes__quiz_id__attempts_compare_get: {
+        parameters: {
+            query: {
+                first: string;
+                second: string;
+            };
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompareResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__get: {
         parameters: {
             query?: never;
@@ -8662,6 +10410,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttemptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+                attempt_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8751,6 +10533,74 @@ export interface operations {
             };
         };
     };
+    abandon_attempt_api_v1_study_quizzes__quiz_id__attempts__attempt_id__abandon_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+                attempt_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_evaluation_api_v1_study_quizzes__quiz_id__attempts__attempt_id__evaluation_retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+                attempt_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_results_api_v1_study_quizzes__quiz_id__results__attempt_id__get: {
         parameters: {
             query?: never;
@@ -8772,6 +10622,975 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResultResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attempt_history_api_v1_study_quiz_attempts_get: {
+        parameters: {
+            query?: {
+                quiz_id?: string | null;
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                status?: ("in_progress" | "submitted" | "abandoned") | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    due_cards_api_v1_revision_due_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overdue_cards_api_v1_revision_overdue_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    new_cards_api_v1_revision_new_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    filtered_cards_api_v1_revision_cards_get: {
+        parameters: {
+            query?: {
+                bucket?: "due" | "overdue" | "new" | "suspended" | "all";
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    summary_api_v1_revision_summary_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SummaryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sessions_api_v1_revision_sessions_get: {
+        parameters: {
+            query?: {
+                status?: ("active" | "completed" | "abandoned") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__modules__revision__schemas__SessionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_session_api_v1_revision_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_session_api_v1_revision_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_session_api_v1_revision_sessions__session_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    abandon_session_api_v1_revision_sessions__session_id__abandon_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_api_v1_analytics_overview_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                start_date?: string | null;
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    quiz_performance_api_v1_analytics_quiz_performance_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                start_date?: string | null;
+                end_date?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizPerformanceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subject_performance_api_v1_analytics_subject_performance_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                start_date?: string | null;
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectPerformanceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    topic_performance_api_v1_analytics_topic_performance_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                start_date?: string | null;
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicPerformanceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revision_activity_api_v1_analytics_revision_activity_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                start_date?: string | null;
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionActivityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    study_calendar_api_v1_analytics_study_calendar_get: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                chapter_id?: string | null;
+                start_date?: string | null;
+                end_date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    study_calendar_day_api_v1_analytics_study_calendar__day__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DayDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    streaks_api_v1_analytics_streaks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StreakResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revision_recommendations_api_v1_recommendations_revision_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendationListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    weak_topics_api_v1_recommendations_weak_topics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeakTopicListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_api_v1_recommendations__recommendation_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recommendation_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_api_v1_recommendations__recommendation_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recommendation_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    card_schedule_api_v1_study_flashcards_cards__card_id__schedule_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_card_api_v1_study_flashcards_cards__card_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suspend_card_api_v1_study_flashcards_cards__card_id__suspend_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unsuspend_card_api_v1_study_flashcards_cards__card_id__unsuspend_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_history_api_v1_study_flashcards_cards__card_id__review_history_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewHistoryResponse"];
                 };
             };
             /** @description Validation Error */

@@ -8,10 +8,11 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.quiz import Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion
+from app.models.study_material import StudyMaterial
 
 
 class QuizRepository:
@@ -171,6 +172,81 @@ class QuizRepository:
             )
         )
         return list(rows.scalars())
+
+    async def pending_answer_ids(
+        self, attempt_id: uuid.UUID, user_id: uuid.UUID
+    ) -> list[uuid.UUID]:
+        rows = await self._db.execute(
+            select(QuizAttemptAnswer.id)
+            .where(
+                QuizAttemptAnswer.attempt_id == attempt_id,
+                QuizAttemptAnswer.user_id == user_id,
+                QuizAttemptAnswer.evaluation_status.in_(("pending", "failed")),
+            )
+            .order_by(QuizAttemptAnswer.id)
+        )
+        return list(rows.scalars())
+
+    async def delete_attempt(self, attempt_id: uuid.UUID, user_id: uuid.UUID) -> None:
+        await self._db.execute(
+            delete(QuizAttempt).where(QuizAttempt.id == attempt_id, QuizAttempt.user_id == user_id)
+        )
+
+    async def attempts_filtered(
+        self,
+        user_id: uuid.UUID,
+        *,
+        quiz_id: uuid.UUID | None,
+        subject_id: uuid.UUID | None,
+        chapter_id: uuid.UUID | None,
+        status: str | None,
+        date_from: datetime | None,
+        date_to: datetime | None,
+        limit: int,
+        offset: int,
+    ) -> tuple[list[tuple[QuizAttempt, Quiz, StudyMaterial]], int]:
+        """History across all quizzes. Every table in the join is also filtered by `user_id`."""
+        conds = [
+            QuizAttempt.user_id == user_id,
+            Quiz.user_id == user_id,
+            StudyMaterial.user_id == user_id,
+        ]
+        if quiz_id is not None:
+            conds.append(QuizAttempt.quiz_id == quiz_id)
+        if subject_id is not None:
+            conds.append(StudyMaterial.subject_id == subject_id)
+        if chapter_id is not None:
+            conds.append(StudyMaterial.chapter_id == chapter_id)
+        if status is not None:
+            conds.append(QuizAttempt.status == status)
+        if date_from is not None:
+            conds.append(QuizAttempt.started_at >= date_from)
+        if date_to is not None:
+            conds.append(QuizAttempt.started_at < date_to)
+        join = (
+            select(QuizAttempt, Quiz, StudyMaterial)
+            .join(Quiz, (Quiz.id == QuizAttempt.quiz_id) & (Quiz.user_id == QuizAttempt.user_id))
+            .join(StudyMaterial, StudyMaterial.id == Quiz.study_material_id)
+            .where(*conds)
+        )
+        total = int(
+            (
+                await self._db.execute(
+                    select(func.count())
+                    .select_from(QuizAttempt)
+                    .join(
+                        Quiz,
+                        (Quiz.id == QuizAttempt.quiz_id) & (Quiz.user_id == QuizAttempt.user_id),
+                    )
+                    .join(StudyMaterial, StudyMaterial.id == Quiz.study_material_id)
+                    .where(*conds)
+                )
+            ).scalar_one()
+        )
+        rows = await self._db.execute(
+            join.order_by(QuizAttempt.started_at.desc(), QuizAttempt.id).limit(limit).offset(offset)
+        )
+        return [(r[0], r[1], r[2]) for r in rows.all()], total
 
 
 def money(value: float) -> Decimal:

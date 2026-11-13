@@ -126,6 +126,24 @@ class Settings(BaseSettings):
     study_cancel_poll_seconds: float = Field(default=1.0, ge=0.01, le=30)
     study_export_ttl_seconds: int = Field(default=3600, ge=60)
     study_exports_per_hour_per_user: int = Field(default=30, ge=1)
+    # Phase 5 (D-112): AI-assisted grading of short-answer and descriptive quiz answers.
+    quiz_ai_grading_enabled: bool = True
+    quiz_grading_max_output_tokens: int = Field(default=600, ge=100, le=4000)
+    quiz_evaluations_per_minute_per_user: int = Field(default=30, ge=1)
+    # Phase 5 spaced repetition (D-107, D-114)
+    revision_desired_retention: float = Field(default=0.9, ge=0.70, le=0.99)
+    revision_new_cards_per_day: int = Field(default=20, ge=0, le=500)
+    revision_session_max_cards: int = Field(default=50, ge=1, le=200)
+    revision_session_idle_minutes: int = Field(default=120, ge=5)
+    revision_reviews_per_minute_per_user: int = Field(default=120, ge=1)
+    # Phase 5 analytics (D-108): transparent thresholds for topic labels. These are estimates from
+    # a handful of quiz answers, never a measurement of mastery.
+    analytics_strong_at: float = Field(default=80.0, ge=1, le=100)
+    analytics_needs_revision_below: float = Field(default=60.0, ge=1, le=100)
+    analytics_min_answers: int = Field(default=3, ge=1, le=50)
+    analytics_recent_attempts: int = Field(default=3, ge=1, le=20)
+    analytics_trend_delta: float = Field(default=10.0, ge=1, le=100)
+    analytics_max_attempts: int = Field(default=300, ge=10, le=2000)
     # "redis" needs redis_url; "memory" is the in-process limiter (tests, single instance) (D-65).
     rate_limit_backend: str = "memory"
 

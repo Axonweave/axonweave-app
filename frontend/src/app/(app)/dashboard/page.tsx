@@ -5,6 +5,7 @@ import { CreateWorkspaceDialog } from "@/features/workspaces/create-workspace-di
 import { QuickActions } from "@/features/dashboard/quick-actions";
 import { RecentActivity } from "@/features/dashboard/recent-activity";
 import { RecentSubjects } from "@/features/dashboard/recent-subjects";
+import { RevisionWidget } from "@/features/dashboard/revision-widget";
 import { StatsStrip } from "@/features/dashboard/stats-strip";
 import { WelcomeHeader } from "@/features/dashboard/welcome-header";
 import { WorkspaceOverview } from "@/features/dashboard/workspace-overview";
@@ -20,6 +21,7 @@ export default function DashboardPage() {
       <QuickActions onCreateWorkspace={() => setCreateOpen(true)} />
       <div key={version} className="space-y-8">
         <StatsStrip />
+        <RevisionWidget />
         <WorkspaceOverview onCreateWorkspace={() => setCreateOpen(true)} />
         <div className="grid gap-8 lg:grid-cols-2">
           <RecentSubjects />

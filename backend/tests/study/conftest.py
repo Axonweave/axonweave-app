@@ -71,6 +71,8 @@ class Harness:
             "study_daily_generation_quota": 100,
             "study_max_active_jobs_per_user": 50,
             "ai_daily_token_quota": 10_000_000,
+            # Phase 4 tests expect self-assessed written answers; Phase 5 tests turn AI grading on.
+            "quiz_ai_grading_enabled": False,
         }
         cfg = make_settings(**{**base, **settings})
         self.runtime = AiRuntime(cfg, build_registry(cfg), lambda: self.provider)

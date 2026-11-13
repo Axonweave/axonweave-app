@@ -11,7 +11,7 @@ beforeEach(() => {
   pathname = "/dashboard";
 });
 
-const COMING_SOON = ["Research Studio", "Assessments", "Revision", "Favourites"];
+const COMING_SOON = ["Research Studio", "Favourites"];
 
 describe("AppSidebar", () => {
   it("offers the real Phase 1 destinations with correct links", () => {

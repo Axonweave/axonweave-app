@@ -95,13 +95,58 @@ export function QuizResults({
           </p>
         ) : null}
         <p className="text-muted-foreground text-sm">{r.note}</p>
+        {r.ai_assisted_questions > 0 ? (
+          <p className="text-sm" data-testid="ai-assisted-note">
+            {r.ai_assisted_questions} written answer
+            {r.ai_assisted_questions === 1 ? " was" : "s were"} scored with AI assistance. These
+            scores are estimates; compare them with the model answer.
+          </p>
+        ) : null}
+        {r.pending_evaluations > 0 ? (
+          <p role="status" className="text-sm text-amber-700 dark:text-amber-400">
+            {r.pending_evaluations} written answer{r.pending_evaluations === 1 ? " is" : "s are"}{" "}
+            not scored yet. The total will update once they are.
+          </p>
+        ) : null}
+        {r.evaluation_status === "failed" ? (
+          <p role="status" className="text-sm text-red-700 dark:text-red-400">
+            Some written answers could not be scored. They are not counted as zero.
+          </p>
+        ) : null}
       </header>
+
+      {(r.topic_performance?.length ?? 0) > 0 ? (
+        <section aria-labelledby="topic-results" className="space-y-2">
+          <h2 id="topic-results" className="text-lg font-semibold">
+            By topic
+          </h2>
+          <ul className="space-y-1 text-sm">
+            {r.topic_performance?.map((t) => (
+              <li key={t.topic ?? "other"} className="flex justify-between gap-3">
+                <span>{t.topic ?? "Other"}</span>
+                <span className="text-muted-foreground">
+                  {t.correct} of {t.questions} ·{" "}
+                  {t.percentage === null || t.percentage === undefined
+                    ? "not scored"
+                    : `${Math.round(t.percentage)}%`}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {(r.suggested_topics?.length ?? 0) > 0 ? (
+            <p className="text-muted-foreground text-sm">
+              {r.suggested_topics_note} {r.suggested_topics?.join(", ")}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       <ol className="space-y-4">
         {r.questions.map((q, i) => (
           <li key={q.id} className="border-border space-y-2 rounded-lg border p-4">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground text-sm">Question {i + 1}</span>
+              {q.ai_assisted ? <Chip>AI-assisted score</Chip> : null}
               {q.grading === "self_assessment" ? (
                 <Chip>Compare with the model answer</Chip>
               ) : !q.answered ? (
@@ -139,6 +184,16 @@ export function QuizResults({
                     <li key={j}>{p}</li>
                   ))}
                 </ul>
+              </div>
+            ) : null}
+            {q.evaluation ? (
+              <div className="text-sm">
+                <p className="break-words">{q.evaluation.explanation}</p>
+                {q.evaluation.missing_points.length > 0 ? (
+                  <p className="text-muted-foreground">
+                    Missing: {q.evaluation.missing_points.join("; ")}
+                  </p>
+                ) : null}
               </div>
             ) : null}
             {q.explanation ? (
