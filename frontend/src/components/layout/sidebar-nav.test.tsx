@@ -11,7 +11,7 @@ beforeEach(() => {
   pathname = "/dashboard";
 });
 
-const COMING_SOON = ["Research Studio", "Favourites"];
+const COMING_SOON = ["Favourites"];
 
 describe("AppSidebar", () => {
   it("offers the real Phase 1 destinations with correct links", () => {
@@ -113,7 +113,11 @@ describe("MobileNav drawer", () => {
     render(<MobileNav open onClose={vi.fn()} />);
     expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "AI Tutor" })).toHaveAttribute("href", "/ai-tutor");
-    const soon = screen.getByRole("link", { name: /^Research Studio/ });
+    expect(screen.getByRole("link", { name: "Research Studio" })).toHaveAttribute(
+      "href",
+      "/research",
+    );
+    const soon = screen.getByRole("link", { name: /^Favourites/ });
     expect(soon).toHaveAttribute("aria-disabled", "true");
   });
 

@@ -24,6 +24,7 @@ vi.mock("@/lib/api/research", async (orig) => ({
     deleteProject: api.remove,
   },
 }));
+vi.mock("./paper-library", () => ({ PaperLibrary: () => <div>Paper library</div> }));
 vi.mock("@/lib/api/workspaces", () => ({
   workspacesApi: { list: vi.fn().mockResolvedValue({ data: [{ id: "w1", name: "Personal" }] }) },
 }));
@@ -43,6 +44,7 @@ const project = (over: Partial<ResearchProject> = {}): ResearchProject =>
     start_date: null,
     target_date: null,
     archived_at: null,
+    paper_count: 3,
     created_at: "2026-11-01T00:00:00Z",
     updated_at: "2026-11-02T00:00:00Z",
     ...over,
@@ -59,7 +61,7 @@ describe("ResearchStudio", () => {
     expect(await screen.findByText("Protein folding review")).toBeInTheDocument();
     const card = screen.getByRole("button", { name: /Protein folding review/ });
     expect(within(card).getByText("Active")).toBeInTheDocument();
-    expect(screen.getByText("2 research questions")).toBeInTheDocument();
+    expect(screen.getByText(/3 papers · 2 research questions/)).toBeInTheDocument();
     expect(screen.getByText(/Updated/)).toBeInTheDocument();
   });
 

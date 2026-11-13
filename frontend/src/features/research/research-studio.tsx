@@ -17,6 +17,7 @@ import {
   type ResearchProject,
 } from "@/lib/api/research";
 import { workspacesApi } from "@/lib/api/workspaces";
+import { PaperLibrary } from "./paper-library";
 
 const SELECT = "border-input bg-background h-9 rounded-md border px-2 text-sm";
 const FIELD = "border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm";
@@ -328,8 +329,7 @@ function Overview({
         Updated {fmt(p.updated_at)}
       </p>
       <p className="text-muted-foreground text-xs">
-        Papers, analyses, notes and drafts will appear here as those parts of Research Studio are
-        added.
+        Analyses, notes and drafts will appear here as those parts of Research Studio are added.
       </p>
       <div className="flex flex-wrap gap-2">
         {!archived && (
@@ -541,6 +541,8 @@ export function ResearchStudio() {
         />
       )}
 
+      {mode === "none" && selected && <PaperLibrary key={selected.id} project={selected} />}
+
       <AsyncSection
         title="Research projects"
         loading={projects.loading}
@@ -576,6 +578,7 @@ export function ResearchStudio() {
                 </div>
                 {p.domain && <p className="text-muted-foreground mt-1 text-xs">{p.domain}</p>}
                 <p className="text-muted-foreground mt-2 text-sm">
+                  {p.paper_count} paper{p.paper_count === 1 ? "" : "s"} ·{" "}
                   {p.research_questions.length === 0
                     ? "No research questions yet"
                     : `${p.research_questions.length} research question${

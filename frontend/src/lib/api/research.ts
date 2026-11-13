@@ -8,6 +8,11 @@ export type ResearchProject = S["ProjectOut"];
 export type ProjectCreate = S["ProjectCreate"];
 export type ProjectPatch = S["ProjectPatch"];
 export type ProjectStatus = ProjectCreate["status"] & string;
+export type ResearchPaper = S["PaperOut"];
+export type PaperCreate = S["PaperCreate"];
+export type PaperPatch = S["PaperPatch"];
+export type DuplicateCandidate = S["DuplicateCandidateOut"];
+export type PaperStatus = NonNullable<PaperCreate["status"]>;
 
 export const PROJECT_STATUSES: { value: ProjectStatus; label: string }[] = [
   { value: "planning", label: "Planning" },
@@ -31,6 +36,38 @@ export interface ProjectFilters {
   offset?: number;
 }
 
+export const PAPER_STATUSES: { value: PaperStatus; label: string }[] = [
+  { value: "unread", label: "Unread" },
+  { value: "reading", label: "Reading" },
+  { value: "read", label: "Read" },
+];
+
+export const SOURCE_LABELS: Record<string, string> = {
+  user_supplied: "Entered by you",
+  pdf_extracted: "Extracted from the PDF",
+  external_provider: "From a metadata provider",
+};
+
+export const ANALYSIS_LABELS: Record<string, string> = {
+  not_analysed: "Not analysed",
+  queued: "Analysis queued",
+  analysing: "Analysing",
+  analysed: "Analysed",
+  failed: "Analysis failed",
+};
+
+export interface PaperFilters {
+  q?: string;
+  status?: string;
+  year?: number;
+  has_file?: boolean;
+  archived?: boolean;
+  sort_by?: "updated_at" | "created_at" | "title" | "publication_year";
+  sort_dir?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+}
+
 const enc = encodeURIComponent;
 
 export const researchApi = {
@@ -45,6 +82,33 @@ export const researchApi = {
   restoreProject: (id: string) =>
     api.post<ResearchProject>(`/research/projects/${enc(id)}/restore`).then((r) => r.data),
   deleteProject: (id: string) => api.delete<unknown>(`/research/projects/${enc(id)}`),
+
+  listPapers: (projectId: string, f: PaperFilters) =>
+    getPaged<ResearchPaper>(`/research/projects/${enc(projectId)}/papers${query({ ...f })}`),
+  addPaper: (projectId: string, body: PaperCreate) =>
+    api
+      .post<ResearchPaper>(`/research/projects/${enc(projectId)}/papers`, body)
+      .then((r) => r.data),
+  updatePaper: (id: string, body: PaperPatch) =>
+    api.patch<ResearchPaper>(`/research/papers/${enc(id)}`, body).then((r) => r.data),
+  archivePaper: (id: string) =>
+    api.post<ResearchPaper>(`/research/papers/${enc(id)}/archive`).then((r) => r.data),
+  restorePaper: (id: string) =>
+    api.post<ResearchPaper>(`/research/papers/${enc(id)}/restore`).then((r) => r.data),
+  deletePaper: (id: string) => api.delete<unknown>(`/research/papers/${enc(id)}`),
+  duplicates: (projectId: string) =>
+    api
+      .get<DuplicateCandidate[]>(`/research/projects/${enc(projectId)}/papers/duplicates`)
+      .then((r) => r.data),
+  resolveDuplicate: (
+    projectId: string,
+    body: {
+      paper_id: string;
+      other_id: string;
+      action: "not_duplicate" | "merge";
+      survivor_id?: string;
+    },
+  ) => api.post<unknown>(`/research/projects/${enc(projectId)}/papers/duplicates/resolve`, body),
 };
 
 /** One item per line, as typed in a textarea. */

@@ -100,6 +100,8 @@ class ProjectOut(BaseModel):
     start_date: date | None
     target_date: date | None
     archived_at: datetime | None
+    # papers in the library (not archived); filled in by the routes from the paper table
+    paper_count: int = 0
     created_at: datetime
     updated_at: datetime
 
