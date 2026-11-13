@@ -9,6 +9,7 @@ from app.modules.citations.routes import router as citations_router
 from app.modules.dashboard.routes import router as dashboard_router
 from app.modules.documents.routes import router as documents_router
 from app.modules.folders.routes import router as folders_router
+from app.modules.knowledge.graph_routes import router as knowledge_graph_router
 from app.modules.knowledge.routes import router as knowledge_router
 from app.modules.recommendations.routes import router as recommendations_router
 from app.modules.revision.routes import card_router as revision_card_router
@@ -48,3 +49,4 @@ router.include_router(revision_card_router)
 router.include_router(collection_router)
 router.include_router(library_router)
 router.include_router(knowledge_router)
+router.include_router(knowledge_graph_router)
