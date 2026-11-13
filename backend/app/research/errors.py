@@ -200,3 +200,16 @@ class InvalidColumnOrderError(ResearchError):
     code = "VALIDATION_ERROR"
     http_status = 422
     user_message = "The column order must list every column of the matrix exactly once."
+
+
+# Research gaps (M7.6)
+class GapNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Research gap not found."
+
+
+class NoAnalysedPapersError(ResearchError):
+    code = "RESEARCH_NO_ANALYSED_PAPERS"
+    http_status = 422
+    user_message = "Analyse at least one paper in this project first."

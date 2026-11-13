@@ -18,6 +18,7 @@ import {
 } from "@/lib/api/research";
 import { workspacesApi } from "@/lib/api/workspaces";
 import { ComparisonWorkspace } from "./comparison-workspace";
+import { GapsWorkspace } from "./gaps-workspace";
 import { MatrixWorkspace } from "./matrix-workspace";
 import { PaperLibrary } from "./paper-library";
 
@@ -551,6 +552,10 @@ export function ResearchStudio() {
 
       {mode === "none" && selected && (
         <MatrixWorkspace key={`mx-${selected.id}`} project={selected} />
+      )}
+
+      {mode === "none" && selected && (
+        <GapsWorkspace key={`gap-${selected.id}`} project={selected} />
       )}
 
       <AsyncSection

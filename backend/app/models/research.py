@@ -518,3 +518,102 @@ class ResearchEvidenceMatrixEntry(UUIDPrimaryKeyMixin, Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
+
+
+GAP_CATEGORIES = (
+    "methodological",
+    "dataset",
+    "population",
+    "evaluation",
+    "domain",
+    "application",
+    "generalisation",
+    "reproducibility",
+    "contradictory_findings",
+)
+GAP_CONFIDENCE = (
+    "strong_candidate",
+    "moderate_candidate",
+    "preliminary_candidate",
+    "insufficient_evidence",
+)
+GAP_STATUSES = ("suggested", "accepted", "rejected", "investigating")
+GAP_ROLES = ("supporting", "counter_evidence", "contextual")
+
+
+class ResearchGap(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A candidate research gap (Phase 7 M7.6). It only describes the analysed collection of one
+    project; it never claims that no other research exists."""
+
+    __tablename__ = "research_gaps"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_project_id", "user_id"],
+            ["research_projects.id", "research_projects.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_gaps_project_owner",
+        ),
+        UniqueConstraint("id", "user_id", name="uq_research_gaps_id_user"),
+        CheckConstraint(f"category IN ({_sql(GAP_CATEGORIES)})", name="ck_research_gaps_category"),
+        CheckConstraint(
+            f"confidence_label IN ({_sql(GAP_CONFIDENCE)})", name="ck_research_gaps_confidence"
+        ),
+        CheckConstraint(
+            f"validation_status IN ({_sql(GAP_STATUSES)})", name="ck_research_gaps_status"
+        ),
+        Index("ix_research_gaps_project", "user_id", "research_project_id", "validation_status"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    category: Mapped[str] = mapped_column(String(32), nullable=False)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False)
+    confidence_label: Mapped[str] = mapped_column(String(24), nullable=False)
+    limitations: Mapped[str] = mapped_column(Text, nullable=False)
+    suggested_direction: Mapped[str] = mapped_column(Text, nullable=False)
+    validation_status: Mapped[str] = mapped_column(String(14), nullable=False, default="suggested")
+    analysis_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    edited_by_user: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    researcher_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class ResearchGapEvidence(UUIDPrimaryKeyMixin, Base):
+    """The claim behind a gap, with its role. `claim_text` is a copy so the gap stays readable if
+    the analysis is run again."""
+
+    __tablename__ = "research_gap_evidence"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["gap_id", "user_id"],
+            ["research_gaps.id", "research_gaps.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_gap_evidence_gap_owner",
+        ),
+        ForeignKeyConstraint(
+            ["research_paper_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_gap_evidence_paper_owner",
+        ),
+        CheckConstraint(
+            f"evidence_role IN ({_sql(GAP_ROLES)})", name="ck_research_gap_evidence_role"
+        ),
+        Index("ix_research_gap_evidence_gap", "gap_id"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    gap_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    research_evidence_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("research_evidence.id", ondelete="SET NULL"), nullable=True
+    )
+    evidence_role: Mapped[str] = mapped_column(String(16), nullable=False)
+    claim_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    claim_text: Mapped[str] = mapped_column(Text, nullable=False)

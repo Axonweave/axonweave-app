@@ -3543,6 +3543,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/research/projects/{project_id}/gaps/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Gaps */
+        post: operations["generate_gaps_api_v1_research_projects__project_id__gaps_generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/projects/{project_id}/gaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Gaps */
+        get: operations["list_gaps_api_v1_research_projects__project_id__gaps_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/gaps/{gap_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Gap */
+        get: operations["get_gap_api_v1_research_gaps__gap_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Gap */
+        delete: operations["delete_gap_api_v1_research_gaps__gap_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Gap */
+        patch: operations["edit_gap_api_v1_research_gaps__gap_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7617,6 +7670,117 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** ResearchGapEvidenceOut */
+        ResearchGapEvidenceOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Paper Id
+             * Format: uuid
+             */
+            research_paper_id: string;
+            /** Research Evidence Id */
+            research_evidence_id: string | null;
+            /** Evidence Role */
+            evidence_role: string;
+            /** Claim Type */
+            claim_type: string;
+            /** Claim Text */
+            claim_text: string;
+        };
+        /** ResearchGapGenerate */
+        ResearchGapGenerate: {
+            /** Paper Ids */
+            paper_ids?: string[] | null;
+        };
+        /** ResearchGapListResponse */
+        ResearchGapListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ResearchGapOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ResearchGapOut */
+        ResearchGapOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /** Category */
+            category: string;
+            /** Rationale */
+            rationale: string;
+            /** Confidence Label */
+            confidence_label: string;
+            /** Limitations */
+            limitations: string;
+            /** Suggested Direction */
+            suggested_direction: string;
+            /** Validation Status */
+            validation_status: string;
+            /** Analysis Version */
+            analysis_version: string;
+            /** Edited By User */
+            edited_by_user: boolean;
+            /** Researcher Notes */
+            researcher_notes: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Evidence */
+            evidence: components["schemas"]["ResearchGapEvidenceOut"][];
+        };
+        /** ResearchGapPatch */
+        ResearchGapPatch: {
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Suggested Direction */
+            suggested_direction?: string | null;
+            /** Validation Status */
+            validation_status?: ("suggested" | "accepted" | "rejected" | "investigating") | null;
+            /** Researcher Notes */
+            researcher_notes?: string | null;
+        };
+        /** ResearchGapResponse */
+        ResearchGapResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchGapOut"];
         };
         /** ResearchMatrixAddPapers */
         ResearchMatrixAddPapers: {
@@ -18085,6 +18249,182 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_gaps_api_v1_research_projects__project_id__gaps_generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchGapGenerate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchGapListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_gaps_api_v1_research_projects__project_id__gaps_get: {
+        parameters: {
+            query?: {
+                category?: ("methodological" | "dataset" | "population" | "evaluation" | "domain" | "application" | "generalisation" | "reproducibility" | "contradictory_findings") | null;
+                status?: ("suggested" | "accepted" | "rejected" | "investigating") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchGapListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_gap_api_v1_research_gaps__gap_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                gap_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchGapResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_gap_api_v1_research_gaps__gap_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                gap_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_gap_api_v1_research_gaps__gap_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                gap_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchGapPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchGapResponse"];
                 };
             };
             /** @description Validation Error */

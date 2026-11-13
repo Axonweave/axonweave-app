@@ -85,6 +85,34 @@ export type MatrixColumn = S["ResearchMatrixColumnOut"];
 export type MatrixRow = S["ResearchMatrixRowOut"];
 export type MatrixCell = S["ResearchMatrixCellOut"];
 
+export type ResearchGap = S["ResearchGapOut"];
+export type GapEvidence = S["ResearchGapEvidenceOut"];
+export type GapPatch = S["ResearchGapPatch"];
+
+export const GAP_CATEGORY_LABELS: Record<string, string> = {
+  methodological: "Methodological",
+  dataset: "Dataset",
+  population: "Population",
+  evaluation: "Evaluation",
+  domain: "Domain",
+  application: "Application",
+  generalisation: "Generalisation",
+  reproducibility: "Reproducibility",
+  contradictory_findings: "Contradictory findings",
+};
+export const GAP_CONFIDENCE_LABELS: Record<string, string> = {
+  strong_candidate: "Strong candidate",
+  moderate_candidate: "Moderate candidate",
+  preliminary_candidate: "Preliminary candidate",
+  insufficient_evidence: "Insufficient evidence",
+};
+export const GAP_STATUS_LABELS: Record<string, string> = {
+  suggested: "Suggested",
+  accepted: "Accepted",
+  rejected: "Rejected",
+  investigating: "Investigating",
+};
+
 export const MATRIX_ORIGIN_LABELS: Record<string, string> = {
   extracted: "Extracted from the paper",
   ai_generated: "AI interpretation",
@@ -353,6 +381,17 @@ export const researchApi = {
       .then((r) => r.data),
   matrixRefresh: (id: string) =>
     api.post<ResearchMatrix>(`/research/matrices/${enc(id)}/refresh`).then((r) => r.data),
+  listGaps: (projectId: string, f: { category?: string; status?: string } = {}) =>
+    getPaged<ResearchGap>(
+      `/research/projects/${enc(projectId)}/gaps${query({ ...f, limit: 100 })}`,
+    ),
+  generateGaps: (projectId: string) =>
+    api
+      .post<ResearchGap[]>(`/research/projects/${enc(projectId)}/gaps/generate`, {})
+      .then((r) => r.data),
+  patchGap: (id: string, body: GapPatch) =>
+    api.patch<ResearchGap>(`/research/gaps/${enc(id)}`, body).then((r) => r.data),
+  deleteGap: (id: string) => api.delete<unknown>(`/research/gaps/${enc(id)}`),
   duplicates: (projectId: string) =>
     api
       .get<DuplicateCandidate[]>(`/research/projects/${enc(projectId)}/papers/duplicates`)

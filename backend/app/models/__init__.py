@@ -112,6 +112,8 @@ __all__ = [
     "ResearchEvidenceMatrix",
     "ResearchEvidenceMatrixColumn",
     "ResearchEvidenceMatrixEntry",
+    "ResearchGap",
+    "ResearchGapEvidence",
     "ResearchPaper",
     "ResearchPaperExtraction",
     "ResearchPaperNote",
