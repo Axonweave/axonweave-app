@@ -27,9 +27,11 @@ class Placement:
     workspace_id: uuid.UUID
     subject_id: uuid.UUID | None
     chapter_id: uuid.UUID | None
-    document_id: uuid.UUID
-    document_version_id: uuid.UUID
+    document_id: uuid.UUID | None
+    document_version_id: uuid.UUID | None
     job_id: uuid.UUID
+    # Web run (D-144): passage `chunk_index` -> (https url, title). No document columns are set.
+    web_sources: dict[int, tuple[str, str]] | None = None
 
 
 @dataclass
@@ -68,6 +70,9 @@ def _evidence_rows(
 ) -> list[dict[str, Any]]:
     rows = []
     for ev, kind in zip(evidence, kinds, strict=True):
+        web = None if where.web_sources is None else where.web_sources.get(ev.unit.chunk_index)
+        if where.web_sources is not None and web is None:
+            continue  # a passage with no known website is never stored
         rows.append(
             {
                 "id": uuid.uuid4(),
@@ -75,12 +80,15 @@ def _evidence_rows(
                 "workspace_id": where.workspace_id,
                 "knowledge_node_id": node_id,
                 "knowledge_edge_id": edge_id,
-                "document_id": where.document_id,
-                "document_version_id": where.document_version_id,
-                "chunk_index": ev.unit.chunk_index,
-                "chunk_id": ev.unit.chunk_id,
-                "page_number": ev.unit.page_number,
-                "slide_number": ev.unit.slide_number,
+                "source_kind": "document" if web is None else "web",
+                "source_url": None if web is None else web[0],
+                "source_title": None if web is None else web[1][:200],
+                "document_id": None if web else where.document_id,
+                "document_version_id": None if web else where.document_version_id,
+                "chunk_index": None if web else ev.unit.chunk_index,
+                "chunk_id": None if web else ev.unit.chunk_id,
+                "page_number": None if web else ev.unit.page_number,
+                "slide_number": None if web else ev.unit.slide_number,
                 "quote": ev.quote,
                 "quote_hash": ev.quote_hash,
                 "evidence_type": kind,
@@ -165,9 +173,10 @@ async def persist_graph(db: AsyncSession, where: Placement, result: VerifiedOutp
             )
         )
 
-    stats.stale_marked = await repo.mark_stale(
-        where.user_id, where.document_id, where.document_version_id
-    )
+    if where.document_id is not None and where.document_version_id is not None:
+        stats.stale_marked = await repo.mark_stale(
+            where.user_id, where.document_id, where.document_version_id
+        )
     return stats
 
 

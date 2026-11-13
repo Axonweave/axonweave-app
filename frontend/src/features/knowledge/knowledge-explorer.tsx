@@ -22,6 +22,7 @@ import {
 import { subjectsApi } from "@/lib/api/subjects";
 import { workspacesApi } from "@/lib/api/workspaces";
 import { DuplicatesView } from "./duplicates-view";
+import { GenerateSubjectGraph } from "./generate-subject-graph";
 import { NodeDetailPanel } from "./node-detail-panel";
 
 const GraphCanvas = dynamic(() => import("./graph-canvas"), {
@@ -253,6 +254,15 @@ export function KnowledgeExplorer({ initialNodeId }: { initialNodeId?: string })
         </div>
       </form>
 
+      {subjectId ? (
+        <GenerateSubjectGraph
+          key={subjectId} /* a different subject starts from a clean slate */
+          subjectId={subjectId}
+          subjectName={subjects.data?.find((s) => s.id === subjectId)?.name ?? "this subject"}
+          onProgress={refresh}
+        />
+      ) : null}
+
       {showAdd && activeWorkspace ? (
         <AddConcept
           workspaceId={activeWorkspace}
@@ -304,7 +314,7 @@ export function KnowledgeExplorer({ initialNodeId }: { initialNodeId?: string })
                   description={
                     hasFilter
                       ? "Try clearing a filter."
-                      : "Extract concepts from a processed document, or add one yourself."
+                      : "Pick a subject and generate its knowledge graph from your processed documents, or add a concept yourself."
                   }
                 />
               }

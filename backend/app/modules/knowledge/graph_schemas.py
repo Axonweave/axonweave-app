@@ -159,10 +159,15 @@ class EvidenceOut(BaseModel):
     id: uuid.UUID
     knowledge_node_id: uuid.UUID | None
     knowledge_edge_id: uuid.UUID | None
-    document_id: uuid.UUID
-    document_name: str
-    document_version_id: uuid.UUID
-    chunk_index: int
+    # "document" evidence has the document fields; "web" evidence has an https link instead (the
+    # server never fetches it, and the browser opens it in a new tab with no referrer).
+    source_kind: Literal["document", "web"] = "document"
+    source_url: str | None = None
+    source_title: str | None = None
+    document_id: uuid.UUID | None
+    document_name: str | None
+    document_version_id: uuid.UUID | None
+    chunk_index: int | None
     chunk_id: uuid.UUID | None
     page_number: int | None
     slide_number: int | None
@@ -186,6 +191,25 @@ class CandidateOut(BaseModel):
 
 
 # envelopes ───────────────────────────────────────────────────────────────────
+
+
+class ClearGraphRequest(BaseModel):
+    """Delete every concept of one subject. `confirm` must be true (irreversible)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    subject_id: uuid.UUID
+    confirm: Literal[True]
+
+
+class ClearGraphOut(BaseModel):
+    concepts: int
+    relationships: int
+
+
+class ClearGraphResponse(BaseModel):
+    success: bool = True
+    data: ClearGraphOut
 
 
 class NodeResponse(BaseModel):

@@ -41,6 +41,7 @@ class Capabilities:
     tool_calling: bool = False  # reserved, always false in Phase 2
     count_tokens: bool = False
     thinking_budget: bool = False
+    web_search: bool = False
 
     def to_dict(self) -> dict[str, bool]:
         return {
@@ -51,6 +52,7 @@ class Capabilities:
             "tool_calling": self.tool_calling,
             "count_tokens": self.count_tokens,
             "thinking_budget": self.thinking_budget,
+            "web_search": self.web_search,
         }
 
 
@@ -78,6 +80,9 @@ class LLMRequest:
     timeouts: TimeoutPolicy = field(default_factory=TimeoutPolicy)
     thinking_budget: int | None = None
     request_tag: str = ""  # opaque id for logs; never sent to the provider
+    # Let the provider search the web (grounding) while it answers. Sources come back on the
+    # response; the backend never fetches them itself.
+    web_search: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,12 +102,23 @@ class Usage:
 
 
 @dataclass(frozen=True, slots=True)
+class WebSource:
+    """One website a grounded answer relied on. `segments` are the parts of the answer the provider
+    says this site supports. Untrusted text: render as text, never as markup."""
+
+    url: str
+    title: str
+    segments: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class LLMResponse:
     content: str
     model: str
     finish_reason: FinishReason
     usage: Usage = field(default_factory=Usage)
     provider_request_id: str | None = None
+    sources: tuple[WebSource, ...] = ()  # only when the request set `web_search`
 
 
 @dataclass(frozen=True, slots=True)

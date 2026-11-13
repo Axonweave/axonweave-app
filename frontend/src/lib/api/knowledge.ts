@@ -13,6 +13,9 @@ export type DuplicateCandidate = S["CandidateOut"];
 export type NodeCreate = S["NodeCreate"];
 export type NodePatch = S["NodePatch"];
 export type EdgeCreate = S["EdgeCreate"];
+export type SubjectExtractionRun = S["SubjectRunOut"];
+export type ExtractionJob = S["ExtractionJobOut"];
+export type ClearGraphResult = S["ClearGraphOut"];
 export type NodeType = NodeCreate["node_type"];
 export type RelationshipType = EdgeCreate["relationship_type"];
 export type CandidateAction = S["CandidateResolve"]["action"];
@@ -119,6 +122,23 @@ export const knowledgeApi = {
     getPaged<DuplicateCandidate>(
       `/knowledge/duplicates${query({ workspace_id: workspaceId, limit, offset })}`,
     ),
+  /** Queue AI extraction for every processed document of a subject that has none yet. */
+  extractSubject: (subjectId: string) =>
+    api
+      .post<SubjectExtractionRun>("/knowledge/extract/subject", { subject_id: subjectId })
+      .then((r) => r.data),
+  /** Build a subject's graph from a web search on its name (no documents needed). */
+  extractWeb: (subjectId: string) =>
+    api
+      .post<ExtractionJob>("/knowledge/extract/web", { subject_id: subjectId })
+      .then((r) => r.data),
+  /** Permanently delete every concept of a subject (relationships and evidence go with them). */
+  clearSubjectGraph: (subjectId: string) =>
+    api
+      .post<ClearGraphResult>("/knowledge/graph/clear", { subject_id: subjectId, confirm: true })
+      .then((r) => r.data),
+  extractionJobs: (subjectId: string, limit = 100) =>
+    getPaged<ExtractionJob>(`/knowledge/extract${query({ subject_id: subjectId, limit })}`),
   resolveDuplicate: (id: string, action: CandidateAction, survivorId?: string) =>
     api
       .post<unknown>(`/knowledge/duplicates/${enc(id)}/resolve`, {
@@ -130,7 +150,7 @@ export const knowledgeApi = {
 
 /** Viewer deep link for one piece of evidence (document viewer opens at the page/chunk). */
 export function evidenceHref(ev: KnowledgeEvidence): string {
-  return `/documents/${ev.document_id}${query({
+  return `/documents/${ev.document_id ?? ""}${query({
     page: ev.page_number ?? ev.slide_number ?? undefined,
     chunk: ev.chunk_id ?? undefined,
   })}`;

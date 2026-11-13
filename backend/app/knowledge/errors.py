@@ -55,6 +55,8 @@ SOURCES_GONE = "KNOWLEDGE_DOCUMENT_NOT_READY"
 TOO_LARGE = "KNOWLEDGE_SOURCE_TOO_LARGE"
 INTERNAL = "KNOWLEDGE_FAILED"
 CANCELLED = "KNOWLEDGE_CANCELLED"
+NO_WEB_SOURCES = "KNOWLEDGE_NO_WEB_SOURCES"
+WEB_SEARCH_UNAVAILABLE = "LLM_WEB_SEARCH_UNAVAILABLE"  # same code the provider layer raises
 
 _MESSAGES = {
     INVALID_OUTPUT: "The AI reply could not be used. Try again.",
@@ -65,6 +67,8 @@ _MESSAGES = {
     TOO_LARGE: "The document is too large to extract in one run.",
     INTERNAL: "The extraction failed. Try again.",
     CANCELLED: "The extraction was cancelled.",
+    NO_WEB_SOURCES: "The web search found no usable sources for this subject name.",
+    WEB_SEARCH_UNAVAILABLE: "Web search is not available for the configured AI model or account.",
 }
 
 
@@ -122,6 +126,12 @@ class InvalidRelationshipError(KnowledgeError):
     code = "KNOWLEDGE_INVALID_RELATIONSHIP"
     http_status = 422
     user_message = "A relationship needs two different concepts from the same workspace."
+
+
+class GraphBusyError(KnowledgeError):
+    code = "KNOWLEDGE_EXTRACTION_RUNNING"
+    http_status = 409
+    user_message = "An extraction is still running for this subject. Cancel it or wait first."
 
 
 class NodeNotArchivedError(KnowledgeError):
