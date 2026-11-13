@@ -77,3 +77,41 @@ class ConceptLinkListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class ConceptStateOut(BaseModel):
+    knowledge_node_id: uuid.UUID
+    workspace_id: uuid.UUID | None
+    node_name: str
+    state: str
+    mastery_estimate: float | None
+    confidence: float
+    evidence_count: int
+    last_evidence_at: datetime | None
+    next_review_at: datetime | None
+    calculation_version: str
+    explanation: str
+    explanation_facts: dict[str, Any]
+
+
+class ConceptStateResponse(BaseModel):
+    success: bool = True
+    data: ConceptStateOut
+
+
+class ConceptStateListResponse(BaseModel):
+    success: bool = True
+    data: list[ConceptStateOut]
+    total: int
+    limit: int
+    offset: int
+
+
+class RecalculateOut(BaseModel):
+    mode: str  # "queued" (worker will do it) or "done" (finished in this request)
+    states: int | None = None
+
+
+class RecalculateResponse(BaseModel):
+    success: bool = True
+    data: RecalculateOut

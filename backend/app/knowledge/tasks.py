@@ -20,8 +20,9 @@ from app.core.config import get_settings
 from app.ingestion.db import task_session_factory
 from app.ingestion.worker import celery_app
 from app.knowledge import errors
-from app.knowledge.dispatch import DISPATCH_TASK, RUN_TASK, SWEEP_TASK
+from app.knowledge.dispatch import DISPATCH_TASK, RECALC_TASK, RUN_TASK, SWEEP_TASK
 from app.knowledge.extraction import ExtractionDeps, run_extraction
+from app.knowledge.mastery_service import MasteryService
 from app.repositories.knowledge_job_repository import KnowledgeJobRepository
 
 logger = structlog.get_logger(__name__)
@@ -86,3 +87,17 @@ def sweep_stale_jobs() -> dict[str, Any]:
     if failed:
         logger.warning("stale_extraction_jobs_failed", count=failed)
     return {"failed": failed}
+
+
+@celery_app.task(name=RECALC_TASK, base=KnowledgeTask)
+def recalculate_mastery(user_id: str) -> dict[str, int]:
+    """Recalculate every concept state of one user (model version change, bulk correction). Pure
+    computation over stored evidence: no provider call, safe to repeat."""
+
+    async def run() -> int:
+        async with task_session_factory() as factory, factory() as db:
+            count = await MasteryService(db).recalculate(uuid.UUID(user_id))
+            await db.commit()
+        return count
+
+    return {"states": asyncio.run(run())}

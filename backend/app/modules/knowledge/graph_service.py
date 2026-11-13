@@ -30,6 +30,7 @@ from app.knowledge.errors import (
     NodeNotFoundError,
     ScopeNotFoundError,
 )
+from app.knowledge.mastery_service import MasteryService
 from app.knowledge.normalise import normalise_name
 from app.models.knowledge import SYMMETRIC_TYPES, KnowledgeEdge, KnowledgeNode
 from app.models.user import User
@@ -590,6 +591,7 @@ class KnowledgeGraphService:
         evidence_moved = await self._g.move_node_evidence(uid, merged.id, survivor.id)
         # learner evidence and question/card links follow the surviving concept (spec 13)
         await LearnerEvidenceRepository(self._db).repoint_node(uid, merged.id, survivor.id)
+        await MasteryService(self._db).recalculate(uid, [survivor.id])
 
         edges_moved = edges_dropped = 0
         for edge in await self._g.edges_of_node(uid, merged.id):

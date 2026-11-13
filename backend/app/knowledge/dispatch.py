@@ -18,6 +18,7 @@ logger = structlog.get_logger(__name__)
 RUN_TASK = "knowledge.run_extraction"
 DISPATCH_TASK = "knowledge.dispatch_pending"
 SWEEP_TASK = "knowledge.sweep_stale_jobs"
+RECALC_TASK = "knowledge.recalculate_mastery"
 
 
 class ExtractionDispatcher(Protocol):

@@ -2822,6 +2822,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge/learner/states": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List States */
+        get: operations["list_states_api_v1_knowledge_learner_states_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/states/{node_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get State
+         * @description A concept with no evidence is NOT_ASSESSED with no score (never reported as weak).
+         */
+        get: operations["get_state_api_v1_knowledge_learner_states__node_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/recalculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recalculate
+         * @description Recalculate every concept state (for example after the model version changes). Handed to the
+         *     worker when one is available; otherwise done in this request.
+         */
+        post: operations["recalculate_api_v1_knowledge_learner_recalculate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3530,6 +3588,63 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["ConceptLinkOut"];
+        };
+        /** ConceptStateListResponse */
+        ConceptStateListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ConceptStateOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ConceptStateOut */
+        ConceptStateOut: {
+            /**
+             * Knowledge Node Id
+             * Format: uuid
+             */
+            knowledge_node_id: string;
+            /** Workspace Id */
+            workspace_id: string | null;
+            /** Node Name */
+            node_name: string;
+            /** State */
+            state: string;
+            /** Mastery Estimate */
+            mastery_estimate: number | null;
+            /** Confidence */
+            confidence: number;
+            /** Evidence Count */
+            evidence_count: number;
+            /** Last Evidence At */
+            last_evidence_at: string | null;
+            /** Next Review At */
+            next_review_at: string | null;
+            /** Calculation Version */
+            calculation_version: string;
+            /** Explanation */
+            explanation: string;
+            /** Explanation Facts */
+            explanation_facts: {
+                [key: string]: unknown;
+            };
+        };
+        /** ConceptStateResponse */
+        ConceptStateResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ConceptStateOut"];
         };
         /** ContentResponse */
         ContentResponse: {
@@ -5579,6 +5694,22 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["QuizOut"];
+        };
+        /** RecalculateOut */
+        RecalculateOut: {
+            /** Mode */
+            mode: string;
+            /** States */
+            states?: number | null;
+        };
+        /** RecalculateResponse */
+        RecalculateResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["RecalculateOut"];
         };
         /** RecentReviewOut */
         RecentReviewOut: {
@@ -14065,6 +14196,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConceptLinkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_states_api_v1_knowledge_learner_states_get: {
+        parameters: {
+            query?: {
+                workspace_id?: string | null;
+                state?: ("NOT_ASSESSED" | "INSUFFICIENT_EVIDENCE" | "LEARNING" | "DEVELOPING" | "PROFICIENT" | "STRONG") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptStateListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_state_api_v1_knowledge_learner_states__node_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConceptStateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recalculate_api_v1_knowledge_learner_recalculate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecalculateResponse"];
                 };
             };
             /** @description Validation Error */

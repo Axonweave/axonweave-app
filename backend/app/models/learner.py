@@ -21,6 +21,7 @@ from sqlalchemy import (
     ForeignKey,
     ForeignKeyConstraint,
     Index,
+    Integer,
     Numeric,
     String,
     UniqueConstraint,
@@ -145,4 +146,64 @@ class LearnerEvidence(UUIDPrimaryKeyMixin, Base):
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), nullable=False
+    )
+
+
+MASTERY_STATES = (
+    "NOT_ASSESSED",
+    "INSUFFICIENT_EVIDENCE",
+    "LEARNING",
+    "DEVELOPING",
+    "PROFICIENT",
+    "STRONG",
+)
+
+
+class LearnerConceptState(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """Current learner state for one concept (spec 13.4). Always derivable from `learner_evidence`
+    and rebuilt by the mastery engine; `explanation` is structured so a result can be reproduced
+    and tested."""
+
+    __tablename__ = "learner_concept_states"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["workspace_id", "user_id"],
+            ["workspaces.id", "workspaces.user_id"],
+            ondelete="CASCADE",
+            name="fk_learner_states_workspace_owner",
+        ),
+        ForeignKeyConstraint(
+            ["knowledge_node_id", "workspace_id"],
+            ["knowledge_nodes.id", "knowledge_nodes.workspace_id"],
+            ondelete="CASCADE",
+            name="fk_learner_states_node_workspace",
+        ),
+        CheckConstraint(f"state IN ({_sql(MASTERY_STATES)})", name="ck_learner_states_state"),
+        CheckConstraint(
+            "mastery_estimate IS NULL OR (mastery_estimate >= 0 AND mastery_estimate <= 1)",
+            name="ck_learner_states_mastery",
+        ),
+        CheckConstraint("confidence >= 0 AND confidence <= 1", name="ck_learner_states_confidence"),
+        CheckConstraint("evidence_count >= 0", name="ck_learner_states_count"),
+        UniqueConstraint("user_id", "knowledge_node_id", name="uq_learner_states_user_node"),
+        Index("ix_learner_states_user_state", "user_id", "state"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    knowledge_node_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    # NULL while there is no evidence: an unassessed concept has no score, never a low one
+    mastery_estimate: Mapped[Decimal | None] = mapped_column(Numeric(4, 3), nullable=True)
+    confidence: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
+    evidence_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    state: Mapped[str] = mapped_column(String(24), nullable=False)
+    last_evidence_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    next_review_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    calculation_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    explanation: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
     )

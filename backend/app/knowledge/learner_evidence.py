@@ -26,6 +26,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.knowledge.errors import ConceptLinkNotFoundError
+from app.knowledge.mastery_service import MasteryService
 from app.knowledge.normalise import normalise_name
 from app.models.learner import KnowledgeConceptLink
 from app.repositories.learner_evidence_repository import LearnerEvidenceRepository
@@ -56,6 +57,8 @@ class LearnerEvidenceService:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
         self._r = LearnerEvidenceRepository(db)
+        # concepts whose evidence changed; their mastery is recalculated before commit (14.5)
+        self._touched: set[uuid.UUID] = set()
 
     # mapping ─────────────────────────────────────────────────────────────────
 
@@ -123,6 +126,7 @@ class LearnerEvidenceService:
             if key not in cache:
                 await self.ensure_links(user_id, ws, stype, sid, topic, refs)
                 cache[key] = await self._confirmed_nodes(user_id, stype, sid)
+                self._touched.update(cache[key])
             return cache[key]
 
         answers = await self._r.new_quiz_answers(user_id, SYNC_BATCH)
@@ -181,6 +185,7 @@ class LearnerEvidenceService:
             added += await self._r.add_evidence(_rows(base, nodes))
 
         remapped = await self.remap_unresolved(user_id)
+        await MasteryService(self._db).recalculate(user_id, self._touched)
         await self._db.commit()
         return {
             "ingested": added,
@@ -213,9 +218,9 @@ class LearnerEvidenceService:
             by_event.setdefault(row.source_event_id, []).append(row)
         attached = 0
         for event_id, existing in by_event.items():
-            await self._r.delete_evidence_ids(
-                user_id, [r.id for r in existing if r.knowledge_node_id not in target]
-            )
+            dropped = [r for r in existing if r.knowledge_node_id not in target]
+            self._touched.update(r.knowledge_node_id for r in dropped if r.knowledge_node_id)
+            await self._r.delete_evidence_ids(user_id, [r.id for r in dropped])
             have = {r.knowledge_node_id for r in existing}
             t = existing[0]
             fresh = [
@@ -233,6 +238,7 @@ class LearnerEvidenceService:
                 }
                 for n in target - have
             ]
+            self._touched.update(n for n in target - have if n is not None)
             if await self._r.add_evidence(fresh):
                 attached += sum(1 for f in fresh if f["knowledge_node_id"] is not None)
         return attached
@@ -250,6 +256,8 @@ class LearnerEvidenceService:
             link.method = "user"
         await self._db.flush()
         await self.reconcile(user_id, link.source_type, link.source_id)
+        self._touched.add(link.knowledge_node_id)
+        await MasteryService(self._db).recalculate(user_id, self._touched)
         await self._db.commit()
         await self._db.refresh(link)
         return link

@@ -19,7 +19,7 @@ from app.models.knowledge import (
     KnowledgeNode,
     KnowledgeNodeAlias,
 )
-from app.models.learner import KnowledgeConceptLink, LearnerEvidence
+from app.models.learner import KnowledgeConceptLink, LearnerConceptState, LearnerEvidence
 from app.models.llm_provider import LLMModel, LLMModelPrice, LLMProvider
 from app.models.message import Message, MessageFeedback
 from app.models.message_citation import MessageCitation
@@ -45,6 +45,7 @@ from app.models.workspace import Workspace
 
 __all__ = [
     "KnowledgeConceptLink",
+    "LearnerConceptState",
     "LearnerEvidence",
     "ActivityLog",
     "AiUsageRecord",
