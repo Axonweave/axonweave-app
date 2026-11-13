@@ -127,6 +127,8 @@ class Settings(BaseSettings):
     # Phase 6 knowledge extraction (D-124). Counts toward the daily token quota.
     knowledge_extraction_model: str = ""
     knowledge_extraction_version: str = "k1"
+    knowledge_misconception_model: str = ""
+    knowledge_misconception_version: str = "m1"
     knowledge_max_concepts_per_job: int = Field(default=100, ge=1, le=500)
     knowledge_max_relationships_per_job: int = Field(default=200, ge=1, le=1000)
     knowledge_max_active_jobs_per_user: int = Field(default=2, ge=1)

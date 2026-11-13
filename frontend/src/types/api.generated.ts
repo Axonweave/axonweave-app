@@ -2880,6 +2880,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge/learner/misconceptions/detect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Detect
+         * @description Look for a recurring misunderstanding on one concept. Calls no model unless there are
+         *     enough wrong answers across enough different questions.
+         */
+        post: operations["detect_api_v1_knowledge_learner_misconceptions_detect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/misconceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Misconceptions */
+        get: operations["list_misconceptions_api_v1_knowledge_learner_misconceptions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/misconceptions/{misconception_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Misconception */
+        get: operations["get_misconception_api_v1_knowledge_learner_misconceptions__misconception_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Correct
+         * @description Fix the wording where the system got it wrong; the result is marked as corrected.
+         */
+        patch: operations["correct_api_v1_knowledge_learner_misconceptions__misconception_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/misconceptions/{misconception_id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Misconception Evidence
+         * @description The wrong answers it rests on, read from the learner's own quiz data.
+         */
+        get: operations["misconception_evidence_api_v1_knowledge_learner_misconceptions__misconception_id__evidence_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/misconceptions/{misconception_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss */
+        post: operations["dismiss_api_v1_knowledge_learner_misconceptions__misconception_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/learner/misconceptions/{misconception_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm */
+        post: operations["confirm_api_v1_knowledge_learner_misconceptions__misconception_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3923,6 +4036,34 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["DeleteOut"];
+        };
+        /** DetectOut */
+        DetectOut: {
+            /** Outcome */
+            outcome: string;
+            /** Wrong Answers */
+            wrong_answers: number;
+            /** Questions */
+            questions: number;
+            /** Misconceptions */
+            misconceptions: components["schemas"]["MisconceptionOut"][];
+        };
+        /** DetectRequest */
+        DetectRequest: {
+            /**
+             * Node Id
+             * Format: uuid
+             */
+            node_id: string;
+        };
+        /** DetectResponse */
+        DetectResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["DetectOut"];
         };
         /** DocumentListResponse */
         DocumentListResponse: {
@@ -5078,6 +5219,128 @@ export interface components {
             success: boolean;
             data: components["schemas"]["MessageOut"];
         };
+        /** MisconceptionEvidenceOut */
+        MisconceptionEvidenceOut: {
+            /**
+             * Answer Id
+             * Format: uuid
+             */
+            answer_id: string;
+            /**
+             * Question Id
+             * Format: uuid
+             */
+            question_id: string;
+            /** Question */
+            question: string;
+            /** Expected Answers */
+            expected_answers: string[];
+            /** Submitted Answer */
+            submitted_answer: unknown;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+        };
+        /** MisconceptionEvidenceResponse */
+        MisconceptionEvidenceResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["MisconceptionEvidenceOut"][];
+        };
+        /** MisconceptionListResponse */
+        MisconceptionListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["MisconceptionOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** MisconceptionOut */
+        MisconceptionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Workspace Id
+             * Format: uuid
+             */
+            workspace_id: string;
+            /**
+             * Knowledge Node Id
+             * Format: uuid
+             */
+            knowledge_node_id: string;
+            /** Node Name */
+            node_name: string;
+            /** Description */
+            description: string;
+            /** Explanation */
+            explanation: string;
+            /** Recommended Action */
+            recommended_action: string | null;
+            /** Confidence */
+            confidence: number;
+            /** Tentative */
+            tentative: boolean;
+            /** Status */
+            status: string;
+            /** Evidence Count */
+            evidence_count: number;
+            /** Detection Version */
+            detection_version: string;
+            /** Prompt Version */
+            prompt_version: string;
+            /** Related Concepts */
+            related_concepts: components["schemas"]["RelatedConceptOut"][];
+            /** Edited By User */
+            edited_by_user: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Dismissed At */
+            dismissed_at: string | null;
+        };
+        /** MisconceptionPatch */
+        MisconceptionPatch: {
+            /** Description */
+            description?: string | null;
+            /** Explanation */
+            explanation?: string | null;
+            /** Recommended Action */
+            recommended_action?: string | null;
+        };
+        /** MisconceptionResponse */
+        MisconceptionResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["MisconceptionOut"];
+        };
         /** ModelListResponse */
         ModelListResponse: {
             /**
@@ -5863,6 +6126,16 @@ export interface components {
             code: string;
             /** Message */
             message: string;
+        };
+        /** RelatedConceptOut */
+        RelatedConceptOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** RelatedNodeOut */
         RelatedNodeOut: {
@@ -14296,6 +14569,247 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecalculateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detect_api_v1_knowledge_learner_misconceptions_detect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DetectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DetectResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_misconceptions_api_v1_knowledge_learner_misconceptions_get: {
+        parameters: {
+            query?: {
+                node_id?: string | null;
+                workspace_id?: string | null;
+                status?: ("suggested" | "confirmed" | "dismissed" | "corrected") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MisconceptionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_misconception_api_v1_knowledge_learner_misconceptions__misconception_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                misconception_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MisconceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    correct_api_v1_knowledge_learner_misconceptions__misconception_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                misconception_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MisconceptionPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MisconceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    misconception_evidence_api_v1_knowledge_learner_misconceptions__misconception_id__evidence_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                misconception_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MisconceptionEvidenceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_api_v1_knowledge_learner_misconceptions__misconception_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                misconception_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MisconceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_api_v1_knowledge_learner_misconceptions__misconception_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                misconception_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MisconceptionResponse"];
                 };
             };
             /** @description Validation Error */

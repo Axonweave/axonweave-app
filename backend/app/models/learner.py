@@ -16,6 +16,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
@@ -24,6 +25,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -206,4 +208,93 @@ class LearnerConceptState(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     calculation_version: Mapped[str] = mapped_column(String(16), nullable=False)
     explanation: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+
+
+MISCONCEPTION_STATUSES = ("suggested", "confirmed", "dismissed", "corrected")
+
+
+class LearnerMisconception(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A recurring misunderstanding inferred from several wrong answers on one concept (spec 15).
+    The model's output is untrusted: it is stored only after code has checked every cited answer and
+    concept against the evidence that was actually sent. `description_key` makes detection
+    retry-safe and keeps a dismissed misconception dismissed."""
+
+    __tablename__ = "learner_misconceptions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["workspace_id", "user_id"],
+            ["workspaces.id", "workspaces.user_id"],
+            ondelete="CASCADE",
+            name="fk_misconceptions_workspace_owner",
+        ),
+        ForeignKeyConstraint(
+            ["knowledge_node_id", "workspace_id"],
+            ["knowledge_nodes.id", "knowledge_nodes.workspace_id"],
+            ondelete="CASCADE",
+            name="fk_misconceptions_node_workspace",
+        ),
+        CheckConstraint(
+            f"status IN ({_sql(MISCONCEPTION_STATUSES)})", name="ck_misconceptions_status"
+        ),
+        CheckConstraint("confidence >= 0 AND confidence <= 1", name="ck_misconceptions_confidence"),
+        CheckConstraint("evidence_count >= 0", name="ck_misconceptions_count"),
+        UniqueConstraint("id", "user_id", name="uq_misconceptions_id_user"),
+        UniqueConstraint(
+            "user_id", "knowledge_node_id", "description_key", name="uq_misconceptions_key"
+        ),
+        Index("ix_misconceptions_user_status", "user_id", "status"),
+        Index("ix_misconceptions_node", "knowledge_node_id"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    knowledge_node_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    description: Mapped[str] = mapped_column(String(300), nullable=False)
+    explanation: Mapped[str] = mapped_column(Text, nullable=False)
+    recommended_action: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    confidence: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(12), nullable=False, server_default=text("'suggested'")
+    )
+    evidence_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    detection_version: Mapped[str] = mapped_column(String(16), nullable=False)
+    prompt_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    model_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    description_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    related_node_ids: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    edited_by_user: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    dismissed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class LearnerMisconceptionEvidence(UUIDPrimaryKeyMixin, Base):
+    """The wrong answers a misconception rests on. `source_event_id` is `quiz_attempt_answers.id`
+    (no FK: the answer text is read live from the owner's data, never copied here)."""
+
+    __tablename__ = "learner_misconception_evidence"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["misconception_id", "user_id"],
+            ["learner_misconceptions.id", "learner_misconceptions.user_id"],
+            ondelete="CASCADE",
+            name="fk_misconception_evidence_owner",
+        ),
+        UniqueConstraint("misconception_id", "source_event_id", name="uq_misconception_event"),
+        Index("ix_misconception_evidence_event", "user_id", "source_event_id"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    misconception_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    source_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    source_event_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    source_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()"), nullable=False
     )

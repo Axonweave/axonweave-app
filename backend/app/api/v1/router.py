@@ -11,6 +11,7 @@ from app.modules.documents.routes import router as documents_router
 from app.modules.folders.routes import router as folders_router
 from app.modules.knowledge.graph_routes import router as knowledge_graph_router
 from app.modules.knowledge.learner_routes import router as knowledge_learner_router
+from app.modules.knowledge.misconception_routes import router as knowledge_misconception_router
 from app.modules.knowledge.routes import router as knowledge_router
 from app.modules.recommendations.routes import router as recommendations_router
 from app.modules.revision.routes import card_router as revision_card_router
@@ -52,3 +53,4 @@ router.include_router(library_router)
 router.include_router(knowledge_router)
 router.include_router(knowledge_graph_router)
 router.include_router(knowledge_learner_router)
+router.include_router(knowledge_misconception_router)
