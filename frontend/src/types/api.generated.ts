@@ -3382,6 +3382,167 @@ export interface paths {
         patch: operations["edit_comparison_api_v1_research_comparisons__comparison_id__patch"];
         trace?: never;
     };
+    "/api/v1/research/projects/{project_id}/matrices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Matrices */
+        get: operations["list_matrices_api_v1_research_projects__project_id__matrices_get"];
+        put?: never;
+        /** Create Matrix */
+        post: operations["create_matrix_api_v1_research_projects__project_id__matrices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/matrices/{matrix_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Matrix */
+        get: operations["get_matrix_api_v1_research_matrices__matrix_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Matrix */
+        delete: operations["delete_matrix_api_v1_research_matrices__matrix_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Matrix */
+        patch: operations["edit_matrix_api_v1_research_matrices__matrix_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/research/matrices/{matrix_id}/papers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Matrix Papers */
+        post: operations["add_matrix_papers_api_v1_research_matrices__matrix_id__papers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/matrices/{matrix_id}/papers/{paper_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Matrix Paper */
+        delete: operations["remove_matrix_paper_api_v1_research_matrices__matrix_id__papers__paper_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/matrices/{matrix_id}/columns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Matrix Column */
+        post: operations["add_matrix_column_api_v1_research_matrices__matrix_id__columns_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/matrices/{matrix_id}/columns/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder Matrix Columns */
+        put: operations["reorder_matrix_columns_api_v1_research_matrices__matrix_id__columns_order_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/matrices/{matrix_id}/columns/{column_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Matrix Column */
+        delete: operations["remove_matrix_column_api_v1_research_matrices__matrix_id__columns__column_id__delete"];
+        options?: never;
+        head?: never;
+        /** Rename Matrix Column */
+        patch: operations["rename_matrix_column_api_v1_research_matrices__matrix_id__columns__column_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/research/matrices/{matrix_id}/entries/{paper_id}/{column_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Matrix Entry */
+        patch: operations["edit_matrix_entry_api_v1_research_matrices__matrix_id__entries__paper_id___column_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/research/matrices/{matrix_id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh Matrix
+         * @description Re-read the paper analyses into cells that still hold extracted values. Researcher-written
+         *     cells are never overwritten.
+         */
+        post: operations["refresh_matrix_api_v1_research_matrices__matrix_id__refresh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7451,6 +7612,196 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ResearchMatrixAddPapers */
+        ResearchMatrixAddPapers: {
+            /** Paper Ids */
+            paper_ids: string[];
+        };
+        /** ResearchMatrixCellOut */
+        ResearchMatrixCellOut: {
+            /**
+             * Column Id
+             * Format: uuid
+             */
+            column_id: string;
+            /** Value */
+            value: string;
+            /**
+             * Origin
+             * @enum {string}
+             */
+            origin: "extracted" | "ai_generated" | "researcher";
+            /** Evidence */
+            evidence: components["schemas"]["ResearchMatrixEvidenceOut"][];
+            /** Stale Evidence */
+            stale_evidence: number;
+        };
+        /** ResearchMatrixColumnCreate */
+        ResearchMatrixColumnCreate: {
+            /** Title */
+            title: string;
+        };
+        /** ResearchMatrixColumnOrder */
+        ResearchMatrixColumnOrder: {
+            /** Column Ids */
+            column_ids: string[];
+        };
+        /** ResearchMatrixColumnOut */
+        ResearchMatrixColumnOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Column Key */
+            column_key: string;
+            /** Title */
+            title: string;
+            /** Position */
+            position: number;
+            /** Is Default */
+            is_default: boolean;
+        };
+        /** ResearchMatrixColumnPatch */
+        ResearchMatrixColumnPatch: {
+            /** Title */
+            title: string;
+        };
+        /** ResearchMatrixCreate */
+        ResearchMatrixCreate: {
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            /** Paper Ids */
+            paper_ids?: string[];
+        };
+        /** ResearchMatrixEntryPatch */
+        ResearchMatrixEntryPatch: {
+            /** Value */
+            value: string;
+        };
+        /** ResearchMatrixEvidenceOut */
+        ResearchMatrixEvidenceOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Quote */
+            quote: string;
+            /** Page Number */
+            page_number: number | null;
+            /** Document Id */
+            document_id: string | null;
+        };
+        /** ResearchMatrixListResponse */
+        ResearchMatrixListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ResearchMatrixSummary"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ResearchMatrixOut */
+        ResearchMatrixOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            /** Columns */
+            columns: components["schemas"]["ResearchMatrixColumnOut"][];
+            /** Rows */
+            rows: components["schemas"]["ResearchMatrixRowOut"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ResearchMatrixPaperOut */
+        ResearchMatrixPaperOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Authors */
+            authors: string[];
+            /** Publication Year */
+            publication_year: number | null;
+        };
+        /** ResearchMatrixPatch */
+        ResearchMatrixPatch: {
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+        };
+        /** ResearchMatrixResponse */
+        ResearchMatrixResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchMatrixOut"];
+        };
+        /** ResearchMatrixRowOut */
+        ResearchMatrixRowOut: {
+            paper: components["schemas"]["ResearchMatrixPaperOut"];
+            /** Cells */
+            cells: components["schemas"]["ResearchMatrixCellOut"][];
+        };
+        /** ResearchMatrixSummary */
+        ResearchMatrixSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string | null;
+            /** Paper Count */
+            paper_count: number;
             /**
              * Updated At
              * Format: date-time
@@ -17271,6 +17622,469 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResearchComparisonResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_matrices_api_v1_research_projects__project_id__matrices_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_matrix_api_v1_research_projects__project_id__matrices_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchMatrixCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_matrix_api_v1_research_matrices__matrix_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_matrix_api_v1_research_matrices__matrix_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_matrix_api_v1_research_matrices__matrix_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchMatrixPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_matrix_papers_api_v1_research_matrices__matrix_id__papers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchMatrixAddPapers"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_matrix_paper_api_v1_research_matrices__matrix_id__papers__paper_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+                paper_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_matrix_column_api_v1_research_matrices__matrix_id__columns_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchMatrixColumnCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reorder_matrix_columns_api_v1_research_matrices__matrix_id__columns_order_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchMatrixColumnOrder"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_matrix_column_api_v1_research_matrices__matrix_id__columns__column_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+                column_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_matrix_column_api_v1_research_matrices__matrix_id__columns__column_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+                column_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchMatrixColumnPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_matrix_entry_api_v1_research_matrices__matrix_id__entries__paper_id___column_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+                paper_id: string;
+                column_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchMatrixEntryPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    refresh_matrix_api_v1_research_matrices__matrix_id__refresh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                matrix_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchMatrixResponse"];
                 };
             };
             /** @description Validation Error */

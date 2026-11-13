@@ -418,3 +418,103 @@ class ResearchComparisonPaper(UUIDPrimaryKeyMixin, Base):
     research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     extraction_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     position: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+MATRIX_ORIGINS = ("extracted", "ai_generated", "researcher")
+
+
+class ResearchEvidenceMatrix(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A literature-review matrix of one project (Phase 7 M7.5)."""
+
+    __tablename__ = "research_evidence_matrices"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_project_id", "user_id"],
+            ["research_projects.id", "research_projects.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_matrices_project_owner",
+        ),
+        UniqueConstraint("id", "user_id", name="uq_research_matrices_id_user"),
+        Index("ix_research_matrices_project", "user_id", "research_project_id"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class ResearchEvidenceMatrixColumn(UUIDPrimaryKeyMixin, Base):
+    """A matrix column. `source` says where extracted values come from ("meta:title",
+    "dimension:methodology", ...); custom columns have no source and are researcher-filled."""
+
+    __tablename__ = "research_evidence_matrix_columns"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["matrix_id", "user_id"],
+            ["research_evidence_matrices.id", "research_evidence_matrices.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_matrix_columns_matrix_owner",
+        ),
+        UniqueConstraint("id", "matrix_id", name="uq_research_matrix_columns_id_matrix"),
+        UniqueConstraint("matrix_id", "column_key", name="uq_research_matrix_columns_key"),
+        Index("ix_research_matrix_columns_matrix", "matrix_id", "position"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    matrix_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    column_key: Mapped[str] = mapped_column(String(60), nullable=False)
+    title: Mapped[str] = mapped_column(String(80), nullable=False)
+    data_type: Mapped[str] = mapped_column(String(12), nullable=False, default="text")
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    source: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    configuration: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+
+
+class ResearchEvidenceMatrixEntry(UUIDPrimaryKeyMixin, Base):
+    """One cell. `value_origin` keeps extracted paper information, AI interpretation and the
+    researcher's own words apart; a refresh never overwrites a researcher value. `evidence_ids`
+    point at `research_evidence` rows (no foreign key: a re-analysis keeps its own evidence)."""
+
+    __tablename__ = "research_evidence_matrix_entries"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["matrix_id", "user_id"],
+            ["research_evidence_matrices.id", "research_evidence_matrices.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_matrix_entries_matrix_owner",
+        ),
+        ForeignKeyConstraint(
+            ["research_paper_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_matrix_entries_paper_owner",
+        ),
+        ForeignKeyConstraint(
+            ["column_id", "matrix_id"],
+            ["research_evidence_matrix_columns.id", "research_evidence_matrix_columns.matrix_id"],
+            ondelete="CASCADE",
+            name="fk_research_matrix_entries_column",
+        ),
+        UniqueConstraint("matrix_id", "research_paper_id", "column_id", name="uq_research_cell"),
+        CheckConstraint(
+            f"value_origin IN ({_sql(MATRIX_ORIGINS)})", name="ck_research_matrix_entries_origin"
+        ),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    matrix_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    column_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    value: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    value_origin: Mapped[str] = mapped_column(String(14), nullable=False, default="extracted")
+    evidence_ids: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )

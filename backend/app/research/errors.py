@@ -169,3 +169,34 @@ class PaperNotAnalysedError(ResearchError):
     code = "RESEARCH_PAPER_NOT_ANALYSED"
     http_status = 422
     user_message = "Every paper in a comparison needs a completed analysis first."
+
+
+# Evidence matrix (M7.5) ──────────────────────────────────────────────────────
+class MatrixNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Matrix not found."
+
+
+class MatrixColumnNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Column not found."
+
+
+class MatrixEntryNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "That paper is not in this matrix."
+
+
+class DuplicateColumnError(ResearchError):
+    code = "RESEARCH_DUPLICATE_COLUMN"
+    http_status = 409
+    user_message = "A column with that name already exists."
+
+
+class InvalidColumnOrderError(ResearchError):
+    code = "VALIDATION_ERROR"
+    http_status = 422
+    user_message = "The column order must list every column of the matrix exactly once."

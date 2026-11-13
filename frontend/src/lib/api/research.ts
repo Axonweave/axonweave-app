@@ -79,6 +79,39 @@ export const COMPARE_DIMENSIONS: { id: ComparisonDimension; label: string }[] = 
   { id: "limitations", label: "Limitations" },
   { id: "future_work", label: "Future work" },
 ];
+export type ResearchMatrix = S["ResearchMatrixOut"];
+export type MatrixSummary = S["ResearchMatrixSummary"];
+export type MatrixColumn = S["ResearchMatrixColumnOut"];
+export type MatrixRow = S["ResearchMatrixRowOut"];
+export type MatrixCell = S["ResearchMatrixCellOut"];
+
+export const MATRIX_ORIGIN_LABELS: Record<string, string> = {
+  extracted: "Extracted from the paper",
+  ai_generated: "AI interpretation",
+  researcher: "Your note",
+};
+
+/** CSV text of a matrix: one row per paper, one column per matrix column, in matrix order. */
+export function matrixToCsv(m: ResearchMatrix): string {
+  const esc = (v: string) => {
+    const safe = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
+  const lines = [m.columns.map((c) => esc(c.title)).join(",")];
+  for (const row of m.rows) {
+    const byCol = new Map(row.cells.map((c) => [c.column_id, c]));
+    lines.push(
+      m.columns
+        .map((c) => {
+          const cell = byCol.get(c.id);
+          return esc(cell && cell.value ? cell.value : "");
+        })
+        .join(","),
+    );
+  }
+  return lines.join("\n");
+}
+
 export const COMPARE_NOT_REPORTED = "Not reported.";
 
 /** CSV text of a comparison. Cells that could be read as spreadsheet formulas are neutralised. */
@@ -273,6 +306,53 @@ export const researchApi = {
   patchComparison: (id: string, body: { title?: string; notes?: Record<string, string> }) =>
     api.patch<ResearchComparison>(`/research/comparisons/${enc(id)}`, body).then((r) => r.data),
   deleteComparison: (id: string) => api.delete<unknown>(`/research/comparisons/${enc(id)}`),
+  listMatrices: (projectId: string) =>
+    getPaged<MatrixSummary>(`/research/projects/${enc(projectId)}/matrices${query({ limit: 50 })}`),
+  createMatrix: (
+    projectId: string,
+    body: { title: string; description?: string | null; paper_ids: string[] },
+  ) =>
+    api
+      .post<ResearchMatrix>(`/research/projects/${enc(projectId)}/matrices`, body)
+      .then((r) => r.data),
+  getMatrix: (id: string) =>
+    api.get<ResearchMatrix>(`/research/matrices/${enc(id)}`).then((r) => r.data),
+  patchMatrix: (id: string, body: { title?: string; description?: string | null }) =>
+    api.patch<ResearchMatrix>(`/research/matrices/${enc(id)}`, body).then((r) => r.data),
+  deleteMatrix: (id: string) => api.delete<unknown>(`/research/matrices/${enc(id)}`),
+  matrixAddPapers: (id: string, paper_ids: string[]) =>
+    api
+      .post<ResearchMatrix>(`/research/matrices/${enc(id)}/papers`, { paper_ids })
+      .then((r) => r.data),
+  matrixRemovePaper: (id: string, paperId: string) =>
+    api
+      .delete<ResearchMatrix>(`/research/matrices/${enc(id)}/papers/${enc(paperId)}`)
+      .then((r) => r.data),
+  matrixAddColumn: (id: string, title: string) =>
+    api
+      .post<ResearchMatrix>(`/research/matrices/${enc(id)}/columns`, { title })
+      .then((r) => r.data),
+  matrixRenameColumn: (id: string, columnId: string, title: string) =>
+    api
+      .patch<ResearchMatrix>(`/research/matrices/${enc(id)}/columns/${enc(columnId)}`, { title })
+      .then((r) => r.data),
+  matrixRemoveColumn: (id: string, columnId: string) =>
+    api
+      .delete<ResearchMatrix>(`/research/matrices/${enc(id)}/columns/${enc(columnId)}`)
+      .then((r) => r.data),
+  matrixReorder: (id: string, column_ids: string[]) =>
+    api
+      .put<ResearchMatrix>(`/research/matrices/${enc(id)}/columns/order`, { column_ids })
+      .then((r) => r.data),
+  matrixEditCell: (id: string, paperId: string, columnId: string, value: string) =>
+    api
+      .patch<ResearchMatrix>(
+        `/research/matrices/${enc(id)}/entries/${enc(paperId)}/${enc(columnId)}`,
+        { value },
+      )
+      .then((r) => r.data),
+  matrixRefresh: (id: string) =>
+    api.post<ResearchMatrix>(`/research/matrices/${enc(id)}/refresh`).then((r) => r.data),
   duplicates: (projectId: string) =>
     api
       .get<DuplicateCandidate[]>(`/research/projects/${enc(projectId)}/papers/duplicates`)
