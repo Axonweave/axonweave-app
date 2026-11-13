@@ -53,8 +53,11 @@ def test_every_beat_entry_points_at_a_registered_task() -> None:
         "sweep-study-exports",
         "dispatch-pending-extraction-jobs",
         "sweep-stale-extraction-jobs",
+        "dispatch-pending-paper-analyses",
+        "sweep-stale-paper-analyses",
     }
     import app.knowledge.tasks  # noqa: F401  (registers the knowledge tasks)
+    import app.research.analysis_tasks  # noqa: F401  (registers the paper analysis tasks)
     import app.study.tasks  # noqa: F401  (registers the study tasks)
 
     for entry in BEAT_SCHEDULE.values():

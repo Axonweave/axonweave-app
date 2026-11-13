@@ -46,7 +46,7 @@ ignore_missing_imports = true
 
 # Celery's task decorators are untyped.
 [[tool.mypy.overrides]]
-module = ["app.ingestion.*", "app.study.tasks", "app.knowledge.tasks"]
+module = ["app.ingestion.*", "app.study.tasks", "app.knowledge.tasks", "app.research.analysis_tasks"]
 disallow_untyped_decorators = false
 disallow_subclassing_any = false
 

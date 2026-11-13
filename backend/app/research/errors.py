@@ -79,3 +79,80 @@ class InvalidMergeError(ResearchError):
     code = "RESEARCH_INVALID_MERGE"
     http_status = 422
     user_message = "Choose one of the two papers to keep."
+
+
+# Paper analysis (M7.3) ───────────────────────────────────────────────────────
+class AnalysisNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Analysis not found."
+
+
+class NoteNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Note not found."
+
+
+class PaperHasNoFileError(ResearchError):
+    code = "RESEARCH_PAPER_HAS_NO_FILE"
+    http_status = 422
+    user_message = "Attach a PDF to this paper before analysing it."
+
+
+class PaperFileNotReadyError(ResearchError):
+    code = "RESEARCH_DOCUMENT_NOT_READY"
+    http_status = 422
+    user_message = "The paper file has not finished processing yet."
+
+
+class AnalysisUnavailableError(ResearchError):
+    code = "RESEARCH_ANALYSIS_UNAVAILABLE"
+    http_status = 503
+    user_message = "Paper analysis is not available right now. Try again later."
+
+
+class AnalysisRateLimitedError(ResearchError):
+    code = "RESEARCH_RATE_LIMITED"
+    http_status = 429
+    user_message = "Too many analysis requests. Try again shortly."
+
+
+class TooManyActiveAnalysesError(ResearchError):
+    code = "RESEARCH_TOO_MANY_ACTIVE"
+    http_status = 429
+    user_message = "You already have analyses running. Wait for one to finish."
+
+
+class AnalysisNotCancellableError(ResearchError):
+    code = "RESEARCH_NOT_CANCELLABLE"
+    http_status = 409
+    user_message = "This analysis has already finished."
+
+
+# Codes stored on a failed analysis (fixed vocabulary; never provider or paper text).
+INVALID_OUTPUT = "RESEARCH_INVALID_OUTPUT"
+NOTHING_VERIFIED = "RESEARCH_NOTHING_VERIFIED"
+TIMEOUT = "RESEARCH_TIMEOUT"
+INTERRUPTED = "RESEARCH_INTERRUPTED"
+SOURCES_GONE = "RESEARCH_DOCUMENT_NOT_READY"
+TOO_LARGE = "RESEARCH_SOURCE_TOO_LARGE"
+INTERNAL = "RESEARCH_ANALYSIS_FAILED"
+CANCELLED = "RESEARCH_CANCELLED"
+
+_MESSAGES = {
+    INVALID_OUTPUT: "The AI reply could not be used. Try again.",
+    NOTHING_VERIFIED: "Nothing could be confirmed against the paper text.",
+    TIMEOUT: "The analysis took too long and was stopped.",
+    INTERRUPTED: "The analysis was interrupted. Try again.",
+    SOURCES_GONE: "The paper file is no longer available or not ready.",
+    TOO_LARGE: "The paper is too large to analyse in one run.",
+    INTERNAL: "The analysis failed. Try again.",
+    CANCELLED: "The analysis was cancelled.",
+}
+
+
+def safe_analysis_message(code: str | None) -> str | None:
+    if not code:
+        return None
+    return _MESSAGES.get(code, _MESSAGES[INTERNAL])

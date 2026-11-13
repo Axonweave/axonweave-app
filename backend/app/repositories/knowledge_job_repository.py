@@ -22,13 +22,18 @@ def _rows(result: Any) -> int:
 
 
 class KnowledgeJobRepository:
+    # Paper analysis (Phase 7) runs the same job discipline on its own table: a subclass swaps the
+    # model and the stored cancel code and inherits every guarded UPDATE.
+    _m: Any = KnowledgeExtractionJob
+    _cancel_code = "KNOWLEDGE_CANCELLED"
+
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
     # user-facing ─────────────────────────────────────────────────────────────
 
     async def add(self, **fields: Any) -> KnowledgeExtractionJob:
-        job = KnowledgeExtractionJob(**fields)
+        job: KnowledgeExtractionJob = self._m(**fields)
         self._db.add(job)
         await self._db.flush()
         return job
@@ -38,9 +43,7 @@ class KnowledgeJobRepository:
     ) -> KnowledgeExtractionJob | None:
         return (
             await self._db.execute(
-                select(KnowledgeExtractionJob).where(
-                    KnowledgeExtractionJob.id == job_id, KnowledgeExtractionJob.user_id == user_id
-                )
+                select(self._m).where(self._m.id == job_id, self._m.user_id == user_id)
             )
         ).scalar_one_or_none()
 
@@ -49,10 +52,10 @@ class KnowledgeJobRepository:
     ) -> KnowledgeExtractionJob | None:
         return (
             await self._db.execute(
-                select(KnowledgeExtractionJob).where(
-                    KnowledgeExtractionJob.user_id == user_id,
-                    KnowledgeExtractionJob.fingerprint == fingerprint,
-                    KnowledgeExtractionJob.status.in_(ACTIVE_JOB_STATUSES),
+                select(self._m).where(
+                    self._m.user_id == user_id,
+                    self._m.fingerprint == fingerprint,
+                    self._m.status.in_(ACTIVE_JOB_STATUSES),
                 )
             )
         ).scalar_one_or_none()
@@ -60,9 +63,9 @@ class KnowledgeJobRepository:
     async def count_active(self, user_id: uuid.UUID) -> int:
         return (
             await self._db.execute(
-                select(func.count(KnowledgeExtractionJob.id)).where(
-                    KnowledgeExtractionJob.user_id == user_id,
-                    KnowledgeExtractionJob.status.in_(ACTIVE_JOB_STATUSES),
+                select(func.count(self._m.id)).where(
+                    self._m.user_id == user_id,
+                    self._m.status.in_(ACTIVE_JOB_STATUSES),
                 )
             )
         ).scalar_one()
@@ -76,21 +79,19 @@ class KnowledgeJobRepository:
         limit: int,
         offset: int,
     ) -> tuple[list[KnowledgeExtractionJob], int]:
-        conditions = [KnowledgeExtractionJob.user_id == user_id]
+        conditions = [self._m.user_id == user_id]
         if status:
-            conditions.append(KnowledgeExtractionJob.status == status)
+            conditions.append(self._m.status == status)
         if document_id:
-            conditions.append(KnowledgeExtractionJob.document_id == document_id)
+            conditions.append(self._m.document_id == document_id)
         total = (
-            await self._db.execute(select(func.count(KnowledgeExtractionJob.id)).where(*conditions))
+            await self._db.execute(select(func.count(self._m.id)).where(*conditions))
         ).scalar_one()
         rows = (
             await self._db.execute(
-                select(KnowledgeExtractionJob)
+                select(self._m)
                 .where(*conditions)
-                .order_by(
-                    KnowledgeExtractionJob.created_at.desc(), KnowledgeExtractionJob.id.desc()
-                )
+                .order_by(self._m.created_at.desc(), self._m.id.desc())
                 .limit(limit)
                 .offset(offset)
             )
@@ -101,27 +102,27 @@ class KnowledgeJobRepository:
         """ "cancelled" (pending job, stopped at once), "requested" (running job gets a flag the
         worker checks between stages) or "finished"."""
         cancelled = await self._db.execute(
-            update(KnowledgeExtractionJob)
+            update(self._m)
             .where(
-                KnowledgeExtractionJob.id == job_id,
-                KnowledgeExtractionJob.user_id == user_id,
-                KnowledgeExtractionJob.status == "pending",
+                self._m.id == job_id,
+                self._m.user_id == user_id,
+                self._m.status == "pending",
             )
             .values(
                 status="cancelled",
                 cancel_requested=True,
-                error_code="KNOWLEDGE_CANCELLED",
+                error_code=self._cancel_code,
                 completed_at=now,
             )
         )
         if _rows(cancelled):
             return "cancelled"
         flagged = await self._db.execute(
-            update(KnowledgeExtractionJob)
+            update(self._m)
             .where(
-                KnowledgeExtractionJob.id == job_id,
-                KnowledgeExtractionJob.user_id == user_id,
-                KnowledgeExtractionJob.status.in_(ACTIVE_JOB_STATUSES),
+                self._m.id == job_id,
+                self._m.user_id == user_id,
+                self._m.status.in_(ACTIVE_JOB_STATUSES),
             )
             .values(cancel_requested=True)
         )
@@ -131,20 +132,18 @@ class KnowledgeJobRepository:
 
     async def get(self, job_id: uuid.UUID) -> KnowledgeExtractionJob | None:
         return (
-            await self._db.execute(
-                select(KnowledgeExtractionJob).where(KnowledgeExtractionJob.id == job_id)
-            )
+            await self._db.execute(select(self._m).where(self._m.id == job_id))
         ).scalar_one_or_none()
 
     async def claim(self, job_id: uuid.UUID, now: datetime, task_id: str | None) -> bool:
         """pending -> retrieving_sources, exactly once. A redelivered or duplicate task finds the
         job already claimed and does nothing."""
         result = await self._db.execute(
-            update(KnowledgeExtractionJob)
+            update(self._m)
             .where(
-                KnowledgeExtractionJob.id == job_id,
-                KnowledgeExtractionJob.status == "pending",
-                KnowledgeExtractionJob.cancel_requested.is_(False),
+                self._m.id == job_id,
+                self._m.status == "pending",
+                self._m.cancel_requested.is_(False),
             )
             .values(
                 status="retrieving_sources",
@@ -161,34 +160,30 @@ class KnowledgeJobRepository:
     ) -> bool:
         """Move an active job to the next stage. False when it is no longer active."""
         result = await self._db.execute(
-            update(KnowledgeExtractionJob)
-            .where(KnowledgeExtractionJob.id == job_id, KnowledgeExtractionJob.status.in_(_RUNNING))
+            update(self._m)
+            .where(self._m.id == job_id, self._m.status.in_(_RUNNING))
             .values(status=status, progress=progress, heartbeat_at=now, **extra)
         )
         return bool(_rows(result))
 
     async def update_active(self, job_id: uuid.UUID, now: datetime, **values: Any) -> bool:
         result = await self._db.execute(
-            update(KnowledgeExtractionJob)
-            .where(KnowledgeExtractionJob.id == job_id, KnowledgeExtractionJob.status.in_(_RUNNING))
+            update(self._m)
+            .where(self._m.id == job_id, self._m.status.in_(_RUNNING))
             .values(heartbeat_at=now, **values)
         )
         return bool(_rows(result))
 
     async def add_provider_call(self, job_id: uuid.UUID, now: datetime) -> None:
         await self._db.execute(
-            update(KnowledgeExtractionJob)
-            .where(KnowledgeExtractionJob.id == job_id)
-            .values(provider_calls=KnowledgeExtractionJob.provider_calls + 1, heartbeat_at=now)
+            update(self._m)
+            .where(self._m.id == job_id)
+            .values(provider_calls=self._m.provider_calls + 1, heartbeat_at=now)
         )
 
     async def is_cancel_requested(self, job_id: uuid.UUID) -> bool:
         flag = (
-            await self._db.execute(
-                select(KnowledgeExtractionJob.cancel_requested).where(
-                    KnowledgeExtractionJob.id == job_id
-                )
-            )
+            await self._db.execute(select(self._m.cancel_requested).where(self._m.id == job_id))
         ).scalar_one_or_none()
         return bool(flag)
 
@@ -200,6 +195,7 @@ class KnowledgeJobRepository:
         *,
         error_code: str | None = None,
         result_stats: dict[str, Any] | None = None,
+        **extra: Any,
     ) -> bool:
         """Move an active job to a terminal state. False if it already finished (first wins)."""
         values: dict[str, Any] = {
@@ -212,43 +208,39 @@ class KnowledgeJobRepository:
             values["progress"] = 100
         if result_stats is not None:
             values["result_stats"] = result_stats
+        values.update(extra)
         result = await self._db.execute(
-            update(KnowledgeExtractionJob)
-            .where(KnowledgeExtractionJob.id == job_id, KnowledgeExtractionJob.status.in_(_RUNNING))
+            update(self._m)
+            .where(self._m.id == job_id, self._m.status.in_(_RUNNING))
             .values(**values)
         )
         return bool(_rows(result))
 
     async def pending_older_than(self, cutoff: datetime, limit: int) -> list[uuid.UUID]:
         rows = await self._db.execute(
-            select(KnowledgeExtractionJob.id)
+            select(self._m.id)
             .where(
-                KnowledgeExtractionJob.status == "pending",
-                KnowledgeExtractionJob.cancel_requested.is_(False),
-                KnowledgeExtractionJob.created_at < cutoff,
-                (KnowledgeExtractionJob.heartbeat_at.is_(None))
-                | (KnowledgeExtractionJob.heartbeat_at < cutoff),
+                self._m.status == "pending",
+                self._m.cancel_requested.is_(False),
+                self._m.created_at < cutoff,
+                (self._m.heartbeat_at.is_(None)) | (self._m.heartbeat_at < cutoff),
             )
-            .order_by(KnowledgeExtractionJob.created_at)
+            .order_by(self._m.created_at)
             .limit(limit)
         )
         return list(rows.scalars())
 
     async def touch(self, job_id: uuid.UUID, now: datetime) -> None:
-        await self._db.execute(
-            update(KnowledgeExtractionJob)
-            .where(KnowledgeExtractionJob.id == job_id)
-            .values(heartbeat_at=now)
-        )
+        await self._db.execute(update(self._m).where(self._m.id == job_id).values(heartbeat_at=now))
 
     async def fail_stale(self, cutoff: datetime, now: datetime, error_code: str) -> int:
         """Jobs that started but stopped reporting (worker killed). Failed, never restarted: the
         provider may already have run and been billed."""
         result = await self._db.execute(
-            update(KnowledgeExtractionJob)
+            update(self._m)
             .where(
-                KnowledgeExtractionJob.status.in_(_RUNNING),
-                KnowledgeExtractionJob.heartbeat_at < cutoff,
+                self._m.status.in_(_RUNNING),
+                self._m.heartbeat_at < cutoff,
             )
             .values(status="failed", error_code=error_code, completed_at=now)
         )

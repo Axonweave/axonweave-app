@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { AsyncSection } from "@/components/ui/async-section";
 import { Button } from "@/components/ui/button";
@@ -414,6 +415,12 @@ function PaperRow({
         {ANALYSIS_LABELS[p.analysis_status] ?? p.analysis_status}
       </p>
       <div className="flex flex-wrap gap-2 pt-1">
+        <Link
+          href={`/research/papers/${p.id}`}
+          className="border-input hover:bg-muted inline-flex h-8 items-center rounded-md border px-3 text-sm"
+        >
+          {p.analysis_status === "analysed" ? "View analysis" : "Analysis"}
+        </Link>
         {!archived && (
           <Button size="sm" variant="outline" onClick={onEdit}>
             Edit details

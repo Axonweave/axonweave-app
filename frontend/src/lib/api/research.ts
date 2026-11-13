@@ -13,6 +13,45 @@ export type PaperCreate = S["PaperCreate"];
 export type PaperPatch = S["PaperPatch"];
 export type DuplicateCandidate = S["DuplicateCandidateOut"];
 export type PaperStatus = NonNullable<PaperCreate["status"]>;
+export type AnalysisRun = S["PaperAnalysisRunOut"];
+export type PaperAnalysis = S["PaperAnalysisOut"];
+export type AnalysisSection = S["PaperSectionOut"];
+export type AnalysisClaim = S["PaperClaimOut"];
+export type PaperNote = S["PaperNoteOut"];
+export type SectionId = AnalysisSection["section"];
+
+/** The analysis tabs, in reading order. Every section is shown even when nothing was found. */
+export const ANALYSIS_SECTIONS: { id: SectionId; label: string }[] = [
+  { id: "research_problem", label: "Research problem" },
+  { id: "objectives", label: "Objectives" },
+  { id: "methodology", label: "Methodology" },
+  { id: "dataset", label: "Dataset" },
+  { id: "evaluation", label: "Evaluation" },
+  { id: "results", label: "Results" },
+  { id: "contributions", label: "Contributions" },
+  { id: "limitations", label: "Limitations" },
+  { id: "future_work", label: "Future work" },
+  { id: "references", label: "References" },
+];
+
+export const NOT_REPORTED = "Not reported in the available paper.";
+export const ACTIVE_RUN_STATUSES = [
+  "pending",
+  "retrieving_sources",
+  "extracting",
+  "validating",
+  "saving",
+];
+export const RUN_STATUS_LABELS: Record<string, string> = {
+  pending: "Waiting to start",
+  retrieving_sources: "Reading the paper",
+  extracting: "Extracting sections",
+  validating: "Checking quotations",
+  saving: "Saving",
+  completed: "Completed",
+  failed: "Failed",
+  cancelled: "Cancelled",
+};
 
 export const PROJECT_STATUSES: { value: ProjectStatus; label: string }[] = [
   { value: "planning", label: "Planning" },
@@ -96,6 +135,27 @@ export const researchApi = {
   restorePaper: (id: string) =>
     api.post<ResearchPaper>(`/research/papers/${enc(id)}/restore`).then((r) => r.data),
   deletePaper: (id: string) => api.delete<unknown>(`/research/papers/${enc(id)}`),
+  getPaper: (id: string) =>
+    api.get<ResearchPaper>(`/research/papers/${enc(id)}`).then((r) => r.data),
+  analysis: (paperId: string, version?: number) =>
+    api
+      .get<PaperAnalysis>(`/research/papers/${enc(paperId)}/analysis${query({ version })}`)
+      .then((r) => r.data),
+  analysisHistory: (paperId: string) =>
+    getPaged<AnalysisRun>(`/research/papers/${enc(paperId)}/analyses${query({ limit: 50 })}`),
+  startAnalysis: (paperId: string) =>
+    api.post<AnalysisRun>(`/research/papers/${enc(paperId)}/analyses`).then((r) => r.data),
+  cancelAnalysis: (paperId: string, runId: string) =>
+    api
+      .post<AnalysisRun>(`/research/papers/${enc(paperId)}/analyses/${enc(runId)}/cancel`)
+      .then((r) => r.data),
+  listNotes: (paperId: string) =>
+    api.get<PaperNote[]>(`/research/papers/${enc(paperId)}/notes`).then((r) => r.data),
+  addNote: (paperId: string, body: { section: SectionId | null; body: string }) =>
+    api.post<PaperNote>(`/research/papers/${enc(paperId)}/notes`, body).then((r) => r.data),
+  editNote: (noteId: string, body: string) =>
+    api.patch<PaperNote>(`/research/notes/${enc(noteId)}`, { body }).then((r) => r.data),
+  deleteNote: (noteId: string) => api.delete<unknown>(`/research/notes/${enc(noteId)}`),
   duplicates: (projectId: string) =>
     api
       .get<DuplicateCandidate[]>(`/research/projects/${enc(projectId)}/papers/duplicates`)

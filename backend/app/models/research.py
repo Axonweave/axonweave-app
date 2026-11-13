@@ -13,6 +13,7 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
@@ -202,3 +203,160 @@ class ResearchPaperDuplicateReview(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+EXTRACTION_STATUSES = (
+    "pending",
+    "retrieving_sources",
+    "extracting",
+    "validating",
+    "saving",
+    "completed",
+    "failed",
+    "cancelled",
+)
+ACTIVE_EXTRACTION_STATUSES = EXTRACTION_STATUSES[:5]
+EVIDENCE_ORIGINS = ("reported", "ai_inferred")
+SECTIONS = (
+    "research_problem",
+    "objectives",
+    "methodology",
+    "dataset",
+    "evaluation",
+    "results",
+    "contributions",
+    "limitations",
+    "future_work",
+    "references",
+)
+
+
+class ResearchPaperExtraction(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """One analysis run of one paper (Phase 7 M7.3). It is also the background job: status moves
+    pending -> ... -> completed|failed|cancelled. Every run keeps its own version number and its
+    own evidence, so re-analysis never overwrites an earlier result."""
+
+    __tablename__ = "research_paper_extractions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_paper_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_extractions_paper_owner",
+        ),
+        UniqueConstraint("id", "user_id", name="uq_research_extractions_id_user"),
+        UniqueConstraint("research_paper_id", "version_number", name="uq_research_extractions_ver"),
+        CheckConstraint(
+            f"status IN ({_sql(EXTRACTION_STATUSES)})", name="ck_research_extractions_status"
+        ),
+        Index(
+            "uq_research_extractions_one_active",
+            "research_paper_id",
+            unique=True,
+            postgresql_where=text(f"status IN ({_sql(ACTIVE_EXTRACTION_STATUSES)})"),
+        ),
+        Index("ix_research_extractions_user_status", "user_id", "status"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="pending")
+    progress: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    extraction_version: Mapped[str] = mapped_column(String(32), nullable=False)
+    prompt_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    model_identifier: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    document_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    document_version_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    structured_result: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    result_stats: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    source_stats: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    # Fixed error vocabulary only (never provider text or paper text).
+    error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    cancel_requested: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    provider_calls: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    celery_task_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ResearchEvidence(UUIDPrimaryKeyMixin, Base):
+    """One supporting quotation for one extracted claim (spec 25.5). Claims with several quotations
+    have several rows sharing (extraction_id, claim_type, claim_index). `chunk_id` is not a foreign
+    key: re-processing a document replaces its chunks, and the quotation stays as the record."""
+
+    __tablename__ = "research_evidence"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["extraction_id", "user_id"],
+            ["research_paper_extractions.id", "research_paper_extractions.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_evidence_extraction_owner",
+        ),
+        ForeignKeyConstraint(
+            ["research_paper_id", "research_project_id"],
+            ["research_papers.id", "research_papers.research_project_id"],
+            ondelete="CASCADE",
+            name="fk_research_evidence_paper_project",
+        ),
+        CheckConstraint(f"claim_type IN ({_sql(SECTIONS)})", name="ck_research_evidence_type"),
+        CheckConstraint(
+            f"evidence_origin IN ({_sql(EVIDENCE_ORIGINS)})", name="ck_research_evidence_origin"
+        ),
+        CheckConstraint(
+            "confidence IS NULL OR (confidence >= 0 AND confidence <= 1)",
+            name="ck_research_evidence_confidence",
+        ),
+        Index("ix_research_evidence_extraction", "extraction_id", "claim_type", "claim_index"),
+        Index("ix_research_evidence_paper", "user_id", "research_paper_id"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    extraction_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    claim_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    claim_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    label: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    claim_text: Mapped[str] = mapped_column(Text, nullable=False)
+    document_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    document_version_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    chunk_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    supporting_text: Mapped[str] = mapped_column(Text, nullable=False)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    evidence_origin: Mapped[str] = mapped_column(String(16), nullable=False, default="reported")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class ResearchPaperNote(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A researcher note on a paper, optionally attached to one analysis section. Analysis runs
+    never read or change notes, so re-analysis cannot overwrite them (spec 25.6)."""
+
+    __tablename__ = "research_paper_notes"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_paper_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_notes_paper_owner",
+        ),
+        CheckConstraint(
+            f"section IS NULL OR section IN ({_sql(SECTIONS)})", name="ck_research_notes_section"
+        ),
+        Index("ix_research_notes_paper", "user_id", "research_paper_id"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    section: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    body: Mapped[str] = mapped_column(Text, nullable=False)

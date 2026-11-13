@@ -129,6 +129,11 @@ class Settings(BaseSettings):
     knowledge_extraction_version: str = "k1"
     knowledge_misconception_model: str = ""
     knowledge_misconception_version: str = "m1"
+    # Research Studio paper analysis (Phase 7 M7.3). Empty model = the default model.
+    research_analysis_model: str = ""
+    research_analysis_version: str = "r1"
+    research_max_active_analyses_per_user: int = Field(default=2, ge=1)
+    research_analysis_requests_per_minute_per_user: int = Field(default=4, ge=1)
     knowledge_max_concepts_per_job: int = Field(default=100, ge=1, le=500)
     knowledge_max_relationships_per_job: int = Field(default=200, ge=1, le=1000)
     knowledge_max_active_jobs_per_user: int = Field(default=2, ge=1)

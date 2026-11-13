@@ -32,7 +32,14 @@ from app.models.message_citation import MessageCitation
 from app.models.password_reset_token import PasswordResetToken
 from app.models.prompt_template import PromptTemplate
 from app.models.quiz import Quiz, QuizAttempt, QuizAttemptAnswer, QuizQuestion
-from app.models.research import ResearchPaper, ResearchPaperDuplicateReview, ResearchProject
+from app.models.research import (
+    ResearchEvidence,
+    ResearchPaper,
+    ResearchPaperDuplicateReview,
+    ResearchPaperExtraction,
+    ResearchPaperNote,
+    ResearchProject,
+)
 from app.models.revision import (
     FlashcardReview,
     FlashcardScheduling,
@@ -94,7 +101,10 @@ __all__ = [
     "QuizQuestion",
     "Session",
     "StorageCleanup",
+    "ResearchEvidence",
     "ResearchPaper",
+    "ResearchPaperExtraction",
+    "ResearchPaperNote",
     "ResearchPaperDuplicateReview",
     "ResearchProject",
     "StudyExport",

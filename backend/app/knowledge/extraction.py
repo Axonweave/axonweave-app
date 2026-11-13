@@ -179,6 +179,18 @@ async def run_extraction(
 
 
 class _Run:
+    # Subclasses (paper analysis) swap the job table and the usage label; the provider, retry,
+    # cancellation and quota machinery below is shared.
+    request_kind = "extraction"
+
+    def _jobs(self, db: AsyncSession) -> Any:
+        return KnowledgeJobRepository(db)
+
+    task_block = TASK_BLOCK
+
+    def _configured_model(self) -> str:
+        return self._s.knowledge_extraction_model
+
     def __init__(self, deps: ExtractionDeps, job_id: Any, user_id: Any, document_id: Any) -> None:
         self._d = deps
         self._s = deps.runtime.settings
@@ -242,7 +254,8 @@ class _Run:
                 max_relationships=self._s.knowledge_max_relationships_per_job,
             )
 
-        return await self._validated_call(cfg, catalog, request, schema, validate)
+        result: VerifiedOutput = await self._validated_call(cfg, catalog, request, schema, validate)
+        return result
 
     def _llm_request(self, cfg: ModelConfig, system_prompt: str, turn: str) -> LLMRequest:
         cap = min(self._s.knowledge_max_output_tokens, cfg.max_output_tokens or 10**9)
@@ -270,8 +283,8 @@ class _Run:
         catalog: LLMModel,
         request: LLMRequest,
         schema: dict[str, Any],
-        validate: Callable[[str], VerifiedOutput],
-    ) -> VerifiedOutput:
+        validate: Callable[[str], Any],
+    ) -> Any:
         """One provider call, parse and verify, and at most ONE correction call."""
         out_cap = request.max_output_tokens or 1000
         response = await self._call(cfg, catalog, request, schema)
@@ -301,7 +314,7 @@ class _Run:
         limit = self._s.knowledge_max_input_tokens
         if cfg.max_input_tokens:
             limit = min(limit, int(cfg.max_input_tokens * INPUT_BUDGET_FRACTION))
-        overhead = PROMPT_OVERHEAD_TOKENS + estimate_tokens(system_prompt + TASK_BLOCK)
+        overhead = PROMPT_OVERHEAD_TOKENS + estimate_tokens(system_prompt + self.task_block)
         return max(200, limit - overhead)
 
     async def _read_sources(self, budget: int) -> tuple[Placement, list[SourceBundle]]:
@@ -325,7 +338,7 @@ class _Run:
             version_id = await repo.active_version_id(self.user_id, self.document_id)
             if version_id is None:
                 raise NoSourcesError
-            await KnowledgeJobRepository(db).update_active(
+            await self._jobs(db).update_active(
                 self.job_id,
                 _now(),
                 document_version_id=version_id,
@@ -379,9 +392,7 @@ class _Run:
                 "verified": [stats_of(r) for r in results],
                 "dropped": dropped,
             }
-            done = await KnowledgeJobRepository(db).finish(
-                self.job_id, COMPLETED, _now(), result_stats=summary
-            )
+            done = await self._jobs(db).finish(self.job_id, COMPLETED, _now(), result_stats=summary)
             if not done:  # cancelled or failed by the sweeper while we worked: save nothing
                 await db.rollback()
                 raise _Cancelled
@@ -389,7 +400,7 @@ class _Run:
 
     async def finish_unsuccessful(self, outcome: str, code: str) -> str:
         async with self._factory() as db:
-            repo = KnowledgeJobRepository(db)
+            repo = self._jobs(db)
             moved = await repo.finish(self.job_id, outcome, _now(), error_code=code)
             await db.commit()
             if moved:
@@ -401,9 +412,7 @@ class _Run:
 
     async def _stage(self, status: str, progress: int, **extra: Any) -> None:
         async with self._factory() as db:
-            ok = await KnowledgeJobRepository(db).set_stage(
-                self.job_id, status, progress, _now(), **extra
-            )
+            ok = await self._jobs(db).set_stage(self.job_id, status, progress, _now(), **extra)
             await db.commit()
         if not ok:  # the sweeper failed it, or it was cancelled out from under us
             raise _Cancelled
@@ -415,7 +424,7 @@ class _Run:
 
     async def _cancel_requested(self) -> bool:
         async with self._factory() as db:
-            return await KnowledgeJobRepository(db).is_cancel_requested(self.job_id)
+            return bool(await self._jobs(db).is_cancel_requested(self.job_id))
 
     # provider ────────────────────────────────────────────────────────────────
 
@@ -423,7 +432,7 @@ class _Run:
         registry = self._d.runtime.registry
         if not registry.configured:
             raise LLMNotConfiguredError()
-        cfg = registry.resolve(self._s.knowledge_extraction_model or None)
+        cfg = registry.resolve(self._configured_model() or None)
         async with self._factory() as db:
             catalog = AiCatalogRepository(db)
             row = await catalog.get_model(cfg.internal_id)
@@ -500,7 +509,7 @@ class _Run:
                 if time.monotonic() - self._last_beat > HEARTBEAT_EVERY:
                     self._last_beat = time.monotonic()
                     async with self._factory() as db:
-                        await KnowledgeJobRepository(db).touch(self.job_id, _now())
+                        await self._jobs(db).touch(self.job_id, _now())
                         await db.commit()
         finally:
             if not task.done():
@@ -510,7 +519,7 @@ class _Run:
 
     async def _count_call(self) -> None:
         async with self._factory() as db:
-            await KnowledgeJobRepository(db).add_provider_call(self.job_id, _now())
+            await self._jobs(db).add_provider_call(self.job_id, _now())
             await db.commit()
 
     async def _usage(
@@ -540,7 +549,7 @@ class _Run:
                 pricing_version=price.pricing_version
                 if cost is not None and price is not None
                 else None,
-                request_kind="extraction",
+                request_kind=self.request_kind,
                 request_status=status,
                 error_code=error_code,
                 duration_ms=int((time.monotonic() - started) * 1000),
