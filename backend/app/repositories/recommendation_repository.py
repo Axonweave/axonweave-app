@@ -10,22 +10,32 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.revision import RevisionRecommendation as Rec
 
+PHASE5 = "phase5_rule"
+LEARNER = "learner_rule"
+
 
 class RecommendationRepository:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
-    async def pending(self, user_id: uuid.UUID) -> list[Rec]:
-        stmt = select(Rec).where(Rec.user_id == user_id, Rec.status == "pending")
+    async def pending(self, user_id: uuid.UUID, source: str = PHASE5) -> list[Rec]:
+        stmt = select(Rec).where(
+            Rec.user_id == user_id, Rec.status == "pending", Rec.source == source
+        )
         return list((await self._db.execute(stmt)).scalars().all())
 
     async def get(self, user_id: uuid.UUID, rec_id: uuid.UUID) -> Rec | None:
         stmt = select(Rec).where(Rec.user_id == user_id, Rec.id == rec_id)
         return (await self._db.execute(stmt)).scalar_one_or_none()
 
-    async def recently_resolved_keys(self, user_id: uuid.UUID, since: datetime) -> set[str]:
+    async def recently_resolved_keys(
+        self, user_id: uuid.UUID, since: datetime, source: str = PHASE5
+    ) -> set[str]:
         stmt = select(Rec.dedupe_key).where(
-            Rec.user_id == user_id, Rec.status != "pending", Rec.completed_at >= since
+            Rec.user_id == user_id,
+            Rec.status != "pending",
+            Rec.completed_at >= since,
+            Rec.source == source,
         )
         return set((await self._db.execute(stmt)).scalars().all())
 
@@ -40,12 +50,18 @@ class RecommendationRepository:
         await self._db.execute(stmt)
 
     async def refresh(
-        self, user_id: uuid.UUID, rec_id: uuid.UUID, *, reason: str, priority: str
+        self,
+        user_id: uuid.UUID,
+        rec_id: uuid.UUID,
+        *,
+        reason: str,
+        priority: str,
+        **extra: Any,
     ) -> None:
         await self._db.execute(
             update(Rec)
             .where(Rec.user_id == user_id, Rec.id == rec_id, Rec.status == "pending")
-            .values(reason=reason, priority=priority)
+            .values(reason=reason, priority=priority, **extra)
         )
 
     async def delete_stale(self, user_id: uuid.UUID, ids: list[uuid.UUID]) -> None:

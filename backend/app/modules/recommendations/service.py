@@ -168,7 +168,7 @@ class RecommendationService:
 
     async def resolve(self, user: User, rec_id: uuid.UUID, status: str) -> RevisionRecommendation:
         rec = await self._repo.get(user.id, rec_id)
-        if rec is None:
+        if rec is None or rec.source != "phase5_rule":  # learner ones use /recommendations/learner
             raise RecommendationNotFoundError
         if rec.status == "pending":
             await self._repo.resolve(user.id, rec_id, status, _now())

@@ -2993,6 +2993,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/recommendations/learner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Learner Recommendations */
+        get: operations["learner_recommendations_api_v1_recommendations_learner_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recommendations/learner/{recommendation_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete */
+        post: operations["complete_api_v1_recommendations_learner__recommendation_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recommendations/learner/{recommendation_id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss */
+        post: operations["dismiss_api_v1_recommendations_learner__recommendation_id__dismiss_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5026,6 +5077,66 @@ export interface components {
              * Format: date-time
              */
             occurred_at: string;
+        };
+        /** LearnerRecommendationListOut */
+        LearnerRecommendationListOut: {
+            /** Items */
+            items: components["schemas"]["LearnerRecommendationOut"][];
+            /** Note */
+            note: string;
+        };
+        /** LearnerRecommendationListResponse */
+        LearnerRecommendationListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["LearnerRecommendationListOut"];
+        };
+        /** LearnerRecommendationOut */
+        LearnerRecommendationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Recommendation Type */
+            recommendation_type: string;
+            /** Knowledge Node Id */
+            knowledge_node_id: string | null;
+            /** Topic Name */
+            topic_name: string | null;
+            /** Reason */
+            reason: string;
+            /** Suggested Action */
+            suggested_action: string | null;
+            /** Priority */
+            priority: string;
+            /** Score */
+            score: number | null;
+            /** Evidence */
+            evidence: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Completed At */
+            completed_at: string | null;
+        };
+        /** LearnerRecommendationResponse */
+        LearnerRecommendationResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["LearnerRecommendationOut"];
         };
         /** LibraryItemOut */
         LibraryItemOut: {
@@ -14810,6 +14921,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MisconceptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    learner_recommendations_api_v1_recommendations_learner_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerRecommendationListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_api_v1_recommendations_learner__recommendation_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recommendation_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerRecommendationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dismiss_api_v1_recommendations_learner__recommendation_id__dismiss_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recommendation_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerRecommendationResponse"];
                 };
             };
             /** @description Validation Error */

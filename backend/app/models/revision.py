@@ -7,6 +7,7 @@ both (D-110). Ownership is enforced in the database by composite foreign keys on
 
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
@@ -18,6 +19,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -33,6 +35,18 @@ CARD_STATES = ("new", "learning", "review", "relearning")
 RATINGS = ("again", "hard", "good", "easy")
 _STATE_SQL = ", ".join(f"'{s}'" for s in CARD_STATES)
 _RATING_SQL = ", ".join(f"'{r}'" for r in RATINGS)
+PHASE5_REC_TYPES = ("quiz", "flashcard", "topic", "chapter")
+LEARNER_REC_TYPES = (
+    "revise_concept",
+    "study_prerequisite",
+    "practise_concept",
+    "review_misconception",
+    "review_due",
+    "assess_concept",
+    "study_related",
+    "revisit_chapter",
+)
+_REC_TYPES_SQL = ", ".join(f"'{t}'" for t in (*PHASE5_REC_TYPES, *LEARNER_REC_TYPES))
 
 
 class FlashcardScheduling(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -212,8 +226,17 @@ class RevisionRecommendation(UUIDPrimaryKeyMixin, Base):
     __tablename__ = "revision_recommendations"
     __table_args__ = (
         CheckConstraint(
-            "recommendation_type IN ('quiz', 'flashcard', 'topic', 'chapter')",
+            f"recommendation_type IN ({_REC_TYPES_SQL})",
             name="ck_revision_recommendations_type",
+        ),
+        CheckConstraint(
+            "source IN ('phase5_rule', 'learner_rule')", name="ck_revision_recommendations_source"
+        ),
+        SetNullColumnsFK(
+            ["knowledge_node_id", "user_id"],
+            ["knowledge_nodes.id", "knowledge_nodes.user_id"],
+            set_null=["knowledge_node_id"],
+            name="fk_revision_recommendations_node_owner",
         ),
         CheckConstraint(
             "priority IN ('low', 'medium', 'high')", name="ck_revision_recommendations_priority"
@@ -235,7 +258,7 @@ class RevisionRecommendation(UUIDPrimaryKeyMixin, Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    recommendation_type: Mapped[str] = mapped_column(String(12), nullable=False)
+    recommendation_type: Mapped[str] = mapped_column(String(24), nullable=False)
     target_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     topic_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     dedupe_key: Mapped[str] = mapped_column(String(160), nullable=False)
@@ -248,3 +271,14 @@ class RevisionRecommendation(UUIDPrimaryKeyMixin, Base):
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Phase 6 (M6.8): learner-intelligence recommendations share this table. Phase 5 rows keep
+    # source 'phase5_rule' and the four original types; the Phase 5 endpoints only see those.
+    source: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="phase5_rule", server_default=text("'phase5_rule'")
+    )
+    knowledge_node_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    suggested_action: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    score: Mapped[Decimal | None] = mapped_column(Numeric(6, 2), nullable=True)
+    evidence: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb")
+    )
