@@ -28,6 +28,7 @@ vi.mock("./paper-library", () => ({ PaperLibrary: () => <div>Paper library</div>
 vi.mock("./contradictions-workspace", () => ({
   ContradictionsWorkspace: () => <div>Contradictions</div>,
 }));
+vi.mock("./citations-workspace", () => ({ CitationsWorkspace: () => <div>Citations</div> }));
 vi.mock("./gaps-workspace", () => ({ GapsWorkspace: () => <div>Gaps</div> }));
 vi.mock("./matrix-workspace", () => ({ MatrixWorkspace: () => <div>Matrices</div> }));
 vi.mock("./comparison-workspace", () => ({ ComparisonWorkspace: () => <div>Comparisons</div> }));

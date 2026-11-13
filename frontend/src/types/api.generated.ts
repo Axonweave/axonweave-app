@@ -3649,6 +3649,59 @@ export interface paths {
         patch: operations["review_contradiction_api_v1_research_contradictions__contradiction_id__patch"];
         trace?: never;
     };
+    "/api/v1/research/projects/{project_id}/citations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Citations */
+        get: operations["list_citations_api_v1_research_projects__project_id__citations_get"];
+        put?: never;
+        /** Generate Citations */
+        post: operations["generate_citations_api_v1_research_projects__project_id__citations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/projects/{project_id}/citations/bibliography": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Bibliography */
+        get: operations["export_bibliography_api_v1_research_projects__project_id__citations_bibliography_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/citations/{citation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Citation */
+        get: operations["get_citation_api_v1_research_citations__citation_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Citation */
+        delete: operations["delete_citation_api_v1_research_citations__citation_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7611,6 +7664,118 @@ export interface components {
         ReorderRequest: {
             /** Card Ids */
             card_ids: string[];
+        };
+        /** ResearchBibliographyOut */
+        ResearchBibliographyOut: {
+            /** Style */
+            style: string;
+            /** Format */
+            format: string;
+            /** Filename */
+            filename: string;
+            /** Count */
+            count: number;
+            /** Content */
+            content: string;
+        };
+        /** ResearchBibliographyResponse */
+        ResearchBibliographyResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchBibliographyOut"];
+        };
+        /** ResearchCitationGenerate */
+        ResearchCitationGenerate: {
+            /**
+             * Style
+             * @enum {string}
+             */
+            style: "apa" | "ieee" | "mla" | "chicago" | "harvard";
+            /** Paper Ids */
+            paper_ids?: string[] | null;
+            /** Accessed Date */
+            accessed_date?: string | null;
+        };
+        /** ResearchCitationIssue */
+        ResearchCitationIssue: {
+            /** Field */
+            field: string;
+            /** Severity */
+            severity: string;
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
+        /** ResearchCitationListResponse */
+        ResearchCitationListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ResearchCitationOut"][];
+            /** Total */
+            total: number;
+        };
+        /** ResearchCitationOut */
+        ResearchCitationOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /**
+             * Research Paper Id
+             * Format: uuid
+             */
+            research_paper_id: string;
+            /** Paper Title */
+            paper_title: string;
+            /** Citation Style */
+            citation_style: string;
+            /** Formatted Citation */
+            formatted_citation: string;
+            /** In Text Citation */
+            in_text_citation: string;
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /** Issues */
+            issues: components["schemas"]["ResearchCitationIssue"][];
+            /** Complete */
+            complete: boolean;
+            /** Metadata Changed */
+            metadata_changed: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ResearchCitationResponse */
+        ResearchCitationResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchCitationOut"];
         };
         /** ResearchComparisonCreate */
         ResearchComparisonCreate: {
@@ -18753,6 +18918,178 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ResearchContradictionResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_citations_api_v1_research_projects__project_id__citations_get: {
+        parameters: {
+            query?: {
+                style?: ("apa" | "ieee" | "mla" | "chicago" | "harvard") | null;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchCitationListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_citations_api_v1_research_projects__project_id__citations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchCitationGenerate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchCitationListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_bibliography_api_v1_research_projects__project_id__citations_bibliography_get: {
+        parameters: {
+            query?: {
+                style?: "apa" | "ieee" | "mla" | "chicago" | "harvard";
+                format?: "text" | "bibtex";
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchBibliographyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_citation_api_v1_research_citations__citation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                citation_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchCitationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_citation_api_v1_research_citations__citation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                citation_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

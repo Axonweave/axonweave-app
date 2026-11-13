@@ -226,3 +226,10 @@ class NeedTwoAnalysedPapersError(ResearchError):
     code = "RESEARCH_NEED_TWO_ANALYSED_PAPERS"
     http_status = 422
     user_message = "Analyse at least two papers in this project first."
+
+
+# Citations (M7.8)
+class CitationNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Citation not found."

@@ -701,3 +701,49 @@ class ResearchContradiction(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     researcher_explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
     analysis_version: Mapped[str] = mapped_column(String(16), nullable=False)
     fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+CITATION_STYLES = ("apa", "ieee", "mla", "chicago", "harvard")
+
+
+class ResearchCitation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A formatted reference for one paper in one style (Phase 7 M7.8). The metadata used is kept as
+    a snapshot so the citation can be regenerated accurately and so a later change to the paper's
+    metadata can be detected."""
+
+    __tablename__ = "research_citations"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_project_id", "user_id"],
+            ["research_projects.id", "research_projects.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_citations_project_owner",
+        ),
+        ForeignKeyConstraint(
+            ["research_paper_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_citations_paper_owner",
+        ),
+        UniqueConstraint("id", "user_id", name="uq_research_citations_id_user"),
+        UniqueConstraint(
+            "user_id",
+            "research_project_id",
+            "research_paper_id",
+            "citation_style",
+            name="uq_research_citations_paper_style",
+        ),
+        CheckConstraint(
+            f"citation_style IN ({_sql(CITATION_STYLES)})", name="ck_research_citations_style"
+        ),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    citation_style: Mapped[str] = mapped_column(String(12), nullable=False)
+    formatted_citation: Mapped[str] = mapped_column(Text, nullable=False)
+    in_text_citation: Mapped[str] = mapped_column(String(400), nullable=False)
+    metadata_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)

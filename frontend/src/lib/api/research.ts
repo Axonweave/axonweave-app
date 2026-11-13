@@ -101,6 +101,19 @@ export const CONTRADICTION_REVIEW_LABELS: Record<string, string> = {
   dismissed: "Dismissed",
 };
 
+export type ResearchCitation = S["ResearchCitationOut"];
+export type CitationIssue = S["ResearchCitationIssue"];
+export type Bibliography = S["ResearchBibliographyOut"];
+export type CitationStyle = S["ResearchCitationGenerate"]["style"];
+
+export const CITATION_STYLES: { value: CitationStyle; label: string }[] = [
+  { value: "apa", label: "APA 7" },
+  { value: "ieee", label: "IEEE" },
+  { value: "mla", label: "MLA 9" },
+  { value: "chicago", label: "Chicago (author-date)" },
+  { value: "harvard", label: "Harvard" },
+];
+
 export type ResearchGap = S["ResearchGapOut"];
 export type GapEvidence = S["ResearchGapEvidenceOut"];
 export type GapPatch = S["ResearchGapPatch"];
@@ -397,6 +410,24 @@ export const researchApi = {
       .then((r) => r.data),
   matrixRefresh: (id: string) =>
     api.post<ResearchMatrix>(`/research/matrices/${enc(id)}/refresh`).then((r) => r.data),
+  listCitations: (projectId: string, style?: CitationStyle) =>
+    api
+      .get<ResearchCitation[]>(`/research/projects/${enc(projectId)}/citations${query({ style })}`)
+      .then((r) => r.data),
+  generateCitations: (
+    projectId: string,
+    body: { style: CitationStyle; paper_ids?: string[]; accessed_date?: string | null },
+  ) =>
+    api
+      .post<ResearchCitation[]>(`/research/projects/${enc(projectId)}/citations`, body)
+      .then((r) => r.data),
+  deleteCitation: (id: string) => api.delete<unknown>(`/research/citations/${enc(id)}`),
+  bibliography: (projectId: string, style: CitationStyle, format: "text" | "bibtex") =>
+    api
+      .get<Bibliography>(
+        `/research/projects/${enc(projectId)}/citations/bibliography${query({ style, format })}`,
+      )
+      .then((r) => r.data),
   listContradictions: (projectId: string, f: { category?: string; review_status?: string } = {}) =>
     getPaged<ResearchContradiction>(
       `/research/projects/${enc(projectId)}/contradictions${query({ ...f, limit: 100 })}`,

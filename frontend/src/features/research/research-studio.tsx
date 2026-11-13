@@ -17,6 +17,7 @@ import {
   type ResearchProject,
 } from "@/lib/api/research";
 import { workspacesApi } from "@/lib/api/workspaces";
+import { CitationsWorkspace } from "./citations-workspace";
 import { ComparisonWorkspace } from "./comparison-workspace";
 import { ContradictionsWorkspace } from "./contradictions-workspace";
 import { GapsWorkspace } from "./gaps-workspace";
@@ -561,6 +562,10 @@ export function ResearchStudio() {
 
       {mode === "none" && selected && (
         <GapsWorkspace key={`gap-${selected.id}`} project={selected} />
+      )}
+
+      {mode === "none" && selected && (
+        <CitationsWorkspace key={`cit-${selected.id}`} project={selected} />
       )}
 
       <AsyncSection
