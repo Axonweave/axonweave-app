@@ -65,6 +65,8 @@ SYMMETRIC_TYPES = ("RELATED_TO", "CONTRASTS_WITH")
 EVIDENCE_TYPES = ("definition", "mention", "relationship_statement")
 STATEMENT_KINDS = ("stated", "inferred")
 ORIGINS = ("extracted", "user")
+SOURCE_KINDS = ("document", "web")
+WEB_URL_MAX_CHARS = 2048
 
 JOB_STATUSES = (
     "pending",
@@ -258,6 +260,15 @@ class KnowledgeExtractionJob(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         CheckConstraint(f"status IN ({_sql(JOB_STATUSES)})", name="ck_knowledge_jobs_status"),
         CheckConstraint("progress >= 0 AND progress <= 100", name="ck_knowledge_jobs_progress"),
         CheckConstraint("provider_calls >= 0", name="ck_knowledge_jobs_provider_calls"),
+        CheckConstraint(
+            f"source_kind IN ({_sql(SOURCE_KINDS)})", name="ck_knowledge_jobs_source_kind"
+        ),
+        CheckConstraint(
+            "(source_kind = 'document' AND document_id IS NOT NULL) "
+            "OR (source_kind = 'web' AND subject_id IS NOT NULL AND topic IS NOT NULL)",
+            name="ck_knowledge_jobs_source",
+        ),
+        Index("ix_knowledge_jobs_subject", "subject_id"),
         Index(
             "uq_knowledge_jobs_active_fingerprint",
             "user_id",
@@ -275,8 +286,15 @@ class KnowledgeExtractionJob(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    # A document run has `document_id`; a web run (Phase 6, D-144) has `subject_id` and `topic`
+    # (the subject name when it was started) instead.
+    document_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     document_version_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    source_kind: Mapped[str] = mapped_column(String(16), nullable=False, default="document")
+    subject_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=True
+    )
+    topic: Mapped[str | None] = mapped_column(String(200), nullable=True)
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="pending")
     progress: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     extraction_version: Mapped[str] = mapped_column(String(32), nullable=False)
@@ -345,8 +363,38 @@ class KnowledgeEvidence(UUIDPrimaryKeyMixin, Base):
         ),
         CheckConstraint("chunk_index >= 0", name="ck_knowledge_evidence_chunk_index"),
         CheckConstraint(
+            f"source_kind IN ({_sql(SOURCE_KINDS)})", name="ck_knowledge_evidence_source_kind"
+        ),
+        # Document evidence keeps all its document columns; web evidence is a website link only.
+        CheckConstraint(
+            "(source_kind = 'document' AND document_id IS NOT NULL "
+            "AND document_version_id IS NOT NULL AND chunk_index IS NOT NULL "
+            "AND source_url IS NULL) "
+            "OR (source_kind = 'web' AND document_id IS NULL AND document_version_id IS NULL "
+            "AND chunk_index IS NULL AND source_url IS NOT NULL "
+            f"AND source_url LIKE 'https://%' AND char_length(source_url) <= {WEB_URL_MAX_CHARS})",
+            name="ck_knowledge_evidence_source",
+        ),
+        CheckConstraint(
             "confidence IS NULL OR (confidence >= 0 AND confidence <= 1)",
             name="ck_knowledge_evidence_confidence",
+        ),
+        Index(
+            "uq_knowledge_evidence_web_node",
+            "knowledge_node_id",
+            "source_url",
+            "quote_hash",
+            "evidence_type",
+            unique=True,
+            postgresql_where=text("source_kind = 'web' AND knowledge_edge_id IS NULL"),
+        ),
+        Index(
+            "uq_knowledge_evidence_web_edge",
+            "knowledge_edge_id",
+            "source_url",
+            "quote_hash",
+            unique=True,
+            postgresql_where=text("source_kind = 'web' AND knowledge_edge_id IS NOT NULL"),
         ),
         # A retry (or a re-run over the same version) never adds the same evidence twice.
         Index(
@@ -378,9 +426,13 @@ class KnowledgeEvidence(UUIDPrimaryKeyMixin, Base):
     workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     knowledge_node_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     knowledge_edge_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    document_version_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    document_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    document_version_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    chunk_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # 'document' (above) or 'web': a website the provider's search grounding cited (D-144).
+    source_kind: Mapped[str] = mapped_column(String(16), nullable=False, default="document")
+    source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     chunk_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
     slide_number: Mapped[int | None] = mapped_column(Integer, nullable=True)

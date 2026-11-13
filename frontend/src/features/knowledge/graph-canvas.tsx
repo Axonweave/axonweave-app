@@ -2,7 +2,7 @@
 
 import "@xyflow/react/dist/style.css";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   Background,
   Controls,
@@ -13,6 +13,7 @@ import {
   useReactFlow,
   type Edge,
   type Node,
+  type NodeChange,
   type NodeMouseHandler,
 } from "@xyflow/react";
 import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation } from "d3-force";
@@ -86,17 +87,65 @@ interface CanvasProps {
   onExpand: (id: string) => void;
 }
 
+type Size = { width: number; height: number };
+type Point = { x: number; y: number };
+
+const WIDE_QUERY = "(min-width: 768px)";
+function subscribeWide(notify: () => void) {
+  const mq = window.matchMedia(WIDE_QUERY);
+  mq.addEventListener("change", notify);
+  return () => mq.removeEventListener("change", notify);
+}
+const isWide = () => window.matchMedia(WIDE_QUERY).matches;
+
 function Canvas({ nodes, edges, selectedId, onSelect, onExpand }: CanvasProps) {
   const flow = useReactFlow();
+  const wide = useSyncExternalStore(subscribeWide, isWide, () => true);
 
   const positions = useMemo(() => layout(nodes, edges, new Map()), [nodes, edges]);
+
+  // Controlled graph: xyflow measures each node in the DOM and reports it through
+  // `onNodesChange`. The minimap (and node dragging) read size and position from OUR node
+  // objects, so we must hand the measurements and drag positions back. Without this the minimap
+  // finds no node dimensions and draws no nodes, only an empty box sized to the whole graph.
+  const [measured, setMeasured] = useState<Record<string, Size>>({});
+  // dragged positions only apply to the layout they were made on; a new layout discards them
+  const [moved, setMoved] = useState<{ base: unknown; pos: Record<string, Point> }>({
+    base: null,
+    pos: {},
+  });
+
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      for (const c of changes) {
+        if (c.type === "dimensions" && c.dimensions) {
+          const size = { width: c.dimensions.width, height: c.dimensions.height };
+          setMeasured((prev) => {
+            const cur = prev[c.id];
+            if (cur && cur.width === size.width && cur.height === size.height) return prev;
+            return { ...prev, [c.id]: size };
+          });
+        } else if (c.type === "position" && c.position) {
+          const point = c.position;
+          setMoved((prev) => ({
+            base: positions,
+            pos: { ...(prev.base === positions ? prev.pos : {}), [c.id]: point },
+          }));
+        }
+      }
+    },
+    [positions],
+  );
 
   const flowNodes: Node[] = useMemo(
     () =>
       nodes.map((n) => ({
         id: n.id,
-        position: positions.get(n.id) ?? { x: 0, y: 0 },
-        data: { label: n.name },
+        position: (moved.base === positions ? moved.pos[n.id] : undefined) ??
+          positions.get(n.id) ?? { x: 0, y: 0 },
+        measured: measured[n.id],
+        initialWidth: NODE_W,
+        data: { label: n.name, nodeType: n.node_type },
         ariaLabel: `${n.name}, ${n.node_type}, ${n.degree} connections`,
         selected: n.id === selectedId,
         style: {
@@ -111,7 +160,7 @@ function Canvas({ nodes, edges, selectedId, onSelect, onExpand }: CanvasProps) {
           boxShadow: n.id === selectedId ? `0 0 0 3px ${typeColor(n.node_type)}55` : undefined,
         },
       })),
-    [nodes, positions, selectedId],
+    [nodes, positions, selectedId, measured, moved],
   );
 
   const flowEdges: Edge[] = useMemo(() => {
@@ -150,6 +199,7 @@ function Canvas({ nodes, edges, selectedId, onSelect, onExpand }: CanvasProps) {
       <ReactFlow
         nodes={flowNodes}
         edges={flowEdges}
+        onNodesChange={onNodesChange}
         onNodeClick={onNodeClick}
         onNodeDoubleClick={onNodeDoubleClick}
         nodesConnectable={false}
@@ -162,7 +212,34 @@ function Canvas({ nodes, edges, selectedId, onSelect, onExpand }: CanvasProps) {
       >
         <Background />
         <Controls showInteractive={false} />
-        <MiniMap pannable zoomable className="!hidden md:!block" />
+        {nodes.length > 0 ? (
+          <MiniMap
+            // drag on the minimap pans the main view; the wheel zooms it; a click centres it
+            pannable
+            zoomable
+            ariaLabel="Graph overview"
+            onClick={(_, point) =>
+              void flow.setCenter(point.x, point.y, { zoom: flow.getZoom(), duration: 200 })
+            }
+            // size in px (the minimap scales the whole graph into it); smaller on narrow screens
+            style={{
+              width: wide ? 200 : 130,
+              height: wide ? 140 : 90,
+              backgroundColor: "var(--card)",
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              boxShadow: "0 1px 4px rgb(0 0 0 / 0.12)",
+              overflow: "hidden",
+            }}
+            nodeColor={(node) => typeColor(String(node.data?.nodeType ?? ""))}
+            nodeStrokeWidth={0}
+            nodeBorderRadius={3}
+            // dim everything outside the visible area; the visible area keeps a clear outline
+            maskColor="color-mix(in srgb, var(--foreground) 10%, transparent)"
+            maskStrokeColor="var(--primary)"
+            maskStrokeWidth={2}
+          />
+        ) : null}
       </ReactFlow>
       <div className="absolute top-2 right-2 flex gap-2">
         <Button size="sm" variant="outline" onClick={fit}>

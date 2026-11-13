@@ -2441,6 +2441,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge/extract/subject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Subject Extraction
+         * @description Queue extraction for every ready document of a subject that has none yet.
+         */
+        post: operations["create_subject_extraction_api_v1_knowledge_extract_subject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/extract/web": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Web Extraction
+         * @description Build a subject's graph from a web search on its name. 200 with `existing: true` when a web
+         *     run for that subject is already active.
+         */
+        post: operations["create_web_extraction_api_v1_knowledge_extract_web_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/knowledge/extract/{job_id}": {
         parameters: {
             query?: never;
@@ -2578,6 +2619,26 @@ export interface paths {
         head?: never;
         /** Update Node */
         patch: operations["update_node_api_v1_knowledge_nodes__node_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/knowledge/graph/clear": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Clear Graph
+         * @description Permanently delete every concept of one of the caller's subjects.
+         */
+        post: operations["clear_graph_api_v1_knowledge_graph_clear_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/knowledge/nodes/{node_id}/archive": {
@@ -4566,6 +4627,38 @@ export interface components {
             success: boolean;
             data: components["schemas"]["CitationOut"];
         };
+        /** ClearGraphOut */
+        ClearGraphOut: {
+            /** Concepts */
+            concepts: number;
+            /** Relationships */
+            relationships: number;
+        };
+        /**
+         * ClearGraphRequest
+         * @description Delete every concept of one subject. `confirm` must be true (irreversible).
+         */
+        ClearGraphRequest: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /**
+             * Confirm
+             * @constant
+             */
+            confirm: true;
+        };
+        /** ClearGraphResponse */
+        ClearGraphResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ClearGraphOut"];
+        };
         /** CompareOut */
         CompareOut: {
             first: components["schemas"]["AttemptSummary"];
@@ -5396,19 +5489,23 @@ export interface components {
             /** Knowledge Edge Id */
             knowledge_edge_id: string | null;
             /**
-             * Document Id
-             * Format: uuid
+             * Source Kind
+             * @default document
+             * @enum {string}
              */
-            document_id: string;
+            source_kind: "document" | "web";
+            /** Source Url */
+            source_url?: string | null;
+            /** Source Title */
+            source_title?: string | null;
+            /** Document Id */
+            document_id: string | null;
             /** Document Name */
-            document_name: string;
-            /**
-             * Document Version Id
-             * Format: uuid
-             */
-            document_version_id: string;
+            document_name: string | null;
+            /** Document Version Id */
+            document_version_id: string | null;
             /** Chunk Index */
-            chunk_index: number;
+            chunk_index: number | null;
             /** Chunk Id */
             chunk_id: string | null;
             /** Page Number */
@@ -5511,6 +5608,28 @@ export interface components {
              */
             document_id: string;
         };
+        /**
+         * ExtractSubjectRequest
+         * @description Extract every ready document of one subject (a foreign subject is a 404).
+         */
+        ExtractSubjectRequest: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+        };
+        /**
+         * ExtractWebRequest
+         * @description Build a subject's graph from a web search on its name (a foreign subject is a 404).
+         */
+        ExtractWebRequest: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+        };
         /** ExtractionJobListResponse */
         ExtractionJobListResponse: {
             /**
@@ -5534,11 +5653,18 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Document Id */
+            document_id: string | null;
             /**
-             * Document Id
-             * Format: uuid
+             * Source Kind
+             * @default document
+             * @enum {string}
              */
-            document_id: string;
+            source_kind: "document" | "web";
+            /** Subject Id */
+            subject_id?: string | null;
+            /** Topic */
+            topic?: string | null;
             /**
              * Workspace Id
              * Format: uuid
@@ -9977,6 +10103,32 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["SubjectOut"];
+        };
+        /** SubjectRunOut */
+        SubjectRunOut: {
+            /** Ready */
+            ready: number;
+            /** Skipped */
+            skipped: number;
+            /** Queued */
+            queued: number;
+            /** Already Running */
+            already_running: number;
+            /** Not Ready */
+            not_ready: number;
+            /** Over Cap */
+            over_cap: number;
+            /** Job Ids */
+            job_ids: string[];
+        };
+        /** SubjectRunResponse */
+        SubjectRunResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["SubjectRunOut"];
         };
         /** SubjectStatusOut */
         SubjectStatusOut: {
@@ -16489,6 +16641,7 @@ export interface operations {
             query?: {
                 status?: ("pending" | "retrieving_sources" | "extracting" | "validating" | "saving" | "completed" | "failed" | "cancelled") | null;
                 document_id?: string | null;
+                subject_id?: string | null;
                 limit?: number;
                 offset?: number;
             };
@@ -16532,6 +16685,76 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ExtractRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtractionJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_subject_extraction_api_v1_knowledge_extract_subject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractSubjectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubjectRunResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_web_extraction_api_v1_knowledge_extract_web_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtractWebRequest"];
             };
         };
         responses: {
@@ -16928,6 +17151,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NodeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_graph_api_v1_knowledge_graph_clear_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClearGraphRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClearGraphResponse"];
                 };
             };
             /** @description Validation Error */

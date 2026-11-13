@@ -33,6 +33,7 @@ from app.ai.errors import (
     LLMRateLimitedError,
     LLMTimeoutError,
     LLMUnavailableError,
+    LLMWebSearchUnavailableError,
 )
 from app.ai.providers.base import LLMProvider
 from app.ai.types import (
@@ -47,6 +48,7 @@ from app.ai.types import (
     StreamEvent,
     Usage,
     UsageSource,
+    WebSource,
 )
 from app.core.config import Settings
 from app.core.logging import get_logger
@@ -90,6 +92,41 @@ def map_usage(meta: Any) -> Usage:
         reasoning_tokens=thoughts,
         source=UsageSource.provider_reported,
     )
+
+
+def map_sources(response: Any) -> tuple[WebSource, ...]:
+    """Websites a grounded answer relied on, with the text each one supports. Chunks without a
+    URL are skipped; their index is still counted so the support mapping stays aligned."""
+    candidates = getattr(response, "candidates", None) or []
+    meta = getattr(candidates[0], "grounding_metadata", None) if candidates else None
+    if meta is None:
+        return ()
+    supported: dict[int, list[str]] = {}
+    for support in getattr(meta, "grounding_supports", None) or []:
+        text = getattr(getattr(support, "segment", None), "text", None)
+        if not text:
+            continue
+        for index in getattr(support, "grounding_chunk_indices", None) or []:
+            supported.setdefault(index, []).append(str(text))
+    sources: list[WebSource] = []
+    for index, chunk in enumerate(getattr(meta, "grounding_chunks", None) or []):
+        web = getattr(chunk, "web", None)
+        url = getattr(web, "uri", None)
+        if not url:
+            continue
+        title = str(getattr(web, "title", None) or "")[:200]
+        sources.append(WebSource(str(url), title, tuple(supported.get(index, ()))))
+    return tuple(sources)
+
+
+def _search_refused(exc: BaseException) -> bool:
+    """The API rejected the search tool itself (model or plan without grounding)."""
+    if not isinstance(exc, genai_errors.APIError):
+        return False
+    if getattr(exc, "code", None) not in (400, 403, 404):
+        return False
+    text = str(getattr(exc, "message", "") or "").lower()
+    return any(word in text for word in ("search", "grounding", "tool"))
 
 
 def map_error(exc: BaseException) -> LLMError:
@@ -142,6 +179,7 @@ class GeminiProvider(LLMProvider):
         tool_calling=False,
         count_tokens=True,
         thinking_budget=True,
+        web_search=True,
     )
 
     def __init__(self, client: Any) -> None:
@@ -189,6 +227,8 @@ class GeminiProvider(LLMProvider):
             kwargs["thinking_config"] = genai_types.ThinkingConfig(
                 thinking_budget=request.thinking_budget
             )
+        if request.web_search:
+            kwargs["tools"] = [genai_types.Tool(google_search=genai_types.GoogleSearch())]
         kwargs["http_options"] = genai_types.HttpOptions(
             timeout=int(request.timeouts.generation * 1000)
         )
@@ -234,6 +274,8 @@ class GeminiProvider(LLMProvider):
         except BaseException as exc:
             if isinstance(exc, asyncio.CancelledError | KeyboardInterrupt):
                 raise
+            if request.web_search and _search_refused(exc):
+                raise LLMWebSearchUnavailableError() from None
             raise map_error(exc) from None
 
         text = self._text(response)
@@ -242,6 +284,7 @@ class GeminiProvider(LLMProvider):
             if finish is FinishReason.content_filter:
                 raise LLMContentBlockedError()
             raise LLMBadResponseError()
+        sources = map_sources(response) if request.web_search else ()
         usage = map_usage(getattr(response, "usage_metadata", None))
         request_id = getattr(response, "response_id", None)
         logger.info(
@@ -261,6 +304,7 @@ class GeminiProvider(LLMProvider):
             finish_reason=finish,
             usage=usage,
             provider_request_id=request_id,
+            sources=sources,
         )
 
     async def stream(self, request: LLMRequest) -> AsyncIterator[StreamEvent]:

@@ -127,6 +127,7 @@ All provider failures become `LLMError(code, user_message, retryable, http_statu
 | `LLM_CONTENT_BLOCKED` | 422 | no | The provider blocked the prompt or response (safety). |
 | `LLM_INVALID_MODEL` | 422 | no | Model id not in the allowed registry, or the provider rejected it. |
 | `LLM_BAD_RESPONSE` | 502 | no | Empty, malformed or unexpected provider response. |
+| `LLM_WEB_SEARCH_UNAVAILABLE` | 502 | no | The provider refused the web-search (grounding) tool: the model or account has no web search. Only for requests that set `web_search`. |
 | `AI_QUOTA_EXCEEDED` | 429 | no | Per-user daily message or token quota, or request rate limit. Always has `Retry-After`. |
 | `AI_GENERATION_IN_PROGRESS` | 409 | no | Another generation is active in this conversation, or the per-user cap is reached. |
 | `CONVERSATION_NOT_FOUND` | 404 | no | Not found **or not owned** (D-56). |

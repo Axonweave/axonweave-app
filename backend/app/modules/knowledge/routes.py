@@ -3,6 +3,7 @@ GET /knowledge/extract/{job_id}, plus list and cancel); graph reads and edits ar
 Every route needs an active session; ownership is checked in the service."""
 
 import uuid
+from dataclasses import asdict
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Response
@@ -18,6 +19,10 @@ from app.modules.knowledge.schemas import (
     ExtractionJobOut,
     ExtractionJobResponse,
     ExtractRequest,
+    ExtractSubjectRequest,
+    ExtractWebRequest,
+    SubjectRunOut,
+    SubjectRunResponse,
 )
 from app.modules.knowledge.service import KnowledgeExtractionService
 
@@ -56,6 +61,40 @@ async def create_extraction(
     return ExtractionJobResponse(data=_out(job, existing=existing))
 
 
+@router.post("/extract/subject", response_model=SubjectRunResponse, status_code=202)
+async def create_subject_extraction(
+    body: ExtractSubjectRequest,
+    current_user: ActiveUser,
+    db: DbSession,
+    runtime: Runtime,
+    dispatcher: Dispatcher,
+) -> SubjectRunResponse:
+    """Queue extraction for every ready document of a subject that has none yet."""
+    result = await _service(db, runtime, dispatcher).create_for_subject(
+        current_user, body.subject_id
+    )
+    return SubjectRunResponse(data=SubjectRunOut(**asdict(result)))
+
+
+@router.post("/extract/web", response_model=ExtractionJobResponse, status_code=202)
+async def create_web_extraction(
+    body: ExtractWebRequest,
+    response: Response,
+    current_user: ActiveUser,
+    db: DbSession,
+    runtime: Runtime,
+    dispatcher: Dispatcher,
+) -> ExtractionJobResponse:
+    """Build a subject's graph from a web search on its name. 200 with `existing: true` when a web
+    run for that subject is already active."""
+    job, existing = await _service(db, runtime, dispatcher).create_web(
+        current_user, body.subject_id
+    )
+    if existing:
+        response.status_code = 200
+    return ExtractionJobResponse(data=_out(job, existing=existing))
+
+
 @router.get("/extract", response_model=ExtractionJobListResponse)
 async def list_extractions(
     current_user: ActiveUser,
@@ -74,11 +113,17 @@ async def list_extractions(
     ]
     | None = None,
     document_id: uuid.UUID | None = None,
+    subject_id: uuid.UUID | None = None,
     limit: int = Query(20, ge=1, le=_MAX_LIMIT),
     offset: int = Query(0, ge=0),
 ) -> ExtractionJobListResponse:
     jobs, total = await _service(db, runtime, dispatcher).list(
-        current_user, status=status, document_id=document_id, limit=limit, offset=offset
+        current_user,
+        status=status,
+        document_id=document_id,
+        limit=limit,
+        offset=offset,
+        subject_id=subject_id,
     )
     return ExtractionJobListResponse(
         data=[_out(j) for j in jobs], total=total, limit=limit, offset=offset

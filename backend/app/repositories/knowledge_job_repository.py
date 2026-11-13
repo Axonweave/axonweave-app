@@ -6,13 +6,17 @@ terminal state (same discipline as `GenerationJobRepository`, D-85)."""
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.document import Document
 from app.models.knowledge import ACTIVE_JOB_STATUSES, KnowledgeExtractionJob
+from app.models.subject import Subject
+from app.models.workspace import Workspace
 
 _RUNNING = tuple(s for s in ACTIVE_JOB_STATUSES if s != "pending")
 
@@ -70,6 +74,72 @@ class KnowledgeJobRepository:
             )
         ).scalar_one()
 
+    def _subject_documents(self, user_id: uuid.UUID, subject_id: uuid.UUID) -> Any:
+        return select(Document.id).where(
+            Document.user_id == user_id, Document.subject_id == subject_id
+        )
+
+    async def owned_subject(
+        self, user_id: uuid.UUID, subject_id: uuid.UUID
+    ) -> tuple[uuid.UUID, str] | None:
+        """(workspace id, name) of a subject only if it belongs to this user, else None."""
+        row = (
+            await self._db.execute(
+                select(Subject.workspace_id, Subject.name)
+                .join(Workspace, Workspace.id == Subject.workspace_id)
+                .where(Subject.id == subject_id, Workspace.user_id == user_id)
+            )
+        ).first()
+        return None if row is None else (row[0], row[1])
+
+    def _in_subject(self, user_id: uuid.UUID, subject_id: uuid.UUID) -> Any:
+        """Document runs of the subject's documents, and web runs started for the subject."""
+        return or_(
+            self._m.document_id.in_(self._subject_documents(user_id, subject_id)),
+            self._m.subject_id == subject_id,
+        )
+
+    async def count_active_for_subject(self, user_id: uuid.UUID, subject_id: uuid.UUID) -> int:
+        return (
+            await self._db.execute(
+                select(func.count(self._m.id)).where(
+                    self._m.user_id == user_id,
+                    self._m.status.in_(ACTIVE_JOB_STATUSES),
+                    self._in_subject(user_id, subject_id),
+                )
+            )
+        ).scalar_one()
+
+    async def delete_finished_for_subject(self, user_id: uuid.UUID, subject_id: uuid.UUID) -> int:
+        """Forget finished runs for a subject so a cleared graph can be generated again (a
+        completed job is what makes the subject run skip a document)."""
+        result = await self._db.execute(
+            delete(self._m).where(
+                self._m.user_id == user_id,
+                self._m.status.notin_(ACTIVE_JOB_STATUSES),
+                self._in_subject(user_id, subject_id),
+            )
+        )
+        return _rows(result)
+
+    async def completed_document_ids(
+        self, user_id: uuid.UUID, document_ids: Sequence[uuid.UUID], extraction_version: str
+    ) -> set[uuid.UUID]:
+        """Documents of this user that already have a completed extraction at this version."""
+        if not document_ids:
+            return set()
+        rows = await self._db.execute(
+            select(self._m.document_id)
+            .where(
+                self._m.user_id == user_id,
+                self._m.document_id.in_(document_ids),
+                self._m.status == "completed",
+                self._m.extraction_version == extraction_version,
+            )
+            .distinct()
+        )
+        return set(rows.scalars())
+
     async def list_for_user(
         self,
         user_id: uuid.UUID,
@@ -78,12 +148,15 @@ class KnowledgeJobRepository:
         document_id: uuid.UUID | None,
         limit: int,
         offset: int,
+        subject_id: uuid.UUID | None = None,
     ) -> tuple[list[KnowledgeExtractionJob], int]:
         conditions = [self._m.user_id == user_id]
         if status:
             conditions.append(self._m.status == status)
         if document_id:
             conditions.append(self._m.document_id == document_id)
+        if subject_id:
+            conditions.append(self._in_subject(user_id, subject_id))
         total = (
             await self._db.execute(select(func.count(self._m.id)).where(*conditions))
         ).scalar_one()

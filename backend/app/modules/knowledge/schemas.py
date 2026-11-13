@@ -29,7 +29,11 @@ class ExtractionJobOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    document_id: uuid.UUID
+    # A document run has `document_id`; a web run has `subject_id` and `topic` (D-144).
+    document_id: uuid.UUID | None
+    source_kind: Literal["document", "web"] = "document"
+    subject_id: uuid.UUID | None = None
+    topic: str | None = None
     workspace_id: uuid.UUID
     status: JobStatusLiteral
     progress: int
@@ -45,6 +49,37 @@ class ExtractionJobOut(BaseModel):
     completed_at: datetime | None
     # True when an identical request was already running and this is that job.
     existing: bool = False
+
+
+class ExtractSubjectRequest(BaseModel):
+    """Extract every ready document of one subject (a foreign subject is a 404)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    subject_id: uuid.UUID
+
+
+class ExtractWebRequest(BaseModel):
+    """Build a subject's graph from a web search on its name (a foreign subject is a 404)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    subject_id: uuid.UUID
+
+
+class SubjectRunOut(BaseModel):
+    ready: int
+    skipped: int
+    queued: int
+    already_running: int
+    not_ready: int
+    over_cap: int
+    job_ids: list[uuid.UUID]
+
+
+class SubjectRunResponse(BaseModel):
+    success: bool = True
+    data: SubjectRunOut
 
 
 class ExtractionJobResponse(BaseModel):

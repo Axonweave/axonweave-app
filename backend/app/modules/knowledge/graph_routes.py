@@ -14,6 +14,9 @@ from app.modules.knowledge.graph_schemas import (
     CandidateOut,
     CandidateResolve,
     CandidateResolveResponse,
+    ClearGraphOut,
+    ClearGraphRequest,
+    ClearGraphResponse,
     EdgeCreate,
     EdgeOut,
     EdgePatch,
@@ -47,12 +50,17 @@ router = APIRouter(prefix="/knowledge", tags=["knowledge"])
 _MAX_LIMIT = 100
 
 
-def _evidence_out(rows: list[tuple[KnowledgeEvidence, str]]) -> list[EvidenceOut]:
+def _evidence_out(rows: list[tuple[KnowledgeEvidence, str | None]]) -> list[EvidenceOut]:
     return [
         EvidenceOut(
             id=ev.id,
             knowledge_node_id=ev.knowledge_node_id,
             knowledge_edge_id=ev.knowledge_edge_id,
+            source_kind="web" if ev.source_kind == "web" else "document",
+            source_url=ev.source_url
+            if ev.source_url and ev.source_url.startswith("https://")
+            else None,
+            source_title=ev.source_title,
             document_id=ev.document_id,
             document_name=name,
             document_version_id=ev.document_version_id,
@@ -190,6 +198,15 @@ async def update_node(
 ) -> NodeResponse:
     data = await KnowledgeGraphService(db).update_node(current_user, node_id, body)
     return NodeResponse(data=NodeOut.model_validate(data))
+
+
+@router.post("/graph/clear", response_model=ClearGraphResponse)
+async def clear_graph(
+    body: ClearGraphRequest, current_user: ActiveUser, db: DbSession
+) -> ClearGraphResponse:
+    """Permanently delete every concept of one of the caller's subjects."""
+    data = await KnowledgeGraphService(db).clear_subject_graph(current_user, body.subject_id)
+    return ClearGraphResponse(data=ClearGraphOut(**data))
 
 
 @router.delete("/nodes/{node_id}", status_code=204)

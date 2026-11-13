@@ -6,7 +6,8 @@ import { AsyncSection } from "@/components/ui/async-section";
 import { Button } from "@/components/ui/button";
 import { useAsync } from "@/hooks/use-async";
 import { useToast } from "@/hooks/use-toast";
-import { knowledgeApi, evidenceHref } from "@/lib/api/knowledge";
+import { knowledgeApi } from "@/lib/api/knowledge";
+import { EvidenceSource } from "./evidence-source";
 import {
   STATE_LABELS,
   STATE_ORDER,
@@ -254,9 +255,7 @@ function ConceptPanel({ nodeId, onClose }: { nodeId: string; onClose: () => void
         <ul className="text-sm">
           {(materials.data?.data ?? []).map((e) => (
             <li key={e.id}>
-              <Link className="underline" href={evidenceHref(e)}>
-                {e.document_name}
-              </Link>
+              <EvidenceSource ev={e} className="underline" />
             </li>
           ))}
           {(materials.data?.data ?? []).length === 0 && (

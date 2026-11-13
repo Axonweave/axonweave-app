@@ -108,6 +108,10 @@ class _NothingVerified(Exception):
     pass
 
 
+class NoWebSourcesError(Exception):
+    """A web run's search returned no usable website (D-144)."""
+
+
 @dataclass(frozen=True)
 class ExtractionDeps:
     session_factory: async_sessionmaker[AsyncSession]
@@ -132,7 +136,13 @@ async def run_extraction(
         logger.info("extraction_skipped", job_id=str(job_id))
         return SKIPPED
 
-    run = _Run(deps, job.id, job.user_id, job.document_id)
+    run: _Run
+    if job.source_kind == "web":
+        from app.knowledge.web_extraction import WebRun  # noqa: PLC0415 (circular import)
+
+        run = WebRun(deps, job.id, job.user_id, None)
+    else:
+        run = _Run(deps, job.id, job.user_id, job.document_id)
     started = time.monotonic()
     outcome, code = FAILED, errors.INTERNAL
     try:
@@ -147,6 +157,8 @@ async def run_extraction(
         outcome, code = FAILED, errors.INVALID_OUTPUT
     except _NothingVerified:
         outcome, code = FAILED, errors.NOTHING_VERIFIED
+    except NoWebSourcesError:
+        outcome, code = FAILED, errors.NO_WEB_SOURCES
     except SourceTooLargeError:
         outcome, code = FAILED, errors.TOO_LARGE
     except NoSourcesError:

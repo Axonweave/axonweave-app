@@ -23,6 +23,7 @@ from app.knowledge.errors import (
     DuplicateConceptError,
     DuplicateRelationshipError,
     EdgeNotFoundError,
+    GraphBusyError,
     InvalidCandidateActionError,
     InvalidMergeError,
     InvalidRelationshipError,
@@ -36,8 +37,10 @@ from app.models.knowledge import SYMMETRIC_TYPES, KnowledgeEdge, KnowledgeNode
 from app.models.user import User
 from app.repositories.chapter_repository import ChapterRepository
 from app.repositories.knowledge_graph_repository import KnowledgeGraphRepository
+from app.repositories.knowledge_job_repository import KnowledgeJobRepository
 from app.repositories.knowledge_repository import KnowledgeRepository
 from app.repositories.learner_evidence_repository import LearnerEvidenceRepository
+from app.repositories.retrieval_repository import RetrievalRepository
 from app.repositories.subject_repository import SubjectRepository
 from app.repositories.workspace_repository import WorkspaceRepository
 
@@ -327,6 +330,21 @@ class KnowledgeGraphService:
         await self._g.delete_node(user.id, node_id)
         await self._db.commit()
 
+    async def clear_subject_graph(self, user: User, subject_id: uuid.UUID) -> dict[str, int]:
+        """Permanent: delete every concept of one of the caller's subjects. Refused while an
+        extraction for the subject is still running (it would refill the graph). Finished
+        extraction runs are forgotten so the graph can be generated again."""
+        if not await RetrievalRepository(self._db).scope_exists(user.id, "subject", subject_id):
+            raise ScopeNotFoundError()
+        jobs = KnowledgeJobRepository(self._db)
+        if await jobs.count_active_for_subject(user.id, subject_id):
+            raise GraphBusyError()
+        concepts, relationships = await self._g.clear_subject(user.id, subject_id)
+        await jobs.delete_finished_for_subject(user.id, subject_id)
+        await self._db.commit()
+        logger.info("knowledge_graph_cleared", concepts=concepts, relationships=relationships)
+        return {"concepts": concepts, "relationships": relationships}
+
     # relationships ───────────────────────────────────────────────────────────
 
     async def create_edge(self, user: User, body: Any, *, origin: str = "user") -> KnowledgeEdge:
@@ -393,7 +411,7 @@ class KnowledgeGraphService:
 
     async def node_evidence(
         self, user: User, node_id: uuid.UUID, *, include_stale: bool, limit: int, offset: int
-    ) -> tuple[list[tuple[Any, str]], int]:
+    ) -> tuple[list[tuple[Any, str | None]], int]:
         await self._node(user, node_id)
         return await self._g.list_evidence(
             user.id,
@@ -406,7 +424,7 @@ class KnowledgeGraphService:
 
     async def edge_evidence(
         self, user: User, edge_id: uuid.UUID, *, include_stale: bool, limit: int, offset: int
-    ) -> tuple[list[tuple[Any, str]], int]:
+    ) -> tuple[list[tuple[Any, str | None]], int]:
         if await self._g.get_edge(user.id, edge_id) is None:
             raise EdgeNotFoundError()
         return await self._g.list_evidence(

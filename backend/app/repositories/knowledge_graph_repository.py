@@ -11,6 +11,7 @@ from typing import Any
 
 from sqlalchemy import and_, delete, func, literal, or_, select, union_all, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from app.models.document import Document
 from app.models.knowledge import (
@@ -274,6 +275,29 @@ class KnowledgeGraphRepository:
             .values(archived_at=now)
         )
 
+    async def clear_subject(self, user_id: uuid.UUID, subject_id: uuid.UUID) -> tuple[int, int]:
+        """Permanently delete every concept of one subject (archived ones too) and return
+        (concepts, relationships) removed. Relationships, aliases, evidence, duplicate candidates,
+        concept links, mastery states and misconceptions go with them by FK cascade."""
+        node_ids = select(KnowledgeNode.id).where(
+            KnowledgeNode.user_id == user_id, KnowledgeNode.subject_id == subject_id
+        )
+        edges = (
+            await self._db.execute(
+                select(func.count(KnowledgeEdge.id)).where(
+                    KnowledgeEdge.user_id == user_id,
+                    (KnowledgeEdge.source_node_id.in_(node_ids))
+                    | (KnowledgeEdge.target_node_id.in_(node_ids)),
+                )
+            )
+        ).scalar_one()
+        result = await self._db.execute(
+            delete(KnowledgeNode).where(
+                KnowledgeNode.user_id == user_id, KnowledgeNode.subject_id == subject_id
+            )
+        )
+        return int(result.rowcount), int(edges)
+
     async def delete_node(self, user_id: uuid.UUID, node_id: uuid.UUID) -> None:
         """Permanent. Edges, aliases, evidence and candidates go with it (FK cascade)."""
         await self._db.execute(
@@ -412,7 +436,7 @@ class KnowledgeGraphRepository:
         include_stale: bool,
         limit: int,
         offset: int,
-    ) -> tuple[list[tuple[KnowledgeEvidence, str]], int]:
+    ) -> tuple[list[tuple[KnowledgeEvidence, str | None]], int]:
         conds: list[Any] = [KnowledgeEvidence.user_id == user_id]
         if node_id:
             conds.append(KnowledgeEvidence.knowledge_node_id == node_id)
@@ -425,7 +449,7 @@ class KnowledgeGraphRepository:
         ).scalar_one()
         rows = await self._db.execute(
             select(KnowledgeEvidence, Document.display_name)
-            .join(
+            .outerjoin(  # web evidence has no document
                 Document,
                 and_(
                     Document.id == KnowledgeEvidence.document_id,
@@ -531,6 +555,27 @@ class KnowledgeGraphRepository:
                 .exists(),
             )
         )
+        survivor = aliased(KnowledgeEvidence)  # web evidence: same website, quote and type
+        await self._db.execute(
+            delete(KnowledgeEvidence).where(
+                KnowledgeEvidence.user_id == user_id,
+                KnowledgeEvidence.knowledge_node_id == from_node,
+                KnowledgeEvidence.knowledge_edge_id.is_(None),
+                KnowledgeEvidence.source_kind == "web",
+                select(literal(1))
+                .select_from(survivor)
+                .where(
+                    survivor.user_id == user_id,
+                    survivor.knowledge_node_id == to_node,
+                    survivor.knowledge_edge_id.is_(None),
+                    survivor.source_kind == "web",
+                    survivor.source_url == KnowledgeEvidence.source_url,
+                    survivor.quote_hash == KnowledgeEvidence.quote_hash,
+                    survivor.evidence_type == KnowledgeEvidence.evidence_type,
+                )
+                .exists(),
+            )
+        )
         result = await self._db.execute(
             update(KnowledgeEvidence)
             .where(
@@ -562,6 +607,24 @@ class KnowledgeGraphRepository:
                 .where(
                     existing.c.document_version_id == KnowledgeEvidence.document_version_id,
                     existing.c.chunk_index == KnowledgeEvidence.chunk_index,
+                )
+                .exists(),
+            )
+        )
+        survivor = aliased(KnowledgeEvidence)  # web evidence: same website and quote
+        await self._db.execute(
+            delete(KnowledgeEvidence).where(
+                KnowledgeEvidence.user_id == user_id,
+                KnowledgeEvidence.knowledge_edge_id == from_edge,
+                KnowledgeEvidence.source_kind == "web",
+                select(literal(1))
+                .select_from(survivor)
+                .where(
+                    survivor.user_id == user_id,
+                    survivor.knowledge_edge_id == to_edge,
+                    survivor.source_kind == "web",
+                    survivor.source_url == KnowledgeEvidence.source_url,
+                    survivor.quote_hash == KnowledgeEvidence.quote_hash,
                 )
                 .exists(),
             )

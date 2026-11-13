@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { AsyncSection } from "@/components/ui/async-section";
 import { Button } from "@/components/ui/button";
@@ -9,10 +8,10 @@ import { useAsync } from "@/hooks/use-async";
 import { useToast } from "@/hooks/use-toast";
 import { ApiRequestError } from "@/lib/api/client";
 import { ConceptResearchSection } from "@/features/research/concept-research";
+import { EvidenceSource } from "./evidence-source";
 import {
   NODE_TYPES,
   RELATIONSHIP_LABELS,
-  evidenceHref,
   knowledgeApi,
   type KnowledgeNodeDetail,
   type NodeType,
@@ -246,7 +245,7 @@ export function NodeDetailPanel({
         isEmpty={!evidence.data?.data.length}
         empty={
           <p className="text-muted-foreground text-sm">
-            No source evidence yet. This concept was added without a document passage.
+            No source evidence yet. This concept was added without a document passage or website.
           </p>
         }
       >
@@ -255,9 +254,7 @@ export function NodeDetailPanel({
             <li key={ev.id} className="text-sm">
               <blockquote className="border-l-2 pl-2 italic">“{ev.quote}”</blockquote>
               <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-xs">
-                <Link href={evidenceHref(ev)} className="text-primary hover:underline">
-                  {ev.document_name}
-                </Link>
+                <EvidenceSource ev={ev} />
                 {ev.page_number ? <span>page {ev.page_number}</span> : null}
                 {ev.slide_number ? <span>slide {ev.slide_number}</span> : null}
                 {ev.stale ? <span className="text-amber-600">source changed</span> : null}

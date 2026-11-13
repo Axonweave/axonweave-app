@@ -25,6 +25,7 @@ from app.ai.types import (
     StreamEvent,
     Usage,
     UsageSource,
+    WebSource,
 )
 from app.core.config import AppEnv, Settings
 
@@ -46,6 +47,7 @@ class FakeProvider(LLMProvider):
         system_prompt=True,
         count_tokens=True,
         thinking_budget=False,
+        web_search=True,
     )
 
     def __init__(self) -> None:
@@ -63,6 +65,7 @@ class FakeProvider(LLMProvider):
         self.delta_usage = False  # attach cumulative usage to each delta (like Gemini chunks)
         self.chunks_sent = 0  # deltas actually yielded, to prove a cancelled stream stopped
         self.calls: list[LLMRequest] = []
+        self.sources: tuple[WebSource, ...] = ()  # returned for requests that set `web_search`
 
     @classmethod
     def create(cls, settings: Settings) -> Self:
@@ -103,6 +106,7 @@ class FakeProvider(LLMProvider):
             finish_reason=self.finish_reason,
             usage=self._usage(request, text),
             provider_request_id="fake-request",
+            sources=self.sources if request.web_search else (),
         )
 
     async def stream(self, request: LLMRequest) -> AsyncIterator[StreamEvent]:

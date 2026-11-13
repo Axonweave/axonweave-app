@@ -100,6 +100,15 @@ class LLMBadResponseError(LLMError):
     user_message = "The AI service returned an unexpected response."
 
 
+class LLMWebSearchUnavailableError(LLMError):
+    """The provider refused the web-search tool (model or plan without grounding), or returned no
+    sources for a search request."""
+
+    code = "LLM_WEB_SEARCH_UNAVAILABLE"
+    http_status = 502
+    user_message = "Web search is not available for the configured AI model or account."
+
+
 class LLMCapabilityError(LLMInvalidModelError):
     """The selected model does not support the requested operation."""
 
@@ -166,6 +175,7 @@ ALL_ERROR_CODES = frozenset(
         LLMContentBlockedError,
         LLMInvalidModelError,
         LLMBadResponseError,
+        LLMWebSearchUnavailableError,
         AiQuotaExceededError,
         GenerationInProgressError,
         ConversationNotFoundError,
