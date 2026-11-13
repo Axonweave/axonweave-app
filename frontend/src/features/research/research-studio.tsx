@@ -19,7 +19,9 @@ import {
 import { workspacesApi } from "@/lib/api/workspaces";
 import { CitationsWorkspace } from "./citations-workspace";
 import { ComparisonWorkspace } from "./comparison-workspace";
+import { ConceptLinksWorkspace } from "./concept-links-workspace";
 import { ContradictionsWorkspace } from "./contradictions-workspace";
+import { DraftsWorkspace } from "./drafts-workspace";
 import { GapsWorkspace } from "./gaps-workspace";
 import { MatrixWorkspace } from "./matrix-workspace";
 import { PaperLibrary } from "./paper-library";
@@ -566,6 +568,14 @@ export function ResearchStudio() {
 
       {mode === "none" && selected && (
         <CitationsWorkspace key={`cit-${selected.id}`} project={selected} />
+      )}
+
+      {mode === "none" && selected && (
+        <DraftsWorkspace key={`drf-${selected.id}`} project={selected} />
+      )}
+
+      {mode === "none" && selected && (
+        <ConceptLinksWorkspace key={`kg-${selected.id}`} project={selected} />
       )}
 
       <AsyncSection

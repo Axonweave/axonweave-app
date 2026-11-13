@@ -747,3 +747,141 @@ class ResearchCitation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     formatted_citation: Mapped[str] = mapped_column(Text, nullable=False)
     in_text_citation: Mapped[str] = mapped_column(String(400), nullable=False)
     metadata_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+
+DRAFT_TYPES = ("research_paper", "literature_review", "proposal", "report", "notes")
+DRAFT_STATUSES = ("draft", "in_review", "final")
+DRAFT_SOURCES = ("created", "manual", "ai_suggestion", "restore")
+
+
+class ResearchDraft(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A researcher's draft (Phase 7 M7.9). `content` is Markdown; a citation is the marker
+    `{{cite:<paper id>}}`, resolved against the project's papers when the draft is previewed or
+    exported. `version_number` is the number of the latest saved version (optimistic locking)."""
+
+    __tablename__ = "research_drafts"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_project_id", "user_id"],
+            ["research_projects.id", "research_projects.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_drafts_project_owner",
+        ),
+        UniqueConstraint("id", "user_id", name="uq_research_drafts_id_user"),
+        CheckConstraint(f"document_type IN ({_sql(DRAFT_TYPES)})", name="ck_research_drafts_type"),
+        CheckConstraint(f"status IN ({_sql(DRAFT_STATUSES)})", name="ck_research_drafts_status"),
+        CheckConstraint(
+            f"citation_style IN ({_sql(CITATION_STYLES)})", name="ck_research_drafts_style"
+        ),
+        Index("ix_research_drafts_project", "user_id", "research_project_id", "updated_at"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    document_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(12), nullable=False, default="draft")
+    citation_style: Mapped[str] = mapped_column(String(12), nullable=False, default="apa")
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+
+class ResearchDraftVersion(UUIDPrimaryKeyMixin, Base):
+    """One saved state of a draft. Never edited; a restore adds a new version."""
+
+    __tablename__ = "research_draft_versions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["draft_id", "user_id"],
+            ["research_drafts.id", "research_drafts.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_draft_versions_draft_owner",
+        ),
+        UniqueConstraint("draft_id", "version_number", name="uq_research_draft_versions_number"),
+        CheckConstraint(
+            f"change_source IN ({_sql(DRAFT_SOURCES)})", name="ck_research_draft_versions_source"
+        ),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    draft_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    title_snapshot: Mapped[str] = mapped_column(String(200), nullable=False)
+    content_snapshot: Mapped[str] = mapped_column(Text, nullable=False)
+    change_summary: Mapped[str] = mapped_column(String(300), nullable=False)
+    change_source: Mapped[str] = mapped_column(String(14), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+CONCEPT_LINK_STATUSES = ("suggested", "confirmed", "rejected")
+CONCEPT_MATCH_KINDS = ("name", "alias")
+
+
+class ResearchConceptLink(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    """A suggested or confirmed link between an analysed paper and an existing knowledge node of the
+    same workspace (Phase 7 M7.10). It records why the paper relates to the concept (the verified
+    claim that names it) and never touches the graph itself or the mastery of the learner."""
+
+    __tablename__ = "research_concept_links"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["research_project_id", "user_id"],
+            ["research_projects.id", "research_projects.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_concept_links_project_owner",
+        ),
+        ForeignKeyConstraint(
+            ["research_paper_id", "user_id"],
+            ["research_papers.id", "research_papers.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_concept_links_paper_owner",
+        ),
+        ForeignKeyConstraint(
+            ["knowledge_node_id", "user_id"],
+            ["knowledge_nodes.id", "knowledge_nodes.user_id"],
+            ondelete="CASCADE",
+            name="fk_research_concept_links_node_owner",
+        ),
+        UniqueConstraint(
+            "user_id", "research_paper_id", "knowledge_node_id", name="uq_research_concept_links"
+        ),
+        CheckConstraint(
+            f"link_status IN ({_sql(CONCEPT_LINK_STATUSES)})",
+            name="ck_research_concept_links_status",
+        ),
+        CheckConstraint(
+            f"match_kind IN ({_sql(CONCEPT_MATCH_KINDS)})", name="ck_research_concept_links_match"
+        ),
+        Index("ix_research_concept_links_node", "user_id", "knowledge_node_id", "link_status"),
+        Index("ix_research_concept_links_project", "user_id", "research_project_id"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    research_project_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    research_paper_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    knowledge_node_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    match_kind: Mapped[str] = mapped_column(String(8), nullable=False)
+    matched_text: Mapped[str] = mapped_column(String(200), nullable=False)
+    link_status: Mapped[str] = mapped_column(String(12), nullable=False, default="suggested")
+    # Provenance (spec 32.4): the analysis run, the evidence row, the source document and page.
+    extraction_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("research_paper_extractions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    research_evidence_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("research_evidence.id", ondelete="SET NULL"), nullable=True
+    )
+    document_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    claim_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    claim_text: Mapped[str] = mapped_column(Text, nullable=False)
+    mention_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

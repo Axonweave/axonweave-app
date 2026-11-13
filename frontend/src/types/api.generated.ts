@@ -3702,6 +3702,254 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/research/projects/{project_id}/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Drafts */
+        get: operations["list_drafts_api_v1_research_projects__project_id__drafts_get"];
+        put?: never;
+        /** Create Draft */
+        post: operations["create_draft_api_v1_research_projects__project_id__drafts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/drafts/{draft_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Draft */
+        get: operations["get_draft_api_v1_research_drafts__draft_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Draft */
+        delete: operations["delete_draft_api_v1_research_drafts__draft_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit Draft */
+        patch: operations["edit_draft_api_v1_research_drafts__draft_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/research/drafts/{draft_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Versions */
+        get: operations["list_versions_api_v1_research_drafts__draft_id__versions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/drafts/{draft_id}/versions/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Version */
+        get: operations["get_version_api_v1_research_drafts__draft_id__versions__number__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/drafts/{draft_id}/versions/{number}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Version */
+        post: operations["restore_version_api_v1_research_drafts__draft_id__versions__number__restore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/drafts/{draft_id}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check Draft */
+        post: operations["check_draft_api_v1_research_drafts__draft_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/drafts/{draft_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Draft */
+        get: operations["preview_draft_api_v1_research_drafts__draft_id__preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/drafts/{draft_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Draft
+         * @description Markdown only; refused while the draft cites papers that are not in its project.
+         */
+        get: operations["export_draft_api_v1_research_drafts__draft_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/drafts/{draft_id}/assist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assist Draft
+         * @description Returns a suggestion; nothing is saved until the researcher accepts it as an edit.
+         */
+        post: operations["assist_draft_api_v1_research_drafts__draft_id__assist_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/projects/{project_id}/concept-links/suggest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suggest Concept Links */
+        post: operations["suggest_concept_links_api_v1_research_projects__project_id__concept_links_suggest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/projects/{project_id}/concept-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Concept Links */
+        get: operations["list_concept_links_api_v1_research_projects__project_id__concept_links_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/concept-links/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Concept Link */
+        delete: operations["delete_concept_link_api_v1_research_concept_links__link_id__delete"];
+        options?: never;
+        head?: never;
+        /** Review Concept Link */
+        patch: operations["review_concept_link_api_v1_research_concept_links__link_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/research/papers/{paper_id}/concepts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paper Concepts */
+        get: operations["paper_concepts_api_v1_research_papers__paper_id__concepts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/concepts/{node_id}/research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Concept Research */
+        get: operations["concept_research_api_v1_research_concepts__node_id__research_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7889,6 +8137,196 @@ export interface components {
              */
             updated_at: string;
         };
+        /** ResearchConceptClaim */
+        ResearchConceptClaim: {
+            /**
+             * Paper Id
+             * Format: uuid
+             */
+            paper_id: string;
+            /** Paper Title */
+            paper_title: string;
+            /** Claim Text */
+            claim_text: string;
+            /** Quote */
+            quote: string | null;
+            /** Page Number */
+            page_number: number | null;
+        };
+        /** ResearchConceptGap */
+        ResearchConceptGap: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Title */
+            title: string;
+            /** Category */
+            category: string;
+            /** Confidence Label */
+            confidence_label: string;
+            /** Validation Status */
+            validation_status: string;
+        };
+        /** ResearchConceptLinkListResponse */
+        ResearchConceptLinkListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ResearchConceptLinkOut"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ResearchConceptLinkOut */
+        ResearchConceptLinkOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            paper: components["schemas"]["ResearchConceptPaperRef"];
+            node: components["schemas"]["ResearchConceptNodeRef"];
+            /** Match Kind */
+            match_kind: string;
+            /** Matched Text */
+            matched_text: string;
+            /** Link Status */
+            link_status: string;
+            /** Claim Type */
+            claim_type: string;
+            /** Claim Text */
+            claim_text: string;
+            /** Evidence Id */
+            evidence_id: string | null;
+            /** Document Id */
+            document_id: string | null;
+            /** Page Number */
+            page_number: number | null;
+            /** Mention Count */
+            mention_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ResearchConceptLinkPatch */
+        ResearchConceptLinkPatch: {
+            /**
+             * Link Status
+             * @enum {string}
+             */
+            link_status: "suggested" | "confirmed" | "rejected";
+        };
+        /** ResearchConceptLinkResponse */
+        ResearchConceptLinkResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchConceptLinkOut"];
+        };
+        /** ResearchConceptNodeRef */
+        ResearchConceptNodeRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Node Type */
+            node_type: string;
+        };
+        /** ResearchConceptPaper */
+        ResearchConceptPaper: {
+            /**
+             * Link Id
+             * Format: uuid
+             */
+            link_id: string;
+            /**
+             * Paper Id
+             * Format: uuid
+             */
+            paper_id: string;
+            /** Paper Title */
+            paper_title: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Project Title */
+            project_title: string;
+            /** Link Status */
+            link_status: string;
+            /** Matched Text */
+            matched_text: string;
+        };
+        /** ResearchConceptPaperRef */
+        ResearchConceptPaperRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * ResearchConceptResearchOut
+         * @description Research connected to one concept. Papers show suggested and confirmed links (with their
+         *     status); the findings, methods, datasets, metrics and gaps come from confirmed links only.
+         */
+        ResearchConceptResearchOut: {
+            node: components["schemas"]["ResearchConceptNodeRef"];
+            /** Papers */
+            papers: components["schemas"]["ResearchConceptPaper"][];
+            /** Findings */
+            findings: components["schemas"]["ResearchConceptClaim"][];
+            /** Methods */
+            methods: components["schemas"]["ResearchConceptClaim"][];
+            /** Datasets */
+            datasets: components["schemas"]["ResearchConceptClaim"][];
+            /** Metrics */
+            metrics: components["schemas"]["ResearchConceptClaim"][];
+            /** Gaps */
+            gaps: components["schemas"]["ResearchConceptGap"][];
+        };
+        /** ResearchConceptResearchResponse */
+        ResearchConceptResearchResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchConceptResearchOut"];
+        };
+        /** ResearchConceptSuggest */
+        ResearchConceptSuggest: {
+            /** Paper Ids */
+            paper_ids?: string[] | null;
+        };
         /** ResearchContradictionGenerate */
         ResearchContradictionGenerate: {
             /** Paper Ids */
@@ -7986,6 +8424,265 @@ export interface components {
             quote: string | null;
             /** Page Number */
             page_number: number | null;
+        };
+        /** ResearchDraftCheckOut */
+        ResearchDraftCheckOut: {
+            /** Checks */
+            checks: components["schemas"]["ResearchDraftSentenceCheck"][];
+            /** Summary */
+            summary: {
+                [key: string]: number;
+            };
+            /** Invalid References */
+            invalid_references: string[];
+        };
+        /** ResearchDraftCheckResponse */
+        ResearchDraftCheckResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchDraftCheckOut"];
+        };
+        /** ResearchDraftCreate */
+        ResearchDraftCreate: {
+            /** Title */
+            title: string;
+            /**
+             * Document Type
+             * @default research_paper
+             * @enum {string}
+             */
+            document_type: "research_paper" | "literature_review" | "proposal" | "report" | "notes";
+            /**
+             * Content
+             * @default
+             */
+            content: string;
+            /**
+             * Citation Style
+             * @default apa
+             * @enum {string}
+             */
+            citation_style: "apa" | "ieee" | "mla" | "chicago" | "harvard";
+        };
+        /** ResearchDraftExportOut */
+        ResearchDraftExportOut: {
+            /** Format */
+            format: string;
+            /** Filename */
+            filename: string;
+            /** Content */
+            content: string;
+            /** Cited Count */
+            cited_count: number;
+            /** Invalid References */
+            invalid_references: string[];
+        };
+        /** ResearchDraftExportResponse */
+        ResearchDraftExportResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchDraftExportOut"];
+        };
+        /** ResearchDraftListResponse */
+        ResearchDraftListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ResearchDraftSummary"][];
+            /** Total */
+            total: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /** ResearchDraftOut */
+        ResearchDraftOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Title */
+            title: string;
+            /** Document Type */
+            document_type: string;
+            /** Status */
+            status: string;
+            /** Citation Style */
+            citation_style: string;
+            /** Version Number */
+            version_number: number;
+            /** Word Count */
+            word_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Content */
+            content: string;
+        };
+        /**
+         * ResearchDraftPatch
+         * @description Changing the title or content needs `expected_version`, the version the researcher was
+         *     editing; a different current version is a 409 so nothing is overwritten silently.
+         */
+        ResearchDraftPatch: {
+            /** Title */
+            title?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Document Type */
+            document_type?: ("research_paper" | "literature_review" | "proposal" | "report" | "notes") | null;
+            /** Status */
+            status?: ("draft" | "in_review" | "final") | null;
+            /** Citation Style */
+            citation_style?: ("apa" | "ieee" | "mla" | "chicago" | "harvard") | null;
+            /** Expected Version */
+            expected_version?: number | null;
+            /**
+             * Change Source
+             * @default manual
+             * @enum {string}
+             */
+            change_source: "manual" | "ai_suggestion";
+            /** Change Summary */
+            change_summary?: string | null;
+        };
+        /** ResearchDraftResponse */
+        ResearchDraftResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchDraftOut"];
+        };
+        /** ResearchDraftRestore */
+        ResearchDraftRestore: {
+            /** Expected Version */
+            expected_version: number;
+        };
+        /** ResearchDraftSentenceCheck */
+        ResearchDraftSentenceCheck: {
+            /** Text */
+            text: string;
+            /** Status */
+            status: string;
+            /** Paper Ids */
+            paper_ids: string[];
+        };
+        /** ResearchDraftSummary */
+        ResearchDraftSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Research Project Id
+             * Format: uuid
+             */
+            research_project_id: string;
+            /** Title */
+            title: string;
+            /** Document Type */
+            document_type: string;
+            /** Status */
+            status: string;
+            /** Citation Style */
+            citation_style: string;
+            /** Version Number */
+            version_number: number;
+            /** Word Count */
+            word_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ResearchDraftVersionListResponse */
+        ResearchDraftVersionListResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            /** Data */
+            data: components["schemas"]["ResearchDraftVersionSummary"][];
+        };
+        /** ResearchDraftVersionOut */
+        ResearchDraftVersionOut: {
+            /** Version Number */
+            version_number: number;
+            /** Title */
+            title: string;
+            /** Change Summary */
+            change_summary: string;
+            /** Change Source */
+            change_source: string;
+            /** Characters */
+            characters: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Content */
+            content: string;
+        };
+        /** ResearchDraftVersionResponse */
+        ResearchDraftVersionResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchDraftVersionOut"];
+        };
+        /** ResearchDraftVersionSummary */
+        ResearchDraftVersionSummary: {
+            /** Version Number */
+            version_number: number;
+            /** Title */
+            title: string;
+            /** Change Summary */
+            change_summary: string;
+            /** Change Source */
+            change_source: string;
+            /** Characters */
+            characters: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /** ResearchGapEvidenceOut */
         ResearchGapEvidenceOut: {
@@ -8287,6 +8984,74 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** ResearchWritingOut */
+        ResearchWritingOut: {
+            /** Action */
+            action: string;
+            /** Text */
+            text: string;
+            /** Notes */
+            notes: string;
+            /** Sources */
+            sources: components["schemas"]["ResearchWritingSource"][];
+            /** Invalid Markers */
+            invalid_markers: number;
+            /** Checks */
+            checks: components["schemas"]["ResearchDraftSentenceCheck"][];
+            /** Summary */
+            summary: {
+                [key: string]: number;
+            };
+            /** Unsupported Count */
+            unsupported_count: number;
+        };
+        /** ResearchWritingRequest */
+        ResearchWritingRequest: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "draft_section" | "expand" | "synthesis" | "rewrite" | "tone" | "grammar" | "clarity" | "organise";
+            /** Section */
+            section?: ("abstract" | "introduction" | "background" | "literature_review" | "problem_statement" | "objectives" | "research_questions" | "methodology" | "proposed_approach" | "results" | "discussion" | "limitations" | "conclusion" | "future_work") | null;
+            /**
+             * Instruction
+             * @default
+             */
+            instruction: string;
+            /**
+             * Selected Text
+             * @default
+             */
+            selected_text: string;
+            /** Paper Ids */
+            paper_ids?: string[] | null;
+        };
+        /** ResearchWritingResponse */
+        ResearchWritingResponse: {
+            /**
+             * Success
+             * @default true
+             */
+            success: boolean;
+            data: components["schemas"]["ResearchWritingOut"];
+        };
+        /** ResearchWritingSource */
+        ResearchWritingSource: {
+            /**
+             * Paper Id
+             * Format: uuid
+             */
+            paper_id: string;
+            /** Paper Title */
+            paper_title: string;
+            /** Section */
+            section: string;
+            /** Claim Text */
+            claim_text: string;
+            /** Quote */
+            quote: string | null;
         };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
@@ -19090,6 +19855,631 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_drafts_api_v1_research_projects__project_id__drafts_get: {
+        parameters: {
+            query?: {
+                status?: ("draft" | "in_review" | "final") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_draft_api_v1_research_projects__project_id__drafts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchDraftCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_draft_api_v1_research_drafts__draft_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_draft_api_v1_research_drafts__draft_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_draft_api_v1_research_drafts__draft_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchDraftPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_versions_api_v1_research_drafts__draft_id__versions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftVersionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_version_api_v1_research_drafts__draft_id__versions__number__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+                number: number;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    restore_version_api_v1_research_drafts__draft_id__versions__number__restore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+                number: number;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchDraftRestore"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_draft_api_v1_research_drafts__draft_id__check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftCheckResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_draft_api_v1_research_drafts__draft_id__preview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftExportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_draft_api_v1_research_drafts__draft_id__export_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchDraftExportResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assist_draft_api_v1_research_drafts__draft_id__assist_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                draft_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchWritingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchWritingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suggest_concept_links_api_v1_research_projects__project_id__concept_links_suggest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchConceptSuggest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchConceptLinkListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_concept_links_api_v1_research_projects__project_id__concept_links_get: {
+        parameters: {
+            query?: {
+                paper_id?: string | null;
+                link_status?: ("suggested" | "confirmed" | "rejected") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchConceptLinkListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_concept_link_api_v1_research_concept_links__link_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_concept_link_api_v1_research_concept_links__link_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchConceptLinkPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchConceptLinkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    paper_concepts_api_v1_research_papers__paper_id__concepts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                paper_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchConceptLinkListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    concept_research_api_v1_research_concepts__node_id__research_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchConceptResearchResponse"];
+                };
             };
             /** @description Validation Error */
             422: {

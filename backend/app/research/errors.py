@@ -233,3 +233,77 @@ class CitationNotFoundError(ResearchError):
     code = "RESOURCE_NOT_FOUND"
     http_status = 404
     user_message = "Citation not found."
+
+
+# Drafts and writing assistance (M7.9)
+class DraftNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Draft not found."
+
+
+class DraftVersionNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Version not found."
+
+
+class DraftVersionConflictError(ResearchError):
+    code = "RESEARCH_DRAFT_VERSION_CONFLICT"
+    http_status = 409
+    user_message = "The draft was changed elsewhere. Reload it before saving."
+
+
+class DraftInvalidReferencesError(ResearchError):
+    code = "RESEARCH_DRAFT_INVALID_REFERENCES"
+    http_status = 422
+    user_message = "The draft cites papers that are not in this project. Fix them before export."
+
+
+class AssistInputError(ResearchError):
+    code = "VALIDATION_ERROR"
+    http_status = 422
+    user_message = "Select the text to work on for this kind of assistance."
+
+
+class NoEvidenceError(ResearchError):
+    code = "RESEARCH_NO_EVIDENCE"
+    http_status = 422
+    user_message = "No analysed paper evidence is available for this section."
+
+
+class WritingUnavailableError(ResearchError):
+    code = "LLM_NOT_CONFIGURED"
+    http_status = 503
+    user_message = "AI writing assistance is not available right now."
+
+
+class WritingRateLimitedError(ResearchError):
+    code = "RATE_LIMITED"
+    http_status = 429
+    user_message = "Too many writing requests. Please try again shortly."
+
+
+class WritingQuotaError(ResearchError):
+    code = "AI_QUOTA_EXCEEDED"
+    http_status = 429
+    user_message = "The daily AI usage limit has been reached."
+
+
+class WritingOutputInvalidError(ResearchError):
+    code = "RESEARCH_WRITING_OUTPUT_INVALID"
+    http_status = 502
+    user_message = "The AI returned an unusable answer. Try again."
+
+
+# Concept links (M7.10)
+class ConceptLinkNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Concept link not found."
+
+
+class ConceptNotFoundError(ResearchError):
+    code = "RESOURCE_NOT_FOUND"
+    http_status = 404
+    user_message = "Concept not found."

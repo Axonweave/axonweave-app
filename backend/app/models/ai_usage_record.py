@@ -34,7 +34,7 @@ class AiUsageRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ),
         CheckConstraint(
             "request_kind IN ('chat', 'embedding', 'generation', 'evaluation', 'extraction', "
-            "'misconception', 'paper_analysis')",
+            "'misconception', 'paper_analysis', 'research_writing')",
             name="ck_ai_usage_request_kind",
         ),
         CheckConstraint(

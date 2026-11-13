@@ -114,6 +114,82 @@ export const CITATION_STYLES: { value: CitationStyle; label: string }[] = [
   { value: "harvard", label: "Harvard" },
 ];
 
+export type ResearchDraft = S["ResearchDraftOut"];
+export type DraftSummary = S["ResearchDraftSummary"];
+export type DraftVersionSummary = S["ResearchDraftVersionSummary"];
+export type DraftVersion = S["ResearchDraftVersionOut"];
+export type DraftCheck = S["ResearchDraftCheckOut"];
+export type DraftExport = S["ResearchDraftExportOut"];
+export type WritingRequest = S["ResearchWritingRequest"];
+export type WritingSuggestion = S["ResearchWritingOut"];
+type DraftPatchBase = S["ResearchDraftPatch"];
+export type DraftPatch = Omit<DraftPatchBase, "change_source"> & {
+  change_source?: DraftPatchBase["change_source"];
+};
+
+export const DRAFT_TYPE_LABELS: Record<string, string> = {
+  research_paper: "Research paper",
+  literature_review: "Literature review",
+  proposal: "Proposal",
+  report: "Report",
+  notes: "Notes",
+};
+export const DRAFT_STATUS_LABELS: Record<string, string> = {
+  draft: "Draft",
+  in_review: "In review",
+  final: "Final",
+};
+export const WRITING_ACTION_LABELS: Record<string, string> = {
+  draft_section: "Draft a section from evidence",
+  expand: "Expand the selected text",
+  synthesis: "Literature synthesis",
+  rewrite: "Rewrite the selected text",
+  tone: "Improve academic tone",
+  grammar: "Fix grammar",
+  clarity: "Improve clarity",
+  organise: "Organise paragraphs",
+};
+export const WRITING_SECTION_LABELS: Record<string, string> = {
+  abstract: "Abstract",
+  introduction: "Introduction",
+  background: "Background",
+  literature_review: "Literature review",
+  problem_statement: "Problem statement",
+  objectives: "Research objectives",
+  research_questions: "Research questions",
+  methodology: "Methodology",
+  proposed_approach: "Proposed approach",
+  results: "Results",
+  discussion: "Discussion",
+  limitations: "Limitations",
+  conclusion: "Conclusion",
+  future_work: "Future work",
+};
+export const CHECK_STATUS_LABELS: Record<string, string> = {
+  supported_single: "Supported by one paper",
+  supported_multiple: "Supported by several papers",
+  citation_mismatch: "Citation does not match the sentence",
+  cannot_verify: "Cited paper not analysed",
+  invalid_reference: "Cites a paper outside this project",
+  unsupported: "No citation for a finding-like statement",
+  unmarked: "No citation (interpretation or plain text)",
+};
+
+/** The citation marker stored in a draft for a paper. */
+export function citeMarker(paperId: string): string {
+  return `{{cite:${paperId}}}`;
+}
+
+export type ConceptLink = S["ResearchConceptLinkOut"];
+export type ConceptResearch = S["ResearchConceptResearchOut"];
+export type ConceptLinkStatus = "suggested" | "confirmed" | "rejected";
+
+export const CONCEPT_LINK_STATUS_LABELS: Record<string, string> = {
+  suggested: "Suggested",
+  confirmed: "Confirmed",
+  rejected: "Rejected",
+};
+
 export type ResearchGap = S["ResearchGapOut"];
 export type GapEvidence = S["ResearchGapEvidenceOut"];
 export type GapPatch = S["ResearchGapPatch"];
@@ -410,6 +486,53 @@ export const researchApi = {
       .then((r) => r.data),
   matrixRefresh: (id: string) =>
     api.post<ResearchMatrix>(`/research/matrices/${enc(id)}/refresh`).then((r) => r.data),
+  suggestConceptLinks: (projectId: string) =>
+    api
+      .post<ConceptLink[]>(`/research/projects/${enc(projectId)}/concept-links/suggest`, {})
+      .then((r) => r.data),
+  listConceptLinks: (projectId: string, f: { link_status?: string } = {}) =>
+    getPaged<ConceptLink>(
+      `/research/projects/${enc(projectId)}/concept-links${query({ ...f, limit: 100 })}`,
+    ),
+  reviewConceptLink: (id: string, link_status: ConceptLinkStatus) =>
+    api
+      .patch<ConceptLink>(`/research/concept-links/${enc(id)}`, { link_status })
+      .then((r) => r.data),
+  deleteConceptLink: (id: string) => api.delete<unknown>(`/research/concept-links/${enc(id)}`),
+  paperConcepts: (paperId: string) =>
+    api.get<ConceptLink[]>(`/research/papers/${enc(paperId)}/concepts`).then((r) => r.data),
+  conceptResearch: (nodeId: string) =>
+    api.get<ConceptResearch>(`/research/concepts/${enc(nodeId)}/research`).then((r) => r.data),
+  listDrafts: (projectId: string) =>
+    getPaged<DraftSummary>(`/research/projects/${enc(projectId)}/drafts${query({ limit: 100 })}`),
+  createDraft: (
+    projectId: string,
+    body: { title: string; document_type?: string; content?: string; citation_style?: string },
+  ) =>
+    api
+      .post<ResearchDraft>(`/research/projects/${enc(projectId)}/drafts`, body)
+      .then((r) => r.data),
+  getDraft: (id: string) =>
+    api.get<ResearchDraft>(`/research/drafts/${enc(id)}`).then((r) => r.data),
+  patchDraft: (id: string, body: DraftPatch) =>
+    api.patch<ResearchDraft>(`/research/drafts/${enc(id)}`, body).then((r) => r.data),
+  deleteDraft: (id: string) => api.delete<unknown>(`/research/drafts/${enc(id)}`),
+  draftVersions: (id: string) =>
+    api.get<DraftVersionSummary[]>(`/research/drafts/${enc(id)}/versions`).then((r) => r.data),
+  draftVersion: (id: string, n: number) =>
+    api.get<DraftVersion>(`/research/drafts/${enc(id)}/versions/${n}`).then((r) => r.data),
+  restoreDraftVersion: (id: string, n: number, expected_version: number) =>
+    api
+      .post<ResearchDraft>(`/research/drafts/${enc(id)}/versions/${n}/restore`, {
+        expected_version,
+      })
+      .then((r) => r.data),
+  checkDraft: (id: string) =>
+    api.post<DraftCheck>(`/research/drafts/${enc(id)}/check`).then((r) => r.data),
+  exportDraft: (id: string) =>
+    api.get<DraftExport>(`/research/drafts/${enc(id)}/export`).then((r) => r.data),
+  assistDraft: (id: string, body: WritingRequest) =>
+    api.post<WritingSuggestion>(`/research/drafts/${enc(id)}/assist`, body).then((r) => r.data),
   listCitations: (projectId: string, style?: CitationStyle) =>
     api
       .get<ResearchCitation[]>(`/research/projects/${enc(projectId)}/citations${query({ style })}`)

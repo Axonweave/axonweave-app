@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAsync } from "@/hooks/use-async";
 import { useToast } from "@/hooks/use-toast";
 import { ApiRequestError } from "@/lib/api/client";
+import { ConceptResearchSection } from "@/features/research/concept-research";
 import {
   NODE_TYPES,
   RELATIONSHIP_LABELS,
@@ -265,6 +266,8 @@ export function NodeDetailPanel({
           ))}
         </ul>
       </AsyncSection>
+
+      <ConceptResearchSection nodeId={nodeId} />
 
       <ConfirmDialog
         open={confirmArchive}

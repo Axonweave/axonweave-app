@@ -88,3 +88,23 @@ async def load_analysed_papers(
             )
         )
     return loaded
+
+
+async def load_available(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    project_id: uuid.UUID,
+    paper_ids: list[uuid.UUID],
+) -> tuple[set[uuid.UUID], dict[uuid.UUID, LoadedPaper]]:
+    """(ids of those papers that are in the project, the subset with a completed analysis).
+    Never raises for a missing paper or analysis: callers report both cases."""
+    if not paper_ids:
+        return set(), {}
+    found = await ResearchPaperRepository(db).get_many(user_id, project_id, paper_ids)
+    analysed: dict[uuid.UUID, LoadedPaper] = {}
+    for pid in found:
+        try:
+            analysed[pid] = (await load_analysed_papers(db, user_id, project_id, [pid]))[0]
+        except PaperNotAnalysedError:
+            continue
+    return set(found), analysed

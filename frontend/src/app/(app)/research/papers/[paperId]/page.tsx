@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { PaperAnalysisView } from "@/features/research/paper-analysis";
+import { PaperConcepts } from "@/features/research/paper-concepts";
 
 export default function PaperPage() {
   const { paperId } = useParams<{ paperId: string }>();
@@ -15,6 +16,7 @@ export default function PaperPage() {
         </p>
       </div>
       <PaperAnalysisView paperId={paperId} />
+      <PaperConcepts paperId={paperId} />
     </div>
   );
 }

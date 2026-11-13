@@ -134,6 +134,10 @@ class Settings(BaseSettings):
     research_analysis_version: str = "r1"
     research_max_active_analyses_per_user: int = Field(default=2, ge=1)
     research_analysis_requests_per_minute_per_user: int = Field(default=4, ge=1)
+    # Research Studio writing assistance (Phase 7 M7.9). Empty model = the default model.
+    research_writing_model: str = ""
+    research_writing_max_output_tokens: int = Field(default=2500, ge=300, le=8000)
+    research_writing_requests_per_minute_per_user: int = Field(default=6, ge=1)
     knowledge_max_concepts_per_job: int = Field(default=100, ge=1, le=500)
     knowledge_max_relationships_per_job: int = Field(default=200, ge=1, le=1000)
     knowledge_max_active_jobs_per_user: int = Field(default=2, ge=1)

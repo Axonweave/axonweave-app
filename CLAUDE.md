@@ -21,7 +21,7 @@ adds document upload, storage, extraction/OCR, chunking, embeddings, retrieval a
   explainable mastery, misconceptions, graph-aware recommendations): spec `docs/axonweave-phase6-7-specs/PHASE6_SPEC.md`;
   assessment: `docs/PHASE6_7_REPOSITORY_ASSESSMENT.md`; decisions D-122 to D-126. Code in `backend/app/knowledge/`. Phase 7
   (Research Studio, `docs/axonweave-phase6-7-specs/PHASE7_SPEC.md`, code in `backend/app/modules/research/`) is in progress, one milestone
-  at a time (7.1 research projects, 7.2 paper library, 7.3 paper analysis, 7.4 comparison, 7.5 evidence matrix, 7.6 research gaps, 7.7 contradictions, 7.8 citations done); Phase 6 acceptance: `docs/PHASE6_ACCEPTANCE.md`.
+  at a time (7.1 research projects, 7.2 paper library, 7.3 paper analysis, 7.4 comparison, 7.5 evidence matrix, 7.6 research gaps, 7.7 contradictions, 7.8 citations, 7.9 writing studio, 7.10 knowledge graph links done); Phase 6 acceptance: `docs/PHASE6_ACCEPTANCE.md`.
 - Product context: `docs/Axonweave_PRD.docx` (background only).
 - Decisions for things the spec leaves open: `docs/DECISIONS.md` (follow them; do not invent alternatives).
 - Who owns what / task board: `docs/TASKS_Phase1.md`, `docs/TASKS_Phase2.md`.
