@@ -1,8 +1,19 @@
 "use client";
 
+import Link from "next/link";
+import { useState } from "react";
 import { AsyncSection } from "@/components/ui/async-section";
 import { useAsync } from "@/hooks/use-async";
-import { analyticsApi, formatDuration, formatPercent, type TopicRow } from "@/lib/api/revision";
+import {
+  analyticsApi,
+  formatDuration,
+  formatPercent,
+  type SubjectPerformance,
+  type TopicRow,
+} from "@/lib/api/revision";
+import { CalendarGrid } from "./calendar-grid";
+import { BarChart, TrendChart } from "./charts";
+import { ScopeFilter, type ScopeValue } from "./scope-filter";
 
 const STATUS_STYLE: Record<string, string> = {
   strong: "text-green-700 dark:text-green-400",
@@ -49,14 +60,53 @@ export function TopicTable({ rows }: { rows: TopicRow[] }) {
   );
 }
 
+export function SubjectTable({ rows }: { rows: SubjectPerformance["items"] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm">
+        <caption className="sr-only">Performance by subject</caption>
+        <thead>
+          <tr className="text-muted-foreground border-border border-b text-xs">
+            <th className="py-2 pr-3 font-medium">Subject</th>
+            <th className="py-2 pr-3 font-medium">Quiz attempts</th>
+            <th className="py-2 pr-3 font-medium">Average score</th>
+            <th className="py-2 pr-3 font-medium">Cards reviewed</th>
+            <th className="py-2 font-medium">Hard or again</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((s) => (
+            <tr key={s.subject_id ?? "none"} className="border-border border-b last:border-0">
+              <td className="py-2 pr-3">{s.subject_name ?? "No subject"}</td>
+              <td className="py-2 pr-3">{s.quiz_attempts}</td>
+              <td className="py-2 pr-3">{formatPercent(s.average_quiz_percentage)}</td>
+              <td className="py-2 pr-3">{s.reviews}</td>
+              <td className="py-2">
+                {s.hard_or_again_share === null
+                  ? "No data yet"
+                  : formatPercent(s.hard_or_again_share * 100)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function ProgressView() {
-  const overview = useAsync(() => analyticsApi.overview(), []);
-  const topics = useAsync(() => analyticsApi.topics(), []);
-  const calendar = useAsync(() => analyticsApi.calendar(), []);
+  const [scope, setScope] = useState<ScopeValue>({});
+  const scopeKey = JSON.stringify(scope);
+  const overview = useAsync(() => analyticsApi.overview(scope), [scopeKey]);
+  const topics = useAsync(() => analyticsApi.topics(scope), [scopeKey]);
+  const subjects = useAsync(() => analyticsApi.subjects(scope), [scopeKey]);
+  const quizzes = useAsync(() => analyticsApi.quizzes(scope), [scopeKey]);
+  const activity = useAsync(() => analyticsApi.activity(scope), [scopeKey]);
   const o = overview.data;
 
   return (
     <div className="min-w-0 space-y-8">
+      <ScopeFilter value={scope} onChange={setScope} />
       <AsyncSection
         title="Overview"
         loading={overview.loading}
@@ -108,35 +158,59 @@ export function ProgressView() {
       </AsyncSection>
 
       <AsyncSection
-        title="Last 90 days"
-        loading={calendar.loading}
-        error={calendar.error}
-        onRetry={calendar.reload}
-        isEmpty={(calendar.data?.days.length ?? 0) === 0}
-        empty={<p className="text-muted-foreground text-sm">No activity in this period.</p>}
+        title="Subjects"
+        loading={subjects.loading}
+        error={subjects.error}
+        onRetry={subjects.reload}
+        isEmpty={(subjects.data?.items.length ?? 0) === 0}
+        empty={
+          <p className="text-muted-foreground text-sm">
+            Subject results appear after you submit a quiz or review cards from a subject.
+          </p>
+        }
       >
-        <div className="space-y-2">
-          {calendar.data ? (
-            <p className="text-foreground text-sm">{calendar.data.streak.message}</p>
-          ) : null}
-          <ul className="grid gap-1 text-sm sm:grid-cols-2">
-            {calendar.data?.days
-              .slice()
-              .reverse()
-              .map((d) => (
-                <li
-                  key={d.date}
-                  className="border-border flex justify-between rounded border px-2 py-1"
-                >
-                  <span>{d.date}</span>
-                  <span className="text-muted-foreground">
-                    {d.quiz_attempts} quiz · {d.reviews} cards
-                  </span>
-                </li>
-              ))}
-          </ul>
+        {subjects.data ? <SubjectTable rows={subjects.data.items} /> : null}
+      </AsyncSection>
+
+      <AsyncSection
+        title="Trends"
+        loading={quizzes.loading || activity.loading}
+        error={quizzes.error ?? activity.error}
+        onRetry={() => {
+          quizzes.reload();
+          activity.reload();
+        }}
+        isEmpty={
+          (quizzes.data?.points.length ?? 0) === 0 && (activity.data?.total_reviews ?? 0) === 0
+        }
+        empty={
+          <p className="text-muted-foreground text-sm">
+            Trends appear once you have submitted quizzes or reviewed cards.
+          </p>
+        }
+      >
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TrendChart
+            title="Quiz scores over time"
+            points={(quizzes.data?.points ?? []).map((p) => ({
+              label: p.local_date,
+              value: p.percentage,
+            }))}
+          />
+          <BarChart
+            title="Cards reviewed per day"
+            data={(activity.data?.days ?? []).map((d) => ({ label: d.date, value: d.reviews }))}
+          />
         </div>
       </AsyncSection>
+
+      <CalendarGrid filters={scope} />
+
+      <p className="text-sm">
+        <Link className="text-primary underline" href="/study/history">
+          View your quiz history and compare attempts
+        </Link>
+      </p>
     </div>
   );
 }
