@@ -20,7 +20,7 @@ function errorText(e: unknown): string {
     if (e.code === "AI_QUOTA_EXCEEDED")
       return "Your daily AI usage limit has been reached, so nothing was started. It resets at midnight UTC.";
     if (e.code === "LLM_WEB_SEARCH_UNAVAILABLE")
-      return "Web search is not available for the configured AI model or account.";
+      return "Web search is not available for this AI key: its plan or quota does not include Google Search grounding. Enable billing for the key, or build the graph from documents.";
     if (e.status === 503) return "Extraction is not available right now. Try again later.";
     return e.message;
   }

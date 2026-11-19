@@ -123,6 +123,10 @@ def _search_refused(exc: BaseException) -> bool:
     """The API rejected the search tool itself (model or plan without grounding)."""
     if not isinstance(exc, genai_errors.APIError):
         return False
+    # A key whose plan has no search-grounding quota gets 429 RESOURCE_EXHAUSTED only when the
+    # search tool is on (plain calls on the same key work), so retrying never helps.
+    if getattr(exc, "code", None) == 429 and getattr(exc, "status", None) == "RESOURCE_EXHAUSTED":
+        return True
     if getattr(exc, "code", None) not in (400, 403, 404):
         return False
     text = str(getattr(exc, "message", "") or "").lower()
