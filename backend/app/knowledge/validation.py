@@ -181,6 +181,29 @@ def verify(
     return VerifiedOutput(concepts, ranked, dropped)
 
 
+def verify_links(
+    output: ExtractionOutput,
+    units: Sequence[SourceUnit],
+    lookup: dict[str, str],
+    *,
+    max_relationships: int,
+) -> VerifiedOutput:
+    """The linking pass (D-147): only relationships are taken from the reply. Both ends must be a
+    known concept (any batch); the quotation must be found in THESE passages."""
+    passages = _Passages(units)
+    dropped = {"concepts": 0, "relationships": 0, "definitions": 0}
+    relationships: dict[tuple[str, str, str], VerifiedRelationship] = {}
+    for rel in output.relationships:
+        verified_rel = _verify_relationship(rel, passages, lookup)
+        if verified_rel is None:
+            dropped["relationships"] += 1
+            continue
+        key = (verified_rel.source, verified_rel.target, verified_rel.relationship_type)
+        relationships.setdefault(key, verified_rel)
+    ranked = sorted(relationships.values(), key=lambda r: -r.confidence)[:max_relationships]
+    return VerifiedOutput([], ranked, dropped)
+
+
 def _verify_concept(
     concept: ExtractedConcept, passages: _Passages, dropped: dict[str, int]
 ) -> VerifiedConcept | None:

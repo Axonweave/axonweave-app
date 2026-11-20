@@ -106,7 +106,10 @@ class LLMWebSearchUnavailableError(LLMError):
 
     code = "LLM_WEB_SEARCH_UNAVAILABLE"
     http_status = 502
-    user_message = "Web search is not available for the configured AI model or account."
+    user_message = (
+        "Web search is not available for this AI key: its plan or quota does not include "
+        "Google Search grounding. Enable billing for the key, or build the graph from documents."
+    )
 
 
 class LLMCapabilityError(LLMInvalidModelError):

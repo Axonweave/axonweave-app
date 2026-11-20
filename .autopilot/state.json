@@ -63,6 +63,10 @@
     "P4-8": {
       "status": "merged",
       "sessions": 0
+    },
+    "P5-0": {
+      "status": "merged",
+      "pr": "41"
     }
   }
 }

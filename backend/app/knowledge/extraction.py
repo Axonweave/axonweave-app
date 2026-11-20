@@ -47,13 +47,21 @@ from app.ai.types import (
 )
 from app.ai.usage.pricing import estimate_cost, find_price
 from app.knowledge import errors
+from app.knowledge.linking import (
+    build_link_task,
+    connected_names,
+    lookup_of,
+    merge_relationships,
+)
 from app.knowledge.persistence import PersistStats, Placement, persist_graph
 from app.knowledge.schemas import ExtractionOutput
 from app.knowledge.validation import (
     VerifiedOutput,
+    VerifiedRelationship,
     parse_extraction,
     stats_of,
     verify,
+    verify_links,
 )
 from app.models.llm_provider import LLMModel
 from app.repositories.ai_catalog_repository import AiCatalogRepository
@@ -79,7 +87,7 @@ INPUT_BUDGET_FRACTION = 0.8
 PROMPT_OVERHEAD_TOKENS = 400
 
 TASK_BLOCK = """TASK
-Extract the academic concepts and the relationships between them from the passages above.
+Extract every academic concept and the relationships between them from the passages above.
 Reply with ONE JSON object of exactly this shape and nothing else:
 {
   "concepts": [
@@ -240,12 +248,68 @@ class _Run:
             results.append(verified)
             await self._checkpoint()
 
+        if results and any(r.concepts for r in results) and self._s.knowledge_link_pass:
+            await self._stage("extracting", 72)
+            links = await self._link_pass(cfg, catalog, prompt.content, batches, results)
+            if links.relationships:
+                results.append(links)
+
         await self._stage("validating", 80)
         if not any(r.concepts for r in results):
             raise _NothingVerified
         await self._checkpoint()
         await self._stage("saving", 90)
         await self._save(placement, results, total)
+
+    async def _link_pass(
+        self,
+        cfg: ModelConfig,
+        catalog: LLMModel,
+        system_prompt: str,
+        batches: list[SourceBundle],
+        results: list[VerifiedOutput],
+    ) -> VerifiedOutput:
+        """D-147: connect concepts that have no relationship yet. Best effort: a failed or invalid
+        reply costs nothing but the links it would have added; cancellation still stops the job."""
+        lookup = lookup_of(results)
+        connected = connected_names(results)
+        found: dict[tuple[str, str, str], VerifiedRelationship] = {}
+        existing = sum(len(r.relationships) for r in results)
+        room = max(0, self._s.knowledge_max_relationships_per_job - existing)
+        dropped = {"concepts": 0, "relationships": 0, "definitions": 0}
+        schema = ExtractionOutput.model_json_schema()
+        for bundle, result in zip(batches, results, strict=False):
+            orphans = [c for c in result.concepts if c.normalised_name not in connected]
+            if not orphans or len(found) >= room:
+                continue
+            here = {c.normalised_name for c in result.concepts}
+            other = [c.name for r in results for c in r.concepts if c.normalised_name not in here]
+            task = build_link_task(
+                [c.name for c in result.concepts], other, [c.name for c in orphans]
+            )
+            request = self._llm_request(cfg, system_prompt, build_user_turn(bundle.units, task))
+
+            def validate(raw: str, units: Any = bundle.units) -> VerifiedOutput:
+                return verify_links(
+                    parse_extraction(raw), units, lookup, max_relationships=room - len(found)
+                )
+
+            try:
+                verified: VerifiedOutput = await self._validated_call(
+                    cfg, catalog, request, schema, validate
+                )
+            except (_InvalidOutput, LLMError) as exc:
+                logger.info(
+                    "link_pass_skipped",
+                    job_id=str(self.job_id),
+                    reason=getattr(exc, "code", type(exc).__name__),
+                )
+                continue
+            for rel in merge_relationships(found, verified.relationships):
+                connected.update((rel.source, rel.target))
+            dropped["relationships"] += verified.dropped["relationships"]
+            await self._checkpoint()
+        return VerifiedOutput([], list(found.values()), dropped)
 
     async def _extract_batch(
         self,
@@ -383,8 +447,9 @@ class _Run:
         totals = PersistStats()
         dropped = {"concepts": 0, "relationships": 0, "definitions": 0}
         async with self._factory() as db:
+            node_ids: dict[str, Any] = {}  # shared, so links can join concepts of different batches
             for result in results:
-                stats = await persist_graph(db, placement, result)
+                stats = await persist_graph(db, placement, result, node_ids)
                 for name in (
                     "nodes_created",
                     "nodes_matched",

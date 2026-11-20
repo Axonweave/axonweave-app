@@ -1,5 +1,6 @@
 from enum import StrEnum
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field, PostgresDsn, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -138,17 +139,27 @@ class Settings(BaseSettings):
     research_writing_model: str = ""
     research_writing_max_output_tokens: int = Field(default=2500, ge=300, le=8000)
     research_writing_requests_per_minute_per_user: int = Field(default=6, ge=1)
-    knowledge_max_concepts_per_job: int = Field(default=100, ge=1, le=500)
-    knowledge_max_relationships_per_job: int = Field(default=200, ge=1, le=1000)
+    knowledge_max_concepts_per_job: int = Field(default=200, ge=1, le=500)
+    knowledge_max_relationships_per_job: int = Field(default=400, ge=1, le=1000)
     knowledge_max_active_jobs_per_user: int = Field(default=2, ge=1)
     knowledge_requests_per_minute_per_user: int = Field(default=6, ge=1)
     knowledge_max_documents_per_subject_run: int = Field(default=20, ge=1, le=100)
     # Web-grounded graph (D-144): sources kept per run, and an optional model for the search call.
     knowledge_web_max_sources: int = Field(default=12, ge=1, le=30)
     knowledge_web_extraction_model: str = ""
+    # Where a web run gets its text (D-145): the provider's search tool, Wikipedia, or the search
+    # tool with Wikipedia as the fallback when the key has no search grounding.
+    knowledge_web_source: Literal["auto", "gemini_search", "wikipedia"] = "auto"
+    knowledge_wikipedia_max_pages: int = Field(default=6, ge=1, le=8)
+    # A web run extracts in batches of about this many input tokens, so each batch has its own
+    # output budget and a large subject yields more than one reply can hold (D-146).
+    knowledge_web_batch_tokens: int = Field(default=6000, ge=500)
+    # After extraction, one more call per batch that left concepts unconnected (D-147).
+    knowledge_link_pass: bool = True
+    knowledge_wikipedia_user_agent: str = "AxonweaveStudyApp/1.0 (knowledge graph; read-only)"
     knowledge_max_batches: int = Field(default=12, ge=1, le=50)
     knowledge_max_input_tokens: int = Field(default=30_000, ge=500)
-    knowledge_max_output_tokens: int = Field(default=6000, ge=200)
+    knowledge_max_output_tokens: int = Field(default=8000, ge=200)
     knowledge_job_timeout_seconds: int = Field(default=540, ge=5)
     knowledge_task_soft_time_limit_seconds: int = Field(default=570, ge=10)
     knowledge_task_hard_time_limit_seconds: int = Field(default=600, ge=20)
