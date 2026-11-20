@@ -2,7 +2,7 @@
 
 import "@xyflow/react/dist/style.css";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   Background,
   Controls,
@@ -16,7 +16,7 @@ import {
   type NodeChange,
   type NodeMouseHandler,
 } from "@xyflow/react";
-import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation } from "d3-force";
+import { forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY } from "d3-force";
 import { RELATIONSHIP_LABELS, type KnowledgeEdge, type KnowledgeNode } from "@/lib/api/knowledge";
 import { Button } from "@/components/ui/button";
 
@@ -49,34 +49,79 @@ interface SimNode {
   y: number;
 }
 
-/** Deterministic force layout, run to rest synchronously (graph is capped server-side). */
+const MIN_ZOOM = 0.05;
+const FIT_OPTIONS = { padding: 0.15, minZoom: MIN_ZOOM } as const;
+const GRID_GAP_X = NODE_W + 30;
+const GRID_GAP_Y = 80;
+
+/**
+ * Deterministic layout, run to rest synchronously (graph is capped server-side).
+ * Connected nodes get a force layout with a weak pull to the centre, so separate clusters stay
+ * near each other instead of drifting apart. Nodes with no relationship are NOT part of the
+ * simulation (repulsion with nothing to hold them pushes them far away); they sit in a tidy grid
+ * under the connected part.
+ */
 function layout(
   nodes: KnowledgeNode[],
   edges: KnowledgeEdge[],
   previous: Map<string, { x: number; y: number }>,
 ): Map<string, { x: number; y: number }> {
-  const sim: SimNode[] = nodes.map((n, i) => {
-    const prev = previous.get(n.id);
-    const angle = (i / Math.max(nodes.length, 1)) * Math.PI * 2;
-    return { id: n.id, x: prev?.x ?? Math.cos(angle) * 200, y: prev?.y ?? Math.sin(angle) * 200 };
-  });
-  const ids = new Set(sim.map((n) => n.id));
+  const ids = new Set(nodes.map((n) => n.id));
   const links = edges
     .filter((e) => ids.has(e.source_node_id) && ids.has(e.target_node_id))
     .map((e) => ({ source: e.source_node_id, target: e.target_node_id }));
-  const simulation = forceSimulation(sim)
-    .force("charge", forceManyBody().strength(-420))
-    .force("collide", forceCollide(NODE_W / 2 + 14))
-    .force(
-      "link",
-      forceLink<SimNode, { source: string; target: string }>(links)
-        .id((d) => d.id)
-        .distance(190),
-    )
-    .force("center", forceCenter(0, 0))
-    .stop();
-  simulation.tick(Math.min(300, 60 + nodes.length * 2));
-  return new Map(sim.map((n) => [n.id, { x: n.x, y: n.y }]));
+  const linked = new Set<string>();
+  for (const l of links) {
+    linked.add(l.source);
+    linked.add(l.target);
+  }
+  const connected = nodes.filter((n) => linked.has(n.id));
+  const isolated = nodes.filter((n) => !linked.has(n.id));
+
+  const sim: SimNode[] = connected.map((n, i) => {
+    const prev = previous.get(n.id);
+    const angle = (i / Math.max(connected.length, 1)) * Math.PI * 2;
+    return { id: n.id, x: prev?.x ?? Math.cos(angle) * 200, y: prev?.y ?? Math.sin(angle) * 200 };
+  });
+  if (sim.length > 0) {
+    const simulation = forceSimulation(sim)
+      .force("charge", forceManyBody().strength(-420).distanceMax(600))
+      .force("collide", forceCollide(NODE_W / 2 + 14))
+      .force(
+        "link",
+        forceLink<SimNode, { source: string; target: string }>(links)
+          .id((d) => d.id)
+          .distance(190),
+      )
+      .force("x", forceX(0).strength(0.08))
+      .force("y", forceY(0).strength(0.08))
+      .stop();
+    simulation.tick(Math.min(300, 60 + sim.length * 2));
+  }
+  const out = new Map(sim.map((n) => [n.id, { x: n.x, y: n.y }]));
+
+  // isolated nodes: a grid roughly as wide as the connected part, below it
+  let minX = 0;
+  let maxX = 0;
+  let maxY = 0;
+  for (const p of out.values()) {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    maxY = Math.max(maxY, p.y);
+  }
+  const cols = Math.max(
+    1,
+    Math.min(isolated.length, Math.max(4, Math.round((maxX - minX) / GRID_GAP_X) + 1)),
+  );
+  const startX = sim.length > 0 ? (minX + maxX) / 2 - ((cols - 1) * GRID_GAP_X) / 2 : 0;
+  const startY = sim.length > 0 ? maxY + 140 : 0;
+  isolated.forEach((n, i) => {
+    out.set(n.id, {
+      x: startX + (i % cols) * GRID_GAP_X,
+      y: startY + Math.floor(i / cols) * GRID_GAP_Y,
+    });
+  });
+  return out;
 }
 
 interface CanvasProps {
@@ -182,8 +227,27 @@ function Canvas({ nodes, edges, selectedId, onSelect, onExpand }: CanvasProps) {
   }, [nodes, edges]);
 
   const fit = useCallback(() => {
-    void flow.fitView({ padding: 0.2, duration: 250 });
+    void flow.fitView({ ...FIT_OPTIONS, duration: 250 });
   }, [flow]);
+
+  // Real full screen for the graph (the +/-/fit buttons only change the view).
+  const frame = useRef<HTMLDivElement>(null);
+  const [fullscreen, setFullscreen] = useState(false);
+  useEffect(() => {
+    const onChange = () => {
+      setFullscreen(document.fullscreenElement === frame.current);
+      setTimeout(fit, 100); // the canvas just changed size
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, [fit]);
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+    } else {
+      void frame.current?.requestFullscreen?.();
+    }
+  }, []);
 
   useEffect(() => {
     // refit when the node set changes
@@ -195,7 +259,7 @@ function Canvas({ nodes, edges, selectedId, onSelect, onExpand }: CanvasProps) {
   const onNodeDoubleClick: NodeMouseHandler = (_, node) => onExpand(node.id);
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={frame} className="bg-background relative h-full w-full">
       <ReactFlow
         nodes={flowNodes}
         edges={flowEdges}
@@ -205,7 +269,8 @@ function Canvas({ nodes, edges, selectedId, onSelect, onExpand }: CanvasProps) {
         nodesConnectable={false}
         nodesDraggable
         fitView
-        minZoom={0.1}
+        fitViewOptions={FIT_OPTIONS}
+        minZoom={MIN_ZOOM}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
         aria-label="Knowledge graph"
@@ -242,6 +307,9 @@ function Canvas({ nodes, edges, selectedId, onSelect, onExpand }: CanvasProps) {
         ) : null}
       </ReactFlow>
       <div className="absolute top-2 right-2 flex gap-2">
+        <Button size="sm" variant="outline" onClick={toggleFullscreen} aria-pressed={fullscreen}>
+          {fullscreen ? "Exit full screen" : "Full screen"}
+        </Button>
         <Button size="sm" variant="outline" onClick={fit}>
           Reset view
         </Button>

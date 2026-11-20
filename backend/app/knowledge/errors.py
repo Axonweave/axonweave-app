@@ -68,7 +68,10 @@ _MESSAGES = {
     INTERNAL: "The extraction failed. Try again.",
     CANCELLED: "The extraction was cancelled.",
     NO_WEB_SOURCES: "The web search found no usable sources for this subject name.",
-    WEB_SEARCH_UNAVAILABLE: "Web search is not available for the configured AI model or account.",
+    WEB_SEARCH_UNAVAILABLE: (
+        "Web search is not available for this AI key: its plan or quota does not include "
+        "Google Search grounding. Enable billing for the key, or build the graph from documents."
+    ),
 }
 
 

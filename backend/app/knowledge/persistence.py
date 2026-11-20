@@ -101,10 +101,17 @@ def _evidence_rows(
     return rows
 
 
-async def persist_graph(db: AsyncSession, where: Placement, result: VerifiedOutput) -> PersistStats:
+async def persist_graph(
+    db: AsyncSession,
+    where: Placement,
+    result: VerifiedOutput,
+    node_ids: dict[str, uuid.UUID] | None = None,
+) -> PersistStats:
+    """`node_ids` (normalised name -> node id) is shared across the results of one job, so a
+    relationship may join concepts that came from different batches (D-147)."""
     repo = KnowledgeRepository(db)
     stats = PersistStats()
-    node_ids: dict[str, uuid.UUID] = {}
+    node_ids = {} if node_ids is None else node_ids
 
     for concept in result.concepts:
         node, created = await _resolve_node(db, repo, where, concept, stats)
