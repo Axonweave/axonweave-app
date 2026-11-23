@@ -1,17 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
   ArrowDown,
+  ArrowLeft,
   BarChart3,
+  Crosshair,
   Menu,
   MessageSquarePlus,
   Pencil,
   Trash2,
 } from "lucide-react";
+import {
+  SCOPE_LABELS,
+  contextFromQuery,
+  contextQuery,
+  environmentHref,
+  toConversationScope,
+} from "@/lib/learning-context";
+import { useContextLabel } from "@/features/learning-spaces/use-context-label";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorDisplay } from "@/components/ui/error-display";
@@ -34,10 +44,37 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
   const tutor = useTutor();
   const { status, models, modelId, setModelId, conversations } = tutor;
 
+  // Learning context handed over by a subject, folder or chapter ("Open in AI Tutor"). It preselects
+  // what a new conversation reads; the learner can still change it before the first message.
+  const params = useSearchParams();
+  const contextKey = params.toString();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const presetCtx = useMemo(() => contextFromQuery(params), [contextKey]);
+  const presetLabel = useContextLabel(presetCtx);
+  const ctxSuffix = presetCtx ? `?${contextQuery(presetCtx)}` : "";
+
   // Document scope: chosen before the first message, then fixed on the conversation (server-side).
-  const [scope, setScope] = useState<ConversationScope | null>(null);
+  const [scope, setScope] = useState<ConversationScope | null>(
+    presetCtx ? toConversationScope(presetCtx) : null,
+  );
+  const [pickScope, setPickScope] = useState(false);
   const [mode, setMode] = useState<AnswerMode>("document_only");
   const [lookupScope, setLookupScope] = useState<string>("general");
+
+  useEffect(() => {
+    // a different context was handed over while the tutor stayed mounted
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setScope(presetCtx ? toConversationScope(presetCtx) : null);
+    setPickScope(false);
+  }, [presetCtx]);
+
+  // A handed-over context that does not resolve (deleted, or not this user's) is dropped, so the
+  // learner falls back to the normal picker instead of a conversation the server would refuse.
+  const presetMissing = !!presetCtx && !presetLabel.loading && presetLabel.data === null;
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (presetMissing) setScope(null);
+  }, [presetMissing]);
 
   const chat = useChat({
     conversationId,
@@ -46,12 +83,12 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
     answerMode: (conversationId ? lookupScope !== "general" : scope !== null) ? mode : null,
     onConversationCreated: (c) => {
       conversations.prepend(c);
-      router.replace(`/ai-tutor/${c.id}`);
+      router.replace(`/ai-tutor/${c.id}${ctxSuffix}`);
     },
     onSettled: () => void conversations.reload(),
   });
 
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(() => (params.get("q") ?? "").slice(0, status.max_input_chars));
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
   const [lookup, setLookup] = useState<Conversation | null>(null);
 
@@ -184,7 +221,7 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
           <BarChart3 aria-hidden="true" />
         </Button>
         <Link
-          href="/ai-tutor"
+          href={`/ai-tutor${ctxSuffix}`}
           aria-label="New chat"
           className={buttonVariants({ variant: "ghost", size: "icon" })}
         >
@@ -285,9 +322,37 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
         )}
       </div>
 
+      {presetCtx && presetLabel.data && (
+        <div className="border-border bg-muted/30 flex items-center gap-2 border-t px-3 py-1.5 text-xs">
+          <Link
+            href={environmentHref(presetCtx)}
+            className="text-muted-foreground hover:text-foreground inline-flex min-w-0 items-center gap-1 underline-offset-2 hover:underline"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">Back to {presetLabel.data}</span>
+          </Link>
+        </div>
+      )}
+
       {(!conversationId || lookupScope !== "general") && (
         <div className="border-border flex flex-col gap-2 border-t px-3 py-2 sm:flex-row sm:items-center sm:gap-4">
-          {!conversationId ? (
+          {!conversationId && presetCtx && presetLabel.data && !pickScope ? (
+            <p className="flex min-w-0 items-center gap-2 text-xs" data-testid="context-scope">
+              <Crosshair className="text-primary h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span className="text-muted-foreground shrink-0">Asking about</span>
+              <span className="bg-primary/10 text-foreground min-w-0 truncate rounded-full px-2 py-0.5 font-medium">
+                {SCOPE_LABELS[presetCtx.scope]}: {presetLabel.data}
+              </span>
+              <button
+                type="button"
+                className="text-primary shrink-0 underline-offset-2 hover:underline"
+                onClick={() => setPickScope(true)}
+                disabled={chat.busy}
+              >
+                Change
+              </button>
+            </p>
+          ) : !conversationId ? (
             <ScopePicker value={scope} onChange={setScope} disabled={chat.busy} />
           ) : (
             <p className="text-muted-foreground text-xs">

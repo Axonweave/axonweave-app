@@ -375,9 +375,10 @@ function Overview({
   );
 }
 
-export function ResearchStudio() {
+/** `workspaceId` fixes the workspace (set from a learning environment); otherwise it is pickable. */
+export function ResearchStudio({ workspaceId: fixedWorkspace }: { workspaceId?: string } = {}) {
   const { toast } = useToast();
-  const [workspaceId, setWorkspaceId] = useState("");
+  const [workspaceId, setWorkspaceId] = useState(fixedWorkspace ?? "");
   const [status, setStatus] = useState("");
   const [archived, setArchived] = useState(false);
   const [searchInput, setSearchInput] = useState("");
@@ -462,7 +463,7 @@ export function ResearchStudio() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        {(workspaces.data?.length ?? 0) > 1 && (
+        {!fixedWorkspace && (workspaces.data?.length ?? 0) > 1 && (
           <select
             className={SELECT}
             aria-label="Workspace"

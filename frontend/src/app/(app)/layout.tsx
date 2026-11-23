@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { LoadingPage } from "@/components/ui/loading";
 import { Toaster } from "@/components/ui/toaster";
+import { CommandPalette } from "@/features/learning-spaces/command-palette";
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthContext();
@@ -43,6 +44,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <Toaster />
+      <CommandPalette />
     </div>
   );
 }

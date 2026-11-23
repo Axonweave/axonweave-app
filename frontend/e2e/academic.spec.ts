@@ -181,13 +181,48 @@ test.describe("Subjects, folders and chapters", () => {
       "aria-current",
       "page",
     );
-    await expect(page.getByRole("heading", { name: /AI summaries and progress/ })).toContainText(
-      "Coming soon",
+    // the subject is a learning environment: every tool is a tab that already knows the subject
+    if (await menu.isVisible()) await page.keyboard.press("Escape");
+    const tools = page.getByRole("navigation", { name: "Subject sections" });
+    for (const tab of [
+      "Overview",
+      "Content",
+      "AI Tutor",
+      "Knowledge Graph",
+      "Intelligence",
+      "Revision",
+      "Research",
+      "Progress",
+    ]) {
+      await expect(tools.getByRole("link", { name: tab, exact: true })).toBeVisible();
+    }
+    await expect(tools.getByRole("link", { name: "Overview", exact: true })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  test("tools opened from a subject do not ask for the subject again", async () => {
+    await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}/graph`);
+    await expect(page.getByRole("heading", { name: SUBJECT, level: 1 })).toBeVisible();
+    // the explorer's own subject picker is replaced by the context
+    await expect(page.getByRole("combobox", { name: "Subject" })).toHaveCount(0);
+
+    await page
+      .getByRole("navigation", { name: "Subject sections" })
+      .getByRole("link", { name: "AI Tutor", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", { name: `Ask anything about ${SUBJECT}` }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open the tutor" })).toHaveAttribute(
+      "href",
+      new RegExp(`subject=${subjectId}`),
     );
   });
 
   test("create folders and chapters", async () => {
-    await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}`);
+    await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}/content`);
     await page.getByRole("button", { name: "New folder" }).first().click();
     await page.locator("#folder-name").fill("Unit 1");
     await page.getByRole("button", { name: "Create folder" }).click();
@@ -263,19 +298,25 @@ test.describe("Subjects, folders and chapters", () => {
 
   test("edit a chapter's status and see it on the chapter page", async () => {
     await page.getByRole("link", { name: "Limits" }).click();
-    await expect(page.getByRole("heading", { name: "Limits" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Limits", level: 1 })).toBeVisible();
+    // the chapter opens its own learning environment; details and editing live under Content
+    await page
+      .getByRole("navigation", { name: "Chapter sections" })
+      .getByRole("link", { name: "Content", exact: true })
+      .click();
     await page.getByRole("button", { name: "Edit" }).click();
     await page.locator("#chapter-status").selectOption("in_progress");
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.getByText("In progress").first()).toBeVisible({ timeout: 10000 });
-    for (const tab of ["Learning materials", "AI explanations", "Flashcards", "Quizzes"]) {
+    await expect(page.getByRole("heading", { name: "Learning materials" })).toBeVisible();
+    for (const tab of ["AI explanations", "Notes"]) {
       await expect(page.getByRole("tab", { name: tab })).toBeDisabled();
     }
     await expect(page.getByRole("navigation", { name: "You are here" })).toContainText(SUBJECT);
   });
 
   test("archive a chapter", async () => {
-    await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}`);
+    await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}/content`);
     await rowAction(page, "chapter Integrals", "Archive");
     await expect(page.getByRole("link", { name: "Integrals" })).toHaveCount(0, { timeout: 10000 });
     const chapters = await apiGet<Array<{ title: string }>>(page, `${base}/chapters`);
@@ -316,7 +357,7 @@ test.describe("Subjects, folders and chapters", () => {
   });
 
   test("delete a subject names what will be deleted and needs its name typed", async () => {
-    await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}`);
+    await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}/content`);
     await rowAction(page, `subject ${SUBJECT}`, "Delete subject");
     await expect(page.getByText(/permanently deletes the subject/i)).toBeVisible();
     await expect(page.getByRole("dialog").locator("strong")).toHaveText("0 folders and 1 chapter");

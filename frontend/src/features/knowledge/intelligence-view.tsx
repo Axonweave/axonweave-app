@@ -536,10 +536,22 @@ function Body({
   return <ConceptTable rows={data.concepts} onOpen={onOpen} />;
 }
 
-export function IntelligenceView({ initialConceptId }: { initialConceptId?: string }) {
+/**
+ * Without `scope`: the learner profile across subjects, with workspace/subject pickers. With a
+ * scope from a learning environment the pickers are replaced by that context.
+ */
+export function IntelligenceView({
+  initialConceptId,
+  scope,
+  progressHref = "/progress",
+}: {
+  initialConceptId?: string;
+  scope?: { workspaceId: string; subjectId?: string };
+  progressHref?: string;
+}) {
   const [tab, setTab] = useState<Tab>("overview");
-  const [workspaceId, setWorkspaceId] = useState("");
-  const [subjectId, setSubjectId] = useState("");
+  const [workspaceId, setWorkspaceId] = useState(scope?.workspaceId ?? "");
+  const [subjectId, setSubjectId] = useState(scope?.subjectId ?? "");
   const [conceptId, setConceptId] = useState<string | null>(initialConceptId ?? null);
 
   const workspaces = useAsync(() => workspacesApi.list().then((r) => r.data), []);
@@ -569,7 +581,7 @@ export function IntelligenceView({ initialConceptId }: { initialConceptId?: stri
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        {(workspaces.data?.length ?? 0) > 1 && (
+        {!scope && (workspaces.data?.length ?? 0) > 1 && (
           <select
             className={SELECT}
             aria-label="Workspace"
@@ -586,20 +598,22 @@ export function IntelligenceView({ initialConceptId }: { initialConceptId?: stri
             ))}
           </select>
         )}
-        <select
-          className={SELECT}
-          aria-label="Subject"
-          value={subjectId}
-          onChange={(e) => setSubjectId(e.target.value)}
-        >
-          <option value="">All subjects</option>
-          {subjects.data?.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        <Link className="text-muted-foreground ml-auto text-sm underline" href="/progress">
+        {scope?.subjectId ? null : (
+          <select
+            className={SELECT}
+            aria-label="Subject"
+            value={subjectId}
+            onChange={(e) => setSubjectId(e.target.value)}
+          >
+            <option value="">All subjects</option>
+            {subjects.data?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <Link className="text-muted-foreground ml-auto text-sm underline" href={progressHref}>
           Activity and quiz trends are on the Progress page
         </Link>
       </div>

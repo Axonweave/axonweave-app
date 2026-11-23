@@ -35,8 +35,15 @@ export function newIdempotencyKey(): string {
   return `r-${crypto.randomUUID().replace(/-/g, "")}`;
 }
 
+export type RevisionBucket = "due" | "overdue" | "new";
+
 export const revisionApi = {
   summary: () => api.get<RevisionSummary>("/revision/summary").then((r) => r.data),
+  /** How many cards are in a bucket, optionally narrowed to a subject or chapter. */
+  bucketCount: (bucket: RevisionBucket, f: { subject_id?: string; chapter_id?: string } = {}) =>
+    api
+      .get<{ total: number }>(`/revision/${bucket}${query({ ...f, limit: 1 })}`)
+      .then((r) => r.data.total),
   startSession: (body: { subject_id?: string; limit?: number; include_new?: boolean } = {}) =>
     api.post<RevisionSession>("/revision/sessions", body).then((r) => r.data),
   session: (id: string) =>
