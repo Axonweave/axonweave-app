@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { openCommandPalette } from "@/features/learning-spaces/command-palette-events";
 import { CurrentSpaceCard } from "@/features/learning-spaces/current-space-card";
+import { TONE_BY_HREF } from "@/features/learning-spaces/tones";
 
 interface NavItem {
   label: string;
@@ -61,9 +62,7 @@ const toolsNav: NavItem[] = [
 
 export const primaryNav: NavItem[] = [...workspaceNav, ...toolsNav];
 
-const comingSoonNav: NavItem[] = [
-  { label: "Favourites", href: "#", icon: Star, disabled: true },
-];
+const comingSoonNav: NavItem[] = [{ label: "Favourites", href: "#", icon: Star, disabled: true }];
 
 const bottomNav: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings },
@@ -104,7 +103,17 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
     >
       {/* Brand */}
       <div className="border-border flex h-14 items-center justify-between border-b px-3">
-        {!collapsed && <span className="text-sm font-semibold tracking-tight">Axonweave</span>}
+        {!collapsed && (
+          <span className="flex items-center gap-2">
+            <span
+              className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white shadow-sm"
+              aria-hidden="true"
+            >
+              A
+            </span>
+            <span className="text-sm font-semibold tracking-tight">Axonweave</span>
+          </span>
+        )}
         <Button
           variant="ghost"
           size="icon"
@@ -123,7 +132,7 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
           onClick={() => openCommandPalette()}
           aria-label="Quick search"
           className={cn(
-            "border-border bg-background text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-8 w-full items-center gap-2 rounded-md border text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
+            "border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/40 focus-visible:ring-ring flex h-9 w-full items-center gap-2 rounded-xl border text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:outline-none",
             collapsed ? "justify-center" : "px-2",
           )}
         >
@@ -184,6 +193,7 @@ function NavSection({
       {items.map((item) => {
         const active = !item.disabled && isNavActive(pathname, item.href);
         const Icon = item.icon;
+        const tone = TONE_BY_HREF[item.href];
         return (
           <li key={item.href + item.label}>
             <Link
@@ -192,14 +202,24 @@ function NavSection({
               aria-current={active ? "page" : undefined}
               tabIndex={item.disabled ? -1 : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
+                "flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors",
                 active
-                  ? "bg-accent text-accent-foreground font-medium"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                  ? cn(
+                      tone?.active ?? "bg-sidebar-accent text-sidebar-accent-foreground",
+                      "font-semibold",
+                    )
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-foreground",
                 item.disabled && "pointer-events-none opacity-40",
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              <span
+                className={cn(
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+                  tone ? tone.chip : active && "bg-primary/10",
+                )}
+              >
+                <Icon className={cn("h-4 w-4", tone ? tone.icon : active && "text-primary")} />
+              </span>
               {!collapsed && (
                 <span className="truncate">
                   {item.label}
