@@ -204,31 +204,37 @@ function ReadyRoom() {
           </nav>
           <DropdownMenu>
             <DropdownMenuTrigger
-              render={<Button variant="ghost" size="sm" />}
               aria-label="More tools"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground data-[popup-open]:bg-muted data-[popup-open]:text-foreground focus-visible:ring-ring flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
-              <MoreHorizontal aria-hidden="true" />
+              <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">More</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-56">
+            <DropdownMenuContent align="end" className="min-w-60">
               <DropdownMenuGroup className="md:hidden">
                 {MAIN_PANELS.map((p) => (
                   <PanelItem key={p} panel={p} onClick={room.openPanel} />
                 ))}
                 <DropdownMenuSeparator />
               </DropdownMenuGroup>
-              {MORE_PANELS.map((p) => (
-                <PanelItem key={p} panel={p} onClick={room.openPanel} />
-              ))}
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>More tools</DropdownMenuLabel>
+                {MORE_PANELS.map((p) => (
+                  <PanelItem key={p} panel={p} onClick={room.openPanel} />
+                ))}
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem render={<Link href={environmentHref(space.ctx)} />}>
-                <Settings2 aria-hidden="true" />
-                Room overview and settings
-              </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/ai-tutor" />}>
-                <BookOpenCheck aria-hidden="true" />
-                All chats (AI Tutor)
-              </DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Go to</DropdownMenuLabel>
+                <DropdownMenuItem render={<Link href={environmentHref(space.ctx)} />}>
+                  <Settings2 aria-hidden="true" />
+                  Room settings
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/ai-tutor" />}>
+                  <BookOpenCheck aria-hidden="true" />
+                  All AI Tutor chats
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

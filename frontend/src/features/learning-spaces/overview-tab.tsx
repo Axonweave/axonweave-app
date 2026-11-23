@@ -1,24 +1,27 @@
 "use client";
 
 /**
- * Overview of a subject, folder or chapter, laid out as three calm rows:
- *   1. what to do next (continue learning) beside what is due today,
- *   2. the learning tools,
- *   3. what is inside (folders and chapters) or the previous/next chapter.
+ * Overview of a subject, folder or chapter:
+ *   1. four figures at a glance (chapters done, cards to review, documents, materials),
+ *   2. the one thing to do next, with progress,
+ *   3. the learning tools,
+ *   4. what is inside (folders and chapters) or the previous/next chapter.
  * Every figure comes from the API or from the learner's own chapter labels; nothing is estimated.
  */
 import Link from "next/link";
 import {
   ArrowRight,
+  BookOpenCheck,
   CalendarClock,
   ChevronLeft,
   ChevronRight,
   FileText,
   Folder as FolderIcon,
-  Play,
+  Gauge,
   Layers,
+  Play,
+  RotateCcw,
 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
 import { useAsync } from "@/hooks/use-async";
 import { learnerApi } from "@/lib/api/learner";
 import { analyticsApi } from "@/lib/api/revision";
@@ -30,22 +33,33 @@ import {
   type LearningContext,
 } from "@/lib/learning-context";
 import { cn } from "@/lib/utils";
-import { StatusBadge } from "@/features/academic/status";
+import { StatusBadge, statusLabel } from "@/features/academic/status";
 import { descendantIds } from "@/features/academic/tree";
 import { TAB_ICONS } from "./environment-shell";
 import { useScopedDocuments, useScopedMaterials } from "./scoped-materials";
 import { useLearningSpace, type LearningSpace } from "./space-provider";
-import { TONES } from "./tones";
 import type { Chapter, Folder } from "@/types/api";
+
+// ── shared look ──────────────────────────────────────────────────────────────
+
+/** Small uppercase label above a value, as on a scoreboard. */
+const CAPS = "text-[11px] font-semibold tracking-[0.12em] uppercase";
+/** The one bold call to action on a screen. */
+const CTA =
+  "bg-signature text-signature-ink focus-visible:ring-ring inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition hover:brightness-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]";
+/** A quieter pill next to it. */
+const PILL =
+  "hover:bg-muted focus-visible:ring-ring inline-flex h-11 items-center gap-2 rounded-full border px-5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none";
+const CARD = "bg-card rounded-2xl border";
+const CARD_LINK =
+  "bg-card hover:border-foreground/20 focus-visible:ring-ring rounded-2xl border transition-colors focus-visible:ring-2 focus-visible:outline-none";
 
 export function OverviewTab() {
   const space = useLearningSpace();
   return (
-    <div className="space-y-8">
-      <div className="grid gap-5 lg:grid-cols-3">
-        <ContinueCard space={space} />
-        <TodayCard space={space} />
-      </div>
+    <div className="space-y-10">
+      <StatTiles space={space} />
+      <ContinueCard space={space} />
       <ToolLauncher ctx={space.ctx} name={scopeName(space)} />
       {space.chapter ? <ChapterNeighbours space={space} /> : <StructurePreview space={space} />}
     </div>
@@ -57,23 +71,140 @@ const scopeName = (s: LearningSpace) => s.chapter?.title ?? s.folder?.name ?? s.
 function SectionTitle({
   id,
   children,
+  hint,
   action,
 }: {
   id: string;
   children: React.ReactNode;
+  hint?: string;
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-3 flex items-center justify-between gap-2">
-      <h2 id={id} className="text-base font-semibold tracking-tight">
-        {children}
-      </h2>
+    <div className="mb-4 flex items-end justify-between gap-3">
+      <div>
+        <h2 id={id} className="font-display text-xl font-semibold">
+          {children}
+        </h2>
+        {hint ? <p className="text-muted-foreground mt-0.5 text-sm">{hint}</p> : null}
+      </div>
       {action}
     </div>
   );
 }
 
-// ── Continue learning ────────────────────────────────────────────────────────
+// ── figures at a glance ─────────────────────────────────────────────────────
+
+function useDue(ctx: LearningContext) {
+  const scope = appliedScope("progress", ctx);
+  const analytics = useAsync(
+    () =>
+      analyticsApi.overview({
+        subject_id: scope.applied.subjectId,
+        chapter_id: scope.applied.chapterId,
+      }),
+    [scope.applied.subjectId, scope.applied.chapterId],
+  );
+  return { data: analytics.data, widened: scope.widened };
+}
+
+function Tile({
+  href,
+  icon: Icon,
+  label,
+  value,
+  hint,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  value: React.ReactNode;
+  hint?: string;
+}) {
+  return (
+    <Link href={href} className={cn(CARD_LINK, "group block p-4 sm:p-5")}>
+      <Icon className="text-primary h-4 w-4" aria-hidden="true" />
+      <p className={cn(CAPS, "text-muted-foreground mt-3")}>{label}</p>
+      <p className="font-display mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+      {hint ? <p className="text-muted-foreground mt-0.5 truncate text-xs">{hint}</p> : null}
+    </Link>
+  );
+}
+
+const Dash = () => <span className="text-muted-foreground">–</span>;
+
+function StatTiles({ space }: { space: LearningSpace }) {
+  const { ctx, scopedChapters, chapter } = space;
+  const docs = useScopedDocuments(1);
+  const materials = useScopedMaterials(1);
+  const due = useDue(ctx);
+  const a = due.data;
+  const total = scopedChapters.length;
+  const completed = scopedChapters.filter((c) => c.status === "completed").length;
+
+  return (
+    <section aria-label="At a glance" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {chapter ? (
+        <Tile
+          href={environmentHref(ctx, "progress")}
+          icon={BookOpenCheck}
+          label="Status"
+          value={statusLabel(chapter.status)}
+          hint="As you marked it"
+        />
+      ) : (
+        <Tile
+          href={environmentHref(ctx, "progress")}
+          icon={BookOpenCheck}
+          label="Chapters done"
+          value={
+            <>
+              {completed}
+              <span className="text-muted-foreground text-lg">/{total}</span>
+            </>
+          }
+          hint={total ? "As you marked them" : "No chapters yet"}
+        />
+      )}
+      <Tile
+        href={environmentHref(ctx, "revision")}
+        icon={CalendarClock}
+        label="Cards to review"
+        value={a ? a.due_today + a.overdue : <Dash />}
+        hint={a ? `${a.overdue} overdue${due.widened ? " · whole subject" : ""}` : undefined}
+      />
+      <Tile
+        href={environmentHref(ctx, "content")}
+        icon={FileText}
+        label="Documents"
+        value={docs.data ? docs.data.total : <Dash />}
+      />
+      {chapter ? (
+        <Tile
+          href={environmentHref(ctx, "progress")}
+          icon={Gauge}
+          label="Quiz average"
+          value={
+            a?.average_quiz_percentage != null ? (
+              `${Math.round(a.average_quiz_percentage)}%`
+            ) : (
+              <Dash />
+            )
+          }
+          hint={a ? `${a.quiz_attempts} attempts` : undefined}
+        />
+      ) : (
+        <Tile
+          href={environmentHref(ctx, "content")}
+          icon={Layers}
+          label="Study materials"
+          value={materials.data ? materials.data.total : <Dash />}
+        />
+      )}
+    </section>
+  );
+}
+
+// ── continue learning ───────────────────────────────────────────────────────
 
 /** The chapter to pick up next: the most recently touched in-progress one, else the first not started. */
 export function nextChapter(chapters: Chapter[]): { chapter: Chapter; resume: boolean } | null {
@@ -87,40 +218,41 @@ export function nextChapter(chapters: Chapter[]): { chapter: Chapter; resume: bo
   return notStarted[0] ? { chapter: notStarted[0], resume: false } : null;
 }
 
-/** Circular progress; the number in the middle is the real share of chapters marked completed. */
-function Ring({ pct, colour }: { pct: number; colour: string }) {
-  const r = 30;
+/** Progress ring with the real count in the middle ("1/3"), drawn in the signature colour. */
+function Ring({ done, total }: { done: number; total: number }) {
+  const pct = total ? done / total : 0;
+  const r = 42;
   const c = 2 * Math.PI * r;
   return (
     <div
-      className="relative h-20 w-20 shrink-0"
+      className="relative h-28 w-28 shrink-0"
       role="img"
-      aria-label={`${pct}% of chapters marked completed`}
+      aria-label={`${done} of ${total} chapters marked completed`}
     >
-      <svg viewBox="0 0 72 72" className="h-full w-full -rotate-90" aria-hidden="true">
+      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" aria-hidden="true">
         <circle
-          cx="36"
-          cy="36"
+          cx="50"
+          cy="50"
           r={r}
           fill="none"
-          strokeWidth="7"
-          className="stroke-black/5 dark:stroke-white/10"
+          strokeWidth="8"
+          className="stroke-foreground/10"
         />
         <circle
-          cx="36"
-          cy="36"
+          cx="50"
+          cy="50"
           r={r}
           fill="none"
-          strokeWidth="7"
+          strokeWidth="8"
           strokeLinecap="round"
-          stroke={colour}
+          className="stroke-signature transition-[stroke-dashoffset] duration-700 ease-out"
           strokeDasharray={c}
-          strokeDashoffset={c - (pct / 100) * c}
-          className="transition-[stroke-dashoffset] duration-700"
+          strokeDashoffset={c - pct * c}
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-base font-semibold tabular-nums">
-        {pct}%
+      <span className="font-display absolute inset-0 flex items-center justify-center text-2xl font-semibold tabular-nums">
+        {done}
+        <span className="text-muted-foreground text-base">/{total}</span>
       </span>
     </div>
   );
@@ -131,7 +263,6 @@ function ContinueCard({ space }: { space: LearningSpace }) {
   const mastery = useMastery(ctx);
   const total = scopedChapters.length;
   const completed = scopedChapters.filter((c) => c.status === "completed").length;
-  const pct = total ? Math.round((completed / total) * 100) : 0;
   const next = chapter ? null : nextChapter(scopedChapters);
   const chapterHref = (c: Chapter) =>
     environmentHref(
@@ -142,11 +273,17 @@ function ContinueCard({ space }: { space: LearningSpace }) {
   return (
     <section
       aria-labelledby="continue-heading"
-      className="bg-card relative rounded-xl border p-6 lg:col-span-2"
+      className={cn(CARD, "relative overflow-hidden p-6 sm:p-8")}
     >
-      <div className="flex items-start justify-between gap-4">
+      {/* a soft lamp-light in the corner; decoration only */}
+      <div
+        className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full opacity-70 blur-3xl"
+        style={{ background: "var(--glow)" }}
+        aria-hidden="true"
+      />
+      <div className="relative flex flex-col-reverse gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
-          <h2 id="continue-heading" className="text-muted-foreground text-sm font-medium">
+          <h2 id="continue-heading" className={cn(CAPS, "text-primary")}>
             {chapter
               ? "Study this chapter"
               : next?.resume
@@ -156,71 +293,65 @@ function ContinueCard({ space }: { space: LearningSpace }) {
 
           {chapter ? (
             <>
-              <p className="mt-1 text-xl font-semibold tracking-tight">{chapter.title}</p>
+              <p className="font-display mt-2 text-3xl font-semibold">{chapter.title}</p>
               <p className="text-muted-foreground mt-1 text-sm">
                 Every tool below already uses this chapter as its context.
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link
-                  href={environmentHref(ctx, "tutor")}
-                  className={buttonVariants({ size: "lg" })}
-                >
-                  <Play aria-hidden="true" />
+              <div className="mt-6 flex flex-wrap gap-2">
+                <Link href={environmentHref(ctx, "tutor")} className={CTA}>
+                  <Play className="h-4 w-4" aria-hidden="true" />
                   Start studying
                 </Link>
-                <Link
-                  href={environmentHref(ctx, "revision")}
-                  className={buttonVariants({ variant: "outline", size: "lg" })}
-                >
+                <Link href={environmentHref(ctx, "revision")} className={PILL}>
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
                   Revise
                 </Link>
               </div>
             </>
           ) : next ? (
             <>
-              <p className="mt-1 truncate text-xl font-semibold tracking-tight">
+              <p className="font-display mt-2 truncate text-3xl font-semibold">
                 {next.chapter.title}
               </p>
-              {folderName(next.chapter) ? (
-                <p className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-sm">
-                  <FolderIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                  {folderName(next.chapter)}
-                </p>
-              ) : null}
-              <Link
-                href={chapterHref(next.chapter)}
-                className={cn(buttonVariants({ size: "lg" }), "mt-4")}
-              >
-                <Play aria-hidden="true" />
-                {next.resume ? "Continue" : "Start"}
-              </Link>
+              <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
+                {folderName(next.chapter) ? (
+                  <>
+                    <FolderIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {folderName(next.chapter)}
+                  </>
+                ) : (
+                  "Next chapter"
+                )}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <Link href={chapterHref(next.chapter)} className={CTA}>
+                  <Play className="h-4 w-4" aria-hidden="true" />
+                  {next.resume ? "Continue" : "Start"}
+                </Link>
+                <Link href={environmentHref(ctx, "revision")} className={PILL}>
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                  Revise
+                </Link>
+              </div>
             </>
           ) : (
-            <p className="mt-2 text-sm">
+            <p className="font-display mt-2 text-2xl font-semibold">
               {total === 0
-                ? "Add your first chapter from the Content tab to get started."
-                : "Every chapter here is marked completed. Revise to keep it fresh."}
+                ? "Add your first chapter to get started"
+                : "Every chapter here is marked completed"}
             </p>
           )}
         </div>
-        {!chapter && total > 0 ? <Ring pct={pct} colour="var(--primary)" /> : null}
+        {!chapter && total > 0 ? <Ring done={completed} total={total} /> : null}
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-black/5 pt-4 text-sm dark:border-white/10">
-        {!chapter && total > 0 ? (
-          <span className="text-muted-foreground">
-            <span className="text-foreground font-semibold tabular-nums">
-              {completed}/{total}
-            </span>{" "}
-            chapters marked completed
-          </span>
-        ) : null}
+      <div className="relative mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t pt-4 text-sm">
         <Link
           href={environmentHref(ctx, "intelligence")}
           className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
         >
           Understanding{mastery.widened ? " (subject)" : ""}:{" "}
-          <span className="text-foreground font-semibold">
+          <span className="text-foreground font-medium">
             {mastery.loading
               ? "…"
               : mastery.assessed
@@ -250,114 +381,7 @@ function useMastery(ctx: LearningContext) {
   };
 }
 
-// ── Today ────────────────────────────────────────────────────────────────────
-
-function TodayCard({ space }: { space: LearningSpace }) {
-  const { ctx } = space;
-  const docs = useScopedDocuments(1);
-  const materials = useScopedMaterials(1);
-  const progressScope = appliedScope("progress", ctx);
-  const analytics = useAsync(
-    () =>
-      analyticsApi.overview({
-        subject_id: progressScope.applied.subjectId,
-        chapter_id: progressScope.applied.chapterId,
-      }),
-    [progressScope.applied.subjectId, progressScope.applied.chapterId],
-  );
-  const a = analytics.data;
-  const due = a ? a.due_today + a.overdue : null;
-
-  return (
-    <section
-      aria-labelledby="today-heading"
-      className="bg-card flex flex-col rounded-xl border p-6"
-    >
-      <h2 id="today-heading" className="text-muted-foreground text-sm font-medium">
-        Today{progressScope.widened ? " · whole subject" : ""}
-      </h2>
-      <div className="mt-2 flex items-center gap-3">
-        <span
-          className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-md",
-            TONES.revision.chip,
-          )}
-        >
-          <CalendarClock className={cn("h-4 w-4", TONES.revision.icon)} aria-hidden="true" />
-        </span>
-        <div>
-          <p className="text-2xl font-semibold tabular-nums">{due ?? "–"}</p>
-          <p className="text-muted-foreground text-xs">
-            {a ? `cards to review · ${a.overdue} overdue` : "cards to review"}
-          </p>
-        </div>
-      </div>
-      <Link
-        href={environmentHref(ctx, "revision")}
-        className={cn(buttonVariants({ variant: "secondary" }), "mt-4 w-full")}
-      >
-        {due ? "Revise now" : "Open revision"}
-      </Link>
-
-      <dl className="mt-auto grid grid-cols-2 gap-3 pt-5 text-sm">
-        <Mini
-          href={environmentHref(ctx, "content")}
-          icon={FileText}
-          tone={TONES.content}
-          label="Documents"
-          value={docs.data?.total}
-        />
-        <Mini
-          href={environmentHref(ctx, "content")}
-          icon={Layers}
-          tone={TONES.tutor}
-          label="Materials"
-          value={materials.data?.total}
-        />
-      </dl>
-      {space.chapter && a?.average_quiz_percentage != null ? (
-        <p className="text-muted-foreground mt-3 text-xs">
-          Average quiz score here:{" "}
-          <span className="text-foreground font-semibold">
-            {Math.round(a.average_quiz_percentage)}%
-          </span>{" "}
-          over {a.quiz_attempts} attempts
-        </p>
-      ) : null}
-    </section>
-  );
-}
-
-function Mini({
-  href,
-  icon: Icon,
-  tone,
-  label,
-  value,
-}: {
-  href: string;
-  icon: React.ElementType;
-  tone: (typeof TONES)[keyof typeof TONES];
-  label: string;
-  value: number | undefined;
-}) {
-  return (
-    <Link
-      href={href}
-      className="hover:bg-muted/60 -m-1 flex items-center gap-2 rounded-md p-1 transition-colors"
-    >
-      <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg", tone.chip)}>
-        <Icon className={cn("h-4 w-4", tone.icon)} aria-hidden="true" />
-      </span>
-      <span>
-        <dt className="text-muted-foreground text-xs">{label}</dt>
-        <dd className="font-semibold tabular-nums">{value ?? "–"}</dd>
-      </span>
-    </Link>
-  );
-}
-
-// ── Tools ────────────────────────────────────────────────────────────────────
+// ── tools ───────────────────────────────────────────────────────────────────
 
 const TOOL_COPY: Record<ContextTool, { title: string; text: (name: string) => string }> = {
   tutor: { title: "AI Tutor", text: (n) => `Ask anything about ${n}` },
@@ -371,39 +395,35 @@ const TOOL_COPY: Record<ContextTool, { title: string; text: (name: string) => st
 function ToolLauncher({ ctx, name }: { ctx: LearningContext; name: string }) {
   return (
     <section aria-labelledby="tools-heading">
-      <SectionTitle id="tools-heading">Learning tools</SectionTitle>
+      <SectionTitle id="tools-heading" hint="Each one already knows where you are.">
+        Learning tools
+      </SectionTitle>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {(Object.keys(TOOL_COPY) as ContextTool[]).map((tool) => {
           const Icon = TAB_ICONS[tool];
-          const tone = TONES[tool];
           const { widened, applied } = appliedScope(tool, ctx);
           return (
             <li key={tool}>
               <Link
                 href={environmentHref(ctx, tool)}
-                className="group bg-card focus-visible:ring-ring hover:bg-muted/40 hover:border-foreground/20 flex h-full items-center gap-3 rounded-lg border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                className={cn(CARD_LINK, "group flex h-full items-start gap-4 p-5")}
               >
-                <span
-                  className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
-                    tone.chip,
-                  )}
-                >
-                  <Icon className={cn("h-4 w-4", tone.icon)} aria-hidden="true" />
+                <span className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                  <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold">{TOOL_COPY[tool].title}</span>
-                  <span className="text-muted-foreground block truncate text-sm">
+                  <span className="font-display block font-semibold">{TOOL_COPY[tool].title}</span>
+                  <span className="text-muted-foreground mt-0.5 block text-sm">
                     {TOOL_COPY[tool].text(name)}
                   </span>
                   {widened ? (
-                    <span className="text-muted-foreground mt-0.5 block text-[11px]">
+                    <span className={cn(CAPS, "text-muted-foreground mt-2 block text-[10px]")}>
                       Shows the {applied.scope} level
                     </span>
                   ) : null}
                 </span>
                 <ArrowRight
-                  className="text-muted-foreground h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5"
+                  className="text-muted-foreground group-hover:text-foreground mt-1 h-4 w-4 shrink-0 transition group-hover:translate-x-0.5"
                   aria-hidden="true"
                 />
               </Link>
@@ -415,7 +435,7 @@ function ToolLauncher({ ctx, name }: { ctx: LearningContext; name: string }) {
   );
 }
 
-// ── Structure ────────────────────────────────────────────────────────────────
+// ── structure ───────────────────────────────────────────────────────────────
 
 function StructurePreview({ space }: { space: LearningSpace }) {
   const { ctx, subject, folders, chapters, folder } = space;
@@ -441,12 +461,14 @@ function StructurePreview({ space }: { space: LearningSpace }) {
     <section aria-labelledby="structure-preview">
       <SectionTitle
         id="structure-preview"
+        hint={folder ? undefined : "Open a folder or chapter to focus on it."}
         action={
           <Link
             href={environmentHref(ctx, "content")}
-            className="text-primary text-sm font-medium hover:underline"
+            className="hover:bg-muted inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors"
           >
             Manage content
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         }
       >
@@ -458,28 +480,31 @@ function StructurePreview({ space }: { space: LearningSpace }) {
           const pct = s.total ? Math.round((s.done / s.total) * 100) : 0;
           return (
             <li key={f.id}>
-              <Link
-                href={at({ folderId: f.id })}
-                className="bg-card focus-visible:ring-ring group hover:border-foreground/20 block rounded-lg border p-4 transition-all focus-visible:ring-2 focus-visible:outline-none"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-md">
-                    <FolderIcon className="text-muted-foreground h-4 w-4" aria-hidden="true" />
+              <Link href={at({ folderId: f.id })} className={cn(CARD_LINK, "group block p-5")}>
+                <span className="flex items-start justify-between gap-3">
+                  <span className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                    <FolderIcon
+                      className="text-muted-foreground h-[18px] w-[18px]"
+                      aria-hidden="true"
+                    />
                   </span>
-                  <span className="min-w-0">
-                    <span className="block truncate font-semibold">{f.name}</span>
-                    <span className="text-muted-foreground block text-xs">
-                      {s.total} {s.total === 1 ? "chapter" : "chapters"} · {s.done} completed
-                    </span>
+                  <span className={cn(CAPS, "text-muted-foreground tabular-nums")}>
+                    {s.done}/{s.total} done
                   </span>
                 </span>
+                <span className="font-display mt-4 block truncate text-lg font-semibold">
+                  {f.name}
+                </span>
+                <span className="text-muted-foreground block text-sm">
+                  {s.total} {s.total === 1 ? "chapter" : "chapters"}
+                </span>
                 <span
-                  className="bg-muted mt-3 block h-1.5 overflow-hidden rounded-full"
+                  className="bg-muted mt-4 block h-1.5 overflow-hidden rounded-full"
                   aria-hidden="true"
                 >
                   <span
-                    className="block h-full rounded-full"
-                    style={{ width: `${pct}%`, backgroundColor: "var(--primary)" }}
+                    className="bg-signature block h-full rounded-full transition-[width] duration-700"
+                    style={{ width: `${pct}%` }}
                   />
                 </span>
               </Link>
@@ -490,17 +515,12 @@ function StructurePreview({ space }: { space: LearningSpace }) {
           <li key={c.id}>
             <Link
               href={at({ chapterId: c.id })}
-              className="bg-card focus-visible:ring-ring hover:border-foreground/20 flex items-center gap-3 rounded-lg border p-4 transition-all focus-visible:ring-2 focus-visible:outline-none"
+              className={cn(CARD_LINK, "flex h-full items-center gap-3 p-5")}
             >
-              <span
-                className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
-                  TONES.content.chip,
-                )}
-              >
-                <FileText className={cn("h-4 w-4", TONES.content.icon)} aria-hidden="true" />
+              <span className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                <FileText className="text-muted-foreground h-[18px] w-[18px]" aria-hidden="true" />
               </span>
-              <span className="min-w-0 flex-1 truncate font-semibold">{c.title}</span>
+              <span className="font-display min-w-0 flex-1 truncate font-semibold">{c.title}</span>
               <StatusBadge status={c.status} />
             </Link>
           </li>
@@ -525,16 +545,15 @@ function ChapterNeighbours({ space }: { space: LearningSpace }) {
     environmentHref(
       makeContext({ workspaceId: ctx.workspaceId, subjectId: subject.id, chapterId: c.id }),
     );
-  const card =
-    "bg-card focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-3 rounded-lg border p-4 transition-all hover:border-foreground/20 focus-visible:ring-2 focus-visible:outline-none";
+  const card = cn(CARD_LINK, "flex min-w-0 flex-1 items-center gap-3 p-5");
   return (
     <nav aria-label="Chapter navigation" className="flex flex-col gap-3 sm:flex-row">
       {prev ? (
         <Link href={href(prev)} className={card}>
           <ChevronLeft className="text-muted-foreground h-5 w-5 shrink-0" aria-hidden="true" />
           <span className="min-w-0">
-            <span className="text-muted-foreground block text-xs">Previous chapter</span>
-            <span className="block truncate font-semibold">{prev.title}</span>
+            <span className={cn(CAPS, "text-muted-foreground block")}>Previous</span>
+            <span className="font-display block truncate font-semibold">{prev.title}</span>
           </span>
         </Link>
       ) : (
@@ -543,8 +562,8 @@ function ChapterNeighbours({ space }: { space: LearningSpace }) {
       {next ? (
         <Link href={href(next)} className={cn(card, "justify-end text-right")}>
           <span className="min-w-0">
-            <span className="text-muted-foreground block text-xs">Next chapter</span>
-            <span className="block truncate font-semibold">{next.title}</span>
+            <span className={cn(CAPS, "text-muted-foreground block")}>Next</span>
+            <span className="font-display block truncate font-semibold">{next.title}</span>
           </span>
           <ChevronRight className="text-muted-foreground h-5 w-5 shrink-0" aria-hidden="true" />
         </Link>

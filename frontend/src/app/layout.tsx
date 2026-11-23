@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
+const inter = Inter({
   variable: "--font-sans",
+  subsets: ["latin"],
+});
+
+/** Headings and big numbers. */
+const grotesk = Space_Grotesk({
+  variable: "--font-display",
   subsets: ["latin"],
 });
 
@@ -17,16 +23,14 @@ export const metadata: Metadata = {
   description: "Your personal academic intelligence workspace.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     // The font variables live on <html> because globals.css sets `html { font-family: var(--font-sans) }`;
     // on <body> the variable was undefined where it is read and every page fell back to a serif font.
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${inter.variable} ${grotesk.variable} ${geistMono.variable}`}
     >
       <head>
         {/* Inline theme script: apply class before first paint to avoid flash (D-36) */}
@@ -36,9 +40,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">
-        {children}
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

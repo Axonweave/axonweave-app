@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { Brand } from "./brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -165,24 +166,14 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
   return (
     <aside
       className={cn(
-        "border-border bg-sidebar text-sidebar-foreground flex h-full flex-col border-r transition-[width] duration-200",
+        "bg-sidebar text-sidebar-foreground flex h-full flex-col transition-[width] duration-200",
         collapsed ? "w-14" : "w-64",
         className,
       )}
     >
       {/* Brand */}
-      <div className="flex h-14 items-center justify-between px-3">
-        {!collapsed && (
-          <span className="flex items-center gap-2">
-            <span
-              className="bg-foreground text-background flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-semibold"
-              aria-hidden="true"
-            >
-              A
-            </span>
-            <span className="text-sm font-semibold tracking-tight">Axonweave</span>
-          </span>
-        )}
+      <div className="flex h-16 items-center justify-between px-3">
+        {!collapsed && <Brand />}
         <Button
           variant="ghost"
           size="icon"

@@ -9,7 +9,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-display);
+  --font-display: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -29,6 +30,11 @@
   --color-destructive: var(--destructive);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-signature: var(--signature);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-signature-ink: var(--signature-ink);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -51,81 +57,93 @@
 }
 
 /*
- * Colour system "Graphite + Cobalt". Neutral graphite surfaces and hairline borders; one cobalt
- * accent for actions, focus and selection. Colour otherwise only carries meaning: status
- * (success / warning / destructive) and the learner's own subject colours.
+ * Colour system "Night library": dark-first, near-black surfaces in three steps, hairline lines,
+ * and one signature colour (electric mint) used boldly for the main action, the current place and
+ * progress. Status colours carry meaning only. A matching light theme keeps the same structure.
  */
 :root {
   --background: #ffffff;
-  --foreground: #18181b;
+  --foreground: #0d1412;
   --card: #ffffff;
-  --card-foreground: #18181b;
+  --card-foreground: #0d1412;
   --popover: #ffffff;
-  --popover-foreground: #18181b;
-  --primary: #2f5bea;
+  --popover-foreground: #0d1412;
+  --primary: #0b8a64;
   --primary-foreground: #ffffff;
+  --signature: #5ef2c2;
+  --signature-ink: #04130d;
+  --brand: #18181b;
+  --brand-ink: #ffffff;
   --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
+  --secondary-foreground: #0d1412;
   --muted: #f4f4f5;
   --muted-foreground: #6b6b74;
   --accent: #f1f1f3;
-  --accent-foreground: #18181b;
-  --destructive: #dc2626;
-  --success: #16a34a;
-  --warning: #d97706;
-  --border: #e7e7ea;
-  --input: #e2e2e6;
-  --ring: #2f5bea;
-  --chart-1: #2f5bea;
-  --chart-2: #0e9f8e;
-  --chart-3: #d97706;
-  --chart-4: #7c8495;
-  --chart-5: #dc2626;
-  --radius: 0.5rem;
-  --sidebar: #f8f8f9;
-  --sidebar-foreground: #3f3f46;
-  --sidebar-primary: #2f5bea;
+  --accent-foreground: #0d1412;
+  --destructive: #d6293e;
+  --success: #0b8a64;
+  --warning: #c27400;
+  --info: #1f6fd1;
+  --border: rgb(10 20 15 / 0.09);
+  --input: rgb(10 20 15 / 0.14);
+  --ring: #0b8a64;
+  --glow: rgb(46 200 150 / 0.16);
+  --chart-1: #0b8a64;
+  --chart-2: #1f6fd1;
+  --chart-3: #c27400;
+  --chart-4: #7c8a84;
+  --chart-5: #d6293e;
+  --radius: 0.75rem;
+  --sidebar: #f4f4f5;
+  --sidebar-foreground: #2c3633;
+  --sidebar-primary: #0b8a64;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ececef;
-  --sidebar-accent-foreground: #18181b;
-  --sidebar-border: #e7e7ea;
-  --sidebar-ring: #2f5bea;
+  --sidebar-accent: #e7e7ea;
+  --sidebar-accent-foreground: #0d1412;
+  --sidebar-border: rgb(10 20 15 / 0.08);
+  --sidebar-ring: #0b8a64;
 }
 
 .dark {
-  --background: #0b0b0d;
-  --foreground: #ededef;
-  --card: #121215;
-  --card-foreground: #ededef;
-  --popover: #16161a;
-  --popover-foreground: #ededef;
-  --primary: #5b82f5;
-  --primary-foreground: #0b0b0d;
-  --secondary: #1c1c20;
-  --secondary-foreground: #ededef;
-  --muted: #1c1c20;
-  --muted-foreground: #9a9aa3;
-  --accent: #1f1f24;
-  --accent-foreground: #ededef;
-  --destructive: #f05252;
-  --success: #34c27a;
-  --warning: #f0a33a;
-  --border: #232327;
-  --input: #2a2a2f;
-  --ring: #5b82f5;
-  --chart-1: #5b82f5;
-  --chart-2: #2cc4b0;
-  --chart-3: #f0a33a;
-  --chart-4: #8b93a5;
-  --chart-5: #f05252;
-  --sidebar: #111113;
-  --sidebar-foreground: #c8c8cf;
-  --sidebar-primary: #5b82f5;
-  --sidebar-primary-foreground: #0b0b0d;
-  --sidebar-accent: #1c1c20;
-  --sidebar-accent-foreground: #ededef;
-  --sidebar-border: #1e1e22;
-  --sidebar-ring: #5b82f5;
+  --background: #07090a;
+  --foreground: #eef3f1;
+  --card: #0e1214;
+  --card-foreground: #eef3f1;
+  --popover: #12171a;
+  --popover-foreground: #eef3f1;
+  --primary: #5ef2c2;
+  --primary-foreground: #04130d;
+  --signature: #5ef2c2;
+  --signature-ink: #04130d;
+  --brand: #ededef;
+  --brand-ink: #18181b;
+  --secondary: #17171a;
+  --secondary-foreground: #eef3f1;
+  --muted: #17171a;
+  --muted-foreground: #8a9792;
+  --accent: #1c1c20;
+  --accent-foreground: #eef3f1;
+  --destructive: #ff6b7a;
+  --success: #5ef2c2;
+  --warning: #ffb547;
+  --info: #6cb8ff;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.13);
+  --ring: #5ef2c2;
+  --glow: rgb(94 242 194 / 0.13);
+  --chart-1: #5ef2c2;
+  --chart-2: #6cb8ff;
+  --chart-3: #ffb547;
+  --chart-4: #8a9792;
+  --chart-5: #ff6b7a;
+  --sidebar: #0c0c0e;
+  --sidebar-foreground: #c9d3cf;
+  --sidebar-primary: #5ef2c2;
+  --sidebar-primary-foreground: #04130d;
+  --sidebar-accent: #151b1e;
+  --sidebar-accent-foreground: #eef3f1;
+  --sidebar-border: rgb(255 255 255 / 0.06);
+  --sidebar-ring: #5ef2c2;
 }
 
 @layer base {
@@ -142,13 +160,14 @@
 
 @layer base {
   body {
-    font-feature-settings: "cv11", "ss01";
     text-rendering: optimizeLegibility;
   }
   h1,
   h2,
-  h3 {
-    letter-spacing: -0.011em;
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
   ::selection {
     background: color-mix(in oklab, var(--primary) 22%, transparent);
@@ -164,4 +183,9 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Soft light behind the top of a page, like a reading lamp. */
+.page-glow {
+  background: radial-gradient(900px 360px at 30% -80px, var(--glow), transparent 70%);
 }
