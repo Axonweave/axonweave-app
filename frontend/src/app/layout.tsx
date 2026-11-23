@@ -21,7 +21,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    // The font variables live on <html> because globals.css sets `html { font-family: var(--font-sans) }`;
+    // on <body> the variable was undefined where it is read and every page fell back to a serif font.
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
       <head>
         {/* Inline theme script: apply class before first paint to avoid flash (D-36) */}
         <script
@@ -30,7 +36,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className="antialiased">
         {children}
       </body>
     </html>
