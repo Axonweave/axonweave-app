@@ -8,7 +8,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUp, MessageSquare, Sparkles } from "lucide-react";
+import { ArrowUp, MessageSquare } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { AsyncSection } from "@/components/ui/async-section";
 import { useAsync } from "@/hooks/use-async";
@@ -54,10 +54,7 @@ export function TutorTab() {
 
   return (
     <div className="space-y-6">
-      <section
-        aria-labelledby="ask-heading"
-        className="border-border from-primary/5 rounded-2xl border bg-gradient-to-br to-transparent p-5 sm:p-8"
-      >
+      <section aria-labelledby="ask-heading" className="bg-card rounded-xl border p-5 sm:p-6">
         <h2 id="ask-heading" className="text-xl font-semibold tracking-tight">
           Ask anything about {name}
         </h2>
@@ -77,7 +74,7 @@ export function TutorTab() {
         ) : (
           <>
             <form
-              className="border-border bg-background focus-within:ring-ring/50 mt-4 flex items-end gap-2 rounded-xl border p-2 shadow-sm focus-within:ring-3"
+              className="border-border bg-background focus-within:ring-ring/50 mt-4 flex items-end gap-2 rounded-lg border p-2 focus-within:ring-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 ask(q);
@@ -113,7 +110,6 @@ export function TutorTab() {
                     onClick={() => ask(s)}
                     className="border-border bg-background hover:bg-muted focus-visible:ring-ring inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
                   >
-                    <Sparkles className="text-primary h-3 w-3" aria-hidden="true" />
                     {s}
                   </button>
                 </li>

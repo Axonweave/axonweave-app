@@ -20,7 +20,7 @@ import {
   MessagesSquare,
   Plus,
   Search,
-  Sparkles,
+  WandSparkles,
   Upload,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -51,7 +51,6 @@ import { GenerateDialog } from "@/features/study/generate-dialog";
 import { StatusBadge } from "@/features/academic/status";
 import { openCommandPalette } from "./command-palette-events";
 import { useLearningSpace, useSpaceState, type LearningSpace } from "./space-provider";
-import { TONES } from "./tones";
 import { roomHref } from "@/features/workspaces/current-workspace";
 
 export const TAB_ICONS: Record<EnvironmentTab, React.ElementType> = {
@@ -106,7 +105,7 @@ function ReadyShell({ children }: { children: React.ReactNode }) {
   const tab = activeTab(pathname, base);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
+    <div className="mx-auto max-w-6xl space-y-6">
       <EnvironmentHeader space={space} tab={tab} />
       <TabBar ctx={space.ctx} tab={tab} />
       <div key={tab} className="animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
@@ -118,8 +117,8 @@ function ReadyShell({ children }: { children: React.ReactNode }) {
 
 // ── Header ───────────────────────────────────────────────────────────────────
 
-/** Subjects without a chosen colour use the brand indigo, never grey. */
-export const DEFAULT_SUBJECT_COLOUR = "#6366f1";
+/** Subjects without a chosen colour get a quiet slate. */
+export const DEFAULT_SUBJECT_COLOUR = "#7c8495";
 
 function EnvironmentHeader({ space, tab }: { space: LearningSpace; tab: EnvironmentTab }) {
   const { ctx, subject, folder, chapter, scopedChapters, scopedFolders } = space;
@@ -134,85 +133,58 @@ function EnvironmentHeader({ space, tab }: { space: LearningSpace; tab: Environm
   const chapterCount = folder ? scopedChapters.length : space.chapterTotal;
 
   return (
-    <header className="bg-card relative overflow-hidden rounded-3xl border shadow-sm">
-      {/* colour band: the subject's own colour carries through every level below it */}
-      <div
-        className="h-20 sm:h-24"
-        style={{
-          backgroundImage: `linear-gradient(120deg, color-mix(in oklch, ${colour} 55%, white) 0%, color-mix(in oklch, ${colour} 25%, white) 55%, color-mix(in oklch, ${colour} 8%, white) 100%)`,
-        }}
-        aria-hidden="true"
-      />
-      <div className="px-5 pb-5 sm:px-7 sm:pb-6">
-        <div className="-mt-9 flex flex-wrap items-end justify-between gap-4 sm:-mt-10">
+    <header className="space-y-4 pt-1">
+      <ScopeTrail space={space} tab={tab} />
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
           <span
-            className="bg-card flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl p-1 text-2xl shadow-md sm:h-[72px] sm:w-[72px]"
+            className="bg-card mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-lg"
             aria-hidden="true"
           >
-            <span
-              className="flex h-full w-full items-center justify-center rounded-xl"
-              style={{ backgroundColor: `color-mix(in oklch, ${colour} 16%, transparent)` }}
-            >
-              {!folder && !chapter && subject.icon ? (
-                subject.icon
-              ) : (
-                <ScopeIcon className="h-7 w-7" style={{ color: colour }} />
-              )}
-            </span>
-          </span>
-          <div className="flex items-center gap-2 pb-1">
-            <Link
-              href={
-                roomHref(ctx.workspaceId, subject.id) + (chapter ? `?chapter=${chapter.id}` : "")
-              }
-              className={buttonVariants({ size: "lg" })}
-            >
-              <MessagesSquare aria-hidden="true" />
-              {chapter ? "Study this chapter" : "Open study room"}
-            </Link>
-            <AddMenu space={space} />
-          </div>
-        </div>
-
-        <div className="mt-3 min-w-0">
-          <ScopeTrail space={space} tab={tab} />
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">{title}</h1>
-            <span
-              className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase"
-              style={{
-                backgroundColor: `color-mix(in oklch, ${colour} 14%, transparent)`,
-                color: `color-mix(in oklch, ${colour} 70%, black)`,
-              }}
-            >
-              {SCOPE_LABELS[ctx.scope]}
-            </span>
-            {chapter ? <StatusBadge status={chapter.status} /> : null}
-          </div>
-          {description ? (
-            <p className="text-muted-foreground mt-1 line-clamp-2 max-w-2xl text-sm break-words">
-              {description}
-            </p>
-          ) : null}
-          <p className="text-muted-foreground mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-            {chapter ? (
-              <span className="inline-flex items-center gap-1.5">
-                <FolderIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                {space.path.length ? space.path.map((f) => f.name).join(" / ") : "Not in a folder"}
-              </span>
+            {!folder && !chapter && subject.icon ? (
+              subject.icon
             ) : (
-              <>
+              <ScopeIcon className="h-5 w-5" style={{ color: colour }} />
+            )}
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight break-words">{title}</h1>
+              <span className="text-muted-foreground inline-flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 text-[11px] font-medium">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: colour }} />
+                {SCOPE_LABELS[ctx.scope]}
+              </span>
+              {chapter ? <StatusBadge status={chapter.status} /> : null}
+            </div>
+            <p className="text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm">
+              {description ? (
+                <span className="line-clamp-1 max-w-xl break-words">{description}</span>
+              ) : null}
+              {chapter ? (
                 <span className="inline-flex items-center gap-1.5">
                   <FolderIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                  {scopedFolders.length} {scopedFolders.length === 1 ? "folder" : "folders"}
+                  {space.path.length
+                    ? space.path.map((f) => f.name).join(" / ")
+                    : "Not in a folder"}
                 </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+              ) : (
+                <span className="tabular-nums">
+                  {scopedFolders.length} {scopedFolders.length === 1 ? "folder" : "folders"} ·{" "}
                   {chapterCount} {chapterCount === 1 ? "chapter" : "chapters"}
                 </span>
-              </>
-            )}
-          </p>
+              )}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <AddMenu space={space} />
+          <Link
+            href={roomHref(ctx.workspaceId, subject.id) + (chapter ? `?chapter=${chapter.id}` : "")}
+            className={buttonVariants()}
+          >
+            <MessagesSquare aria-hidden="true" />
+            {chapter ? "Study this chapter" : "Open study room"}
+          </Link>
         </div>
       </div>
     </header>
@@ -234,7 +206,7 @@ function AddMenu({ space }: { space: LearningSpace }) {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="outline" size="lg" />}>
+        <DropdownMenuTrigger render={<Button variant="outline" />}>
           <Plus aria-hidden="true" />
           Add
         </DropdownMenuTrigger>
@@ -247,7 +219,7 @@ function AddMenu({ space }: { space: LearningSpace }) {
             </span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setGenerating(true)}>
-            <Sparkles aria-hidden="true" />
+            <WandSparkles aria-hidden="true" />
             <span className="flex flex-col">
               <span>Generate study material</span>
               <span className="text-muted-foreground text-xs">Summary, flashcards or a quiz</span>
@@ -410,17 +382,16 @@ function ScopeSwitcher({ space, tab }: { space: LearningSpace; tab: EnvironmentT
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
 
-/** Pill tabs, each in its tool's colour, so the eye finds a tool without reading every label. */
+/** Underline tabs: quiet when idle, one clear marker for the current section. */
 function TabBar({ ctx, tab }: { ctx: LearningContext; tab: EnvironmentTab }) {
   return (
     <nav
       aria-label={`${SCOPE_LABELS[ctx.scope]} sections`}
-      className="bg-background/85 supports-[backdrop-filter]:bg-background/70 sticky -top-6 z-20 -mx-6 px-6 py-2 backdrop-blur-md"
+      className="bg-background/90 supports-[backdrop-filter]:bg-background/75 sticky -top-6 z-20 -mx-6 border-b px-6 backdrop-blur"
     >
-      <ul className="bg-card flex [scrollbar-width:none] gap-1 overflow-x-auto rounded-2xl border p-1 shadow-xs">
+      <ul className="-mb-px flex [scrollbar-width:none] gap-5 overflow-x-auto">
         {ENVIRONMENT_TABS.map((t) => {
           const Icon = TAB_ICONS[t.id];
-          const tone = TONES[t.id];
           const current = t.id === tab;
           return (
             <li key={t.id} className="shrink-0">
@@ -428,13 +399,13 @@ function TabBar({ ctx, tab }: { ctx: LearningContext; tab: EnvironmentTab }) {
                 href={environmentHref(ctx, t.id)}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "focus-visible:ring-ring flex items-center gap-2 rounded-xl px-3 py-2 text-sm whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:outline-none",
+                  "focus-visible:ring-ring flex items-center gap-1.5 border-b-2 py-2.5 text-sm whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:outline-none",
                   current
-                    ? cn(tone.active, "font-semibold")
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "border-foreground text-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground border-transparent",
                 )}
               >
-                <Icon className={cn("h-4 w-4", !current && tone.icon)} aria-hidden="true" />
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 {t.label}
               </Link>
             </li>

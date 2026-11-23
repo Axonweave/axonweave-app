@@ -28,7 +28,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { openCommandPalette } from "@/features/learning-spaces/command-palette-events";
-import { TONE_BY_HREF } from "@/features/learning-spaces/tones";
 import { SidebarWorkspace } from "@/features/workspaces/sidebar-workspace";
 
 interface NavItem {
@@ -176,7 +175,7 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
         {!collapsed && (
           <span className="flex items-center gap-2">
             <span
-              className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white shadow-sm"
+              className="bg-foreground text-background flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-semibold"
               aria-hidden="true"
             >
               A
@@ -204,7 +203,7 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
           onClick={() => openCommandPalette()}
           aria-label="Quick search"
           className={cn(
-            "border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/40 focus-visible:ring-ring flex h-9 w-full items-center gap-2 rounded-xl border text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:outline-none",
+            "border-border bg-background text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-8 w-full items-center gap-2 rounded-md border text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
             collapsed ? "justify-center" : "px-2",
           )}
         >
@@ -310,7 +309,6 @@ function NavSection({
       {items.map((item) => {
         const active = !item.disabled && isNavActive(pathname, item.href);
         const Icon = item.icon;
-        const tone = TONE_BY_HREF[item.href];
         return (
           <li key={item.href + item.label}>
             <Link
@@ -321,22 +319,17 @@ function NavSection({
               className={cn(
                 "flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors",
                 active
-                  ? cn(
-                      tone?.active ?? "bg-sidebar-accent text-sidebar-accent-foreground",
-                      "font-semibold",
-                    )
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                   : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-foreground",
                 item.disabled && "pointer-events-none opacity-40",
               )}
             >
-              <span
+              <Icon
                 className={cn(
-                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
-                  tone ? tone.chip : active && "bg-primary/10",
+                  "h-4 w-4 shrink-0",
+                  active ? "text-foreground" : "text-muted-foreground",
                 )}
-              >
-                <Icon className={cn("h-4 w-4", tone ? tone.icon : active && "text-primary")} />
-              </span>
+              />
               {!collapsed && (
                 <span className="truncate">
                   {item.label}

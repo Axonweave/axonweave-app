@@ -58,7 +58,7 @@ export function FilesPanel() {
               <li key={d.id}>
                 <Link
                   href={`/documents/${d.id}`}
-                  className="group bg-card hover:border-primary/30 focus-visible:ring-ring flex items-center gap-3 rounded-xl border p-3 transition-all hover:shadow-sm focus-visible:ring-2 focus-visible:outline-none"
+                  className="group bg-card hover:border-primary/30 focus-visible:ring-ring hover:border-foreground/20 flex items-center gap-3 rounded-xl border p-3 transition-all focus-visible:ring-2 focus-visible:outline-none"
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
                     <FileText

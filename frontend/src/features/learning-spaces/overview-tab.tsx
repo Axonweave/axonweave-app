@@ -3,7 +3,7 @@
 /**
  * Overview of a subject, folder or chapter, laid out as three calm rows:
  *   1. what to do next (continue learning) beside what is due today,
- *   2. the learning tools, colour-coded,
+ *   2. the learning tools,
  *   3. what is inside (folders and chapters) or the previous/next chapter.
  * Every figure comes from the API or from the learner's own chapter labels; nothing is estimated.
  */
@@ -16,7 +16,7 @@ import {
   FileText,
   Folder as FolderIcon,
   Play,
-  Sparkles,
+  Layers,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { useAsync } from "@/hooks/use-async";
@@ -32,7 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/features/academic/status";
 import { descendantIds } from "@/features/academic/tree";
-import { DEFAULT_SUBJECT_COLOUR, TAB_ICONS } from "./environment-shell";
+import { TAB_ICONS } from "./environment-shell";
 import { useScopedDocuments, useScopedMaterials } from "./scoped-materials";
 import { useLearningSpace, type LearningSpace } from "./space-provider";
 import { TONES } from "./tones";
@@ -53,7 +53,6 @@ export function OverviewTab() {
 }
 
 const scopeName = (s: LearningSpace) => s.chapter?.title ?? s.folder?.name ?? s.subject.name;
-const colourOf = (s: LearningSpace) => s.subject.colour ?? DEFAULT_SUBJECT_COLOUR;
 
 function SectionTitle({
   id,
@@ -120,7 +119,7 @@ function Ring({ pct, colour }: { pct: number; colour: string }) {
           className="transition-[stroke-dashoffset] duration-700"
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-lg font-bold tabular-nums">
+      <span className="absolute inset-0 flex items-center justify-center text-base font-semibold tabular-nums">
         {pct}%
       </span>
     </div>
@@ -129,7 +128,6 @@ function Ring({ pct, colour }: { pct: number; colour: string }) {
 
 function ContinueCard({ space }: { space: LearningSpace }) {
   const { ctx, scopedChapters, chapter, folders, subject } = space;
-  const colour = colourOf(space);
   const mastery = useMastery(ctx);
   const total = scopedChapters.length;
   const completed = scopedChapters.filter((c) => c.status === "completed").length;
@@ -144,10 +142,7 @@ function ContinueCard({ space }: { space: LearningSpace }) {
   return (
     <section
       aria-labelledby="continue-heading"
-      className="relative overflow-hidden rounded-3xl border p-6 shadow-sm lg:col-span-2"
-      style={{
-        backgroundImage: `linear-gradient(135deg, color-mix(in oklch, ${colour} 14%, var(--card)) 0%, var(--card) 70%)`,
-      }}
+      className="bg-card relative rounded-xl border p-6 lg:col-span-2"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
@@ -208,7 +203,7 @@ function ContinueCard({ space }: { space: LearningSpace }) {
             </p>
           )}
         </div>
-        {!chapter && total > 0 ? <Ring pct={pct} colour={colour} /> : null}
+        {!chapter && total > 0 ? <Ring pct={pct} colour="var(--primary)" /> : null}
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-black/5 pt-4 text-sm dark:border-white/10">
@@ -276,7 +271,7 @@ function TodayCard({ space }: { space: LearningSpace }) {
   return (
     <section
       aria-labelledby="today-heading"
-      className="bg-card flex flex-col rounded-3xl border p-6 shadow-sm"
+      className="bg-card flex flex-col rounded-xl border p-6"
     >
       <h2 id="today-heading" className="text-muted-foreground text-sm font-medium">
         Today{progressScope.widened ? " · whole subject" : ""}
@@ -284,14 +279,14 @@ function TodayCard({ space }: { space: LearningSpace }) {
       <div className="mt-2 flex items-center gap-3">
         <span
           className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-2xl",
+            "flex h-10 w-10 items-center justify-center rounded-md",
             TONES.revision.chip,
           )}
         >
-          <CalendarClock className={cn("h-5 w-5", TONES.revision.icon)} aria-hidden="true" />
+          <CalendarClock className={cn("h-4 w-4", TONES.revision.icon)} aria-hidden="true" />
         </span>
         <div>
-          <p className="text-3xl font-bold tabular-nums">{due ?? "–"}</p>
+          <p className="text-2xl font-semibold tabular-nums">{due ?? "–"}</p>
           <p className="text-muted-foreground text-xs">
             {a ? `cards to review · ${a.overdue} overdue` : "cards to review"}
           </p>
@@ -314,7 +309,7 @@ function TodayCard({ space }: { space: LearningSpace }) {
         />
         <Mini
           href={environmentHref(ctx, "content")}
-          icon={Sparkles}
+          icon={Layers}
           tone={TONES.tutor}
           label="Materials"
           value={materials.data?.total}
@@ -349,7 +344,7 @@ function Mini({
   return (
     <Link
       href={href}
-      className="hover:bg-muted/60 -m-1 flex items-center gap-2 rounded-xl p-1 transition-colors"
+      className="hover:bg-muted/60 -m-1 flex items-center gap-2 rounded-md p-1 transition-colors"
     >
       <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg", tone.chip)}>
         <Icon className={cn("h-4 w-4", tone.icon)} aria-hidden="true" />
@@ -386,18 +381,15 @@ function ToolLauncher({ ctx, name }: { ctx: LearningContext; name: string }) {
             <li key={tool}>
               <Link
                 href={environmentHref(ctx, tool)}
-                className={cn(
-                  "group bg-card focus-visible:ring-ring flex h-full items-center gap-3 rounded-2xl border bg-gradient-to-br to-transparent p-4 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:outline-none",
-                  tone.wash,
-                )}
+                className="group bg-card focus-visible:ring-ring hover:bg-muted/40 hover:border-foreground/20 flex h-full items-center gap-3 rounded-lg border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
               >
                 <span
                   className={cn(
-                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
                     tone.chip,
                   )}
                 >
-                  <Icon className={cn("h-5 w-5", tone.icon)} aria-hidden="true" />
+                  <Icon className={cn("h-4 w-4", tone.icon)} aria-hidden="true" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold">{TOOL_COPY[tool].title}</span>
@@ -427,7 +419,6 @@ function ToolLauncher({ ctx, name }: { ctx: LearningContext; name: string }) {
 
 function StructurePreview({ space }: { space: LearningSpace }) {
   const { ctx, subject, folders, chapters, folder } = space;
-  const colour = colourOf(space);
   const parentId = folder?.id ?? null;
   const children = folders
     .filter((f) => (f.parent_folder_id ?? null) === parentId)
@@ -469,14 +460,11 @@ function StructurePreview({ space }: { space: LearningSpace }) {
             <li key={f.id}>
               <Link
                 href={at({ folderId: f.id })}
-                className="bg-card focus-visible:ring-ring group block rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:outline-none"
+                className="bg-card focus-visible:ring-ring group hover:border-foreground/20 block rounded-lg border p-4 transition-all focus-visible:ring-2 focus-visible:outline-none"
               >
                 <span className="flex items-center gap-3">
-                  <span
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: `color-mix(in oklch, ${colour} 14%, transparent)` }}
-                  >
-                    <FolderIcon className="h-5 w-5" style={{ color: colour }} aria-hidden="true" />
+                  <span className="bg-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-md">
+                    <FolderIcon className="text-muted-foreground h-4 w-4" aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate font-semibold">{f.name}</span>
@@ -491,7 +479,7 @@ function StructurePreview({ space }: { space: LearningSpace }) {
                 >
                   <span
                     className="block h-full rounded-full"
-                    style={{ width: `${pct}%`, backgroundColor: colour }}
+                    style={{ width: `${pct}%`, backgroundColor: "var(--primary)" }}
                   />
                 </span>
               </Link>
@@ -502,15 +490,15 @@ function StructurePreview({ space }: { space: LearningSpace }) {
           <li key={c.id}>
             <Link
               href={at({ chapterId: c.id })}
-              className="bg-card focus-visible:ring-ring flex items-center gap-3 rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:outline-none"
+              className="bg-card focus-visible:ring-ring hover:border-foreground/20 flex items-center gap-3 rounded-lg border p-4 transition-all focus-visible:ring-2 focus-visible:outline-none"
             >
               <span
                 className={cn(
-                  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
                   TONES.content.chip,
                 )}
               >
-                <FileText className={cn("h-5 w-5", TONES.content.icon)} aria-hidden="true" />
+                <FileText className={cn("h-4 w-4", TONES.content.icon)} aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1 truncate font-semibold">{c.title}</span>
               <StatusBadge status={c.status} />
@@ -538,7 +526,7 @@ function ChapterNeighbours({ space }: { space: LearningSpace }) {
       makeContext({ workspaceId: ctx.workspaceId, subjectId: subject.id, chapterId: c.id }),
     );
   const card =
-    "bg-card focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-3 rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:outline-none";
+    "bg-card focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-3 rounded-lg border p-4 transition-all hover:border-foreground/20 focus-visible:ring-2 focus-visible:outline-none";
   return (
     <nav aria-label="Chapter navigation" className="flex flex-col gap-3 sm:flex-row">
       {prev ? (

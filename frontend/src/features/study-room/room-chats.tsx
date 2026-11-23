@@ -133,14 +133,14 @@ export function RoomChats({
                         className={cn(
                           "focus-visible:ring-ring flex w-full items-start gap-2 rounded-lg py-1.5 pr-8 pl-2 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
                           active
-                            ? "bg-primary/10 text-foreground font-medium"
+                            ? "bg-sidebar-accent text-foreground font-medium"
                             : "text-foreground/80 hover:bg-muted",
                         )}
                       >
                         <MessageSquare
                           className={cn(
                             "mt-0.5 h-3.5 w-3.5 shrink-0",
-                            active ? "text-primary" : "text-muted-foreground",
+                            active ? "text-foreground" : "text-muted-foreground",
                           )}
                           aria-hidden="true"
                         />

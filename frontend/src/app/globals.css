@@ -27,6 +27,8 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -49,77 +51,81 @@
 }
 
 /*
- * Colour system. Brand: indigo-violet. Surfaces carry a faint hue of the brand so the app never
- * looks flat grey; cards stay pure white to lift off the page. Each learning tool also has its own
- * hue (see features/learning-spaces/tones.ts) so tools are recognisable at a glance.
+ * Colour system "Graphite + Cobalt". Neutral graphite surfaces and hairline borders; one cobalt
+ * accent for actions, focus and selection. Colour otherwise only carries meaning: status
+ * (success / warning / destructive) and the learner's own subject colours.
  */
 :root {
-  --background: oklch(0.985 0.004 280);
-  --foreground: oklch(0.21 0.03 275);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.03 275);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.03 275);
-  --primary: oklch(0.52 0.21 277);
-  --primary-foreground: oklch(0.99 0.005 280);
-  --secondary: oklch(0.955 0.02 280);
-  --secondary-foreground: oklch(0.3 0.08 277);
-  --muted: oklch(0.965 0.008 280);
-  --muted-foreground: oklch(0.5 0.025 275);
-  --accent: oklch(0.95 0.028 280);
-  --accent-foreground: oklch(0.35 0.12 277);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.915 0.012 280);
-  --input: oklch(0.9 0.015 280);
-  --ring: oklch(0.6 0.18 277);
-  --chart-1: oklch(0.6 0.2 277);
-  --chart-2: oklch(0.7 0.15 200);
-  --chart-3: oklch(0.75 0.16 75);
-  --chart-4: oklch(0.65 0.17 155);
-  --chart-5: oklch(0.65 0.2 15);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.975 0.008 280);
-  --sidebar-foreground: oklch(0.3 0.03 275);
-  --sidebar-primary: oklch(0.52 0.21 277);
-  --sidebar-primary-foreground: oklch(0.99 0.005 280);
-  --sidebar-accent: oklch(0.93 0.035 280);
-  --sidebar-accent-foreground: oklch(0.35 0.14 277);
-  --sidebar-border: oklch(0.92 0.012 280);
-  --sidebar-ring: oklch(0.6 0.18 277);
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #2f5bea;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #6b6b74;
+  --accent: #f1f1f3;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --success: #16a34a;
+  --warning: #d97706;
+  --border: #e7e7ea;
+  --input: #e2e2e6;
+  --ring: #2f5bea;
+  --chart-1: #2f5bea;
+  --chart-2: #0e9f8e;
+  --chart-3: #d97706;
+  --chart-4: #7c8495;
+  --chart-5: #dc2626;
+  --radius: 0.5rem;
+  --sidebar: #f8f8f9;
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: #2f5bea;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ececef;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e7e7ea;
+  --sidebar-ring: #2f5bea;
 }
 
 .dark {
-  --background: oklch(0.16 0.015 275);
-  --foreground: oklch(0.96 0.005 280);
-  --card: oklch(0.205 0.02 275);
-  --card-foreground: oklch(0.96 0.005 280);
-  --popover: oklch(0.22 0.02 275);
-  --popover-foreground: oklch(0.96 0.005 280);
-  --primary: oklch(0.7 0.16 277);
-  --primary-foreground: oklch(0.18 0.03 275);
-  --secondary: oklch(0.27 0.03 277);
-  --secondary-foreground: oklch(0.94 0.01 280);
-  --muted: oklch(0.25 0.02 275);
-  --muted-foreground: oklch(0.72 0.02 275);
-  --accent: oklch(0.28 0.05 277);
-  --accent-foreground: oklch(0.9 0.05 280);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.15 277);
-  --chart-1: oklch(0.7 0.16 277);
-  --chart-2: oklch(0.75 0.13 200);
-  --chart-3: oklch(0.8 0.14 75);
-  --chart-4: oklch(0.72 0.15 155);
-  --chart-5: oklch(0.7 0.18 15);
-  --sidebar: oklch(0.185 0.018 275);
-  --sidebar-foreground: oklch(0.9 0.01 280);
-  --sidebar-primary: oklch(0.7 0.16 277);
-  --sidebar-primary-foreground: oklch(0.18 0.03 275);
-  --sidebar-accent: oklch(0.28 0.05 277);
-  --sidebar-accent-foreground: oklch(0.92 0.04 280);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.65 0.15 277);
+  --background: #0b0b0d;
+  --foreground: #ededef;
+  --card: #121215;
+  --card-foreground: #ededef;
+  --popover: #16161a;
+  --popover-foreground: #ededef;
+  --primary: #5b82f5;
+  --primary-foreground: #0b0b0d;
+  --secondary: #1c1c20;
+  --secondary-foreground: #ededef;
+  --muted: #1c1c20;
+  --muted-foreground: #9a9aa3;
+  --accent: #1f1f24;
+  --accent-foreground: #ededef;
+  --destructive: #f05252;
+  --success: #34c27a;
+  --warning: #f0a33a;
+  --border: #232327;
+  --input: #2a2a2f;
+  --ring: #5b82f5;
+  --chart-1: #5b82f5;
+  --chart-2: #2cc4b0;
+  --chart-3: #f0a33a;
+  --chart-4: #8b93a5;
+  --chart-5: #f05252;
+  --sidebar: #111113;
+  --sidebar-foreground: #c8c8cf;
+  --sidebar-primary: #5b82f5;
+  --sidebar-primary-foreground: #0b0b0d;
+  --sidebar-accent: #1c1c20;
+  --sidebar-accent-foreground: #ededef;
+  --sidebar-border: #1e1e22;
+  --sidebar-ring: #5b82f5;
 }
 
 @layer base {
@@ -131,5 +137,31 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer base {
+  body {
+    font-feature-settings: "cv11", "ss01";
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.011em;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+}
+
+/* Motion is decoration only: honour the system setting and switch it off. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

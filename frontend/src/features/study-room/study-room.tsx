@@ -160,12 +160,7 @@ function ReadyRoom() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* ── room bar ─────────────────────────────────────────────────────── */}
-      <header
-        className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2.5"
-        style={{
-          backgroundImage: `linear-gradient(90deg, color-mix(in oklch, ${colour} 12%, var(--background)) 0%, var(--background) 60%)`,
-        }}
-      >
+      <header className="bg-background flex min-h-14 flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2">
         <Button
           variant="ghost"
           size="icon"
@@ -176,12 +171,11 @@ function ReadyRoom() {
           <MessagesSquare aria-hidden="true" />
         </Button>
         <span
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg shadow-xs"
-          style={{ backgroundColor: `color-mix(in oklch, ${colour} 20%, var(--card))` }}
+          className="bg-card flex h-8 w-8 shrink-0 items-center justify-center rounded-md border text-base"
           aria-hidden="true"
         >
           {subject.icon || (
-            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: colour }} />
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colour }} />
           )}
         </span>
         <div className="min-w-0">
@@ -244,7 +238,7 @@ function ReadyRoom() {
       <div className="relative flex min-h-0 flex-1">
         <aside
           className={cn(
-            "bg-sidebar/60 w-64 shrink-0 border-r",
+            "bg-sidebar w-64 shrink-0 border-r",
             "max-lg:bg-background max-lg:absolute max-lg:inset-y-0 max-lg:left-0 max-lg:z-30 max-lg:shadow-xl max-lg:transition-transform max-lg:duration-200",
             !chatsOpen && "max-lg:invisible max-lg:-translate-x-full",
           )}
@@ -324,9 +318,9 @@ function ChapterPicker({
       <DropdownMenuTrigger
         aria-label={`Focus: ${current ? current.title : "whole room"}. Change focus`}
         className={cn(
-          "focus-visible:ring-ring inline-flex max-w-56 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
+          "focus-visible:ring-ring inline-flex h-7 max-w-56 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
           current
-            ? "border-primary/40 bg-primary/10 text-primary"
+            ? "border-primary/40 bg-primary/5 text-primary"
             : "bg-card text-muted-foreground hover:text-foreground",
         )}
       >
@@ -396,7 +390,7 @@ function ToolPanel({ panel, onClose }: { panel: Panel; onClose: () => void }) {
   return (
     <aside
       aria-label={label}
-      className="bg-background animate-in slide-in-from-right-8 fade-in-0 absolute inset-y-0 right-0 z-30 flex w-full flex-col border-l shadow-2xl duration-200 sm:w-[min(640px,92%)] 2xl:static 2xl:w-[640px] 2xl:shadow-none"
+      className="bg-background animate-in slide-in-from-right-8 fade-in-0 absolute inset-y-0 right-0 z-30 flex w-full flex-col border-l shadow-xl duration-200 sm:w-[min(640px,92%)] 2xl:static 2xl:w-[640px] 2xl:shadow-none"
     >
       <div className="flex items-center gap-2 border-b px-4 py-2.5">
         <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg", tone.chip)}>

@@ -79,16 +79,18 @@ export function WorkspaceHome() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <header
-        className="animate-in fade-in-0 slide-in-from-bottom-2 relative overflow-hidden rounded-3xl border p-6 shadow-sm duration-300 sm:p-8"
-        style={{
-          backgroundImage: `linear-gradient(120deg, color-mix(in oklch, ${colour} 22%, var(--card)) 0%, var(--card) 65%)`,
-        }}
-      >
-        <p className="text-muted-foreground text-sm font-medium">Workspace</p>
+      <header className="animate-in fade-in-0 border-b pb-6 duration-300">
+        <p className="text-muted-foreground flex items-center gap-2 text-xs font-medium">
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{ backgroundColor: colour }}
+            aria-hidden="true"
+          />
+          Workspace
+        </p>
         <div className="mt-1 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-3xl font-bold tracking-tight break-words">
+            <h1 className="text-2xl font-semibold tracking-tight break-words">
               {workspace?.name ?? " "}
             </h1>
             {workspace?.description ? (
@@ -102,7 +104,7 @@ export function WorkspaceHome() {
                 : "Loading rooms…"}
             </p>
           </div>
-          <Button size="lg" onClick={() => setCreating(true)}>
+          <Button onClick={() => setCreating(true)}>
             <Plus aria-hidden="true" />
             New study room
           </Button>
@@ -138,7 +140,7 @@ export function WorkspaceHome() {
               <button
                 type="button"
                 onClick={() => setCreating(true)}
-                className="text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 focus-visible:ring-ring flex h-full min-h-40 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/40 focus-visible:ring-ring flex h-full min-h-36 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed transition-colors focus-visible:ring-2 focus-visible:outline-none"
               >
                 <Plus className="h-6 w-6" aria-hidden="true" />
                 <span className="text-sm font-medium">New study room</span>
@@ -201,41 +203,29 @@ function RoomCard({
   const colour = room.colour ?? DEFAULT_COLOUR;
   return (
     <li
-      className="animate-in fade-in-0 slide-in-from-bottom-2 fill-mode-both duration-300"
-      style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+      className="animate-in fade-in-0 fill-mode-both duration-300"
+      style={{ animationDelay: `${Math.min(index, 8) * 30}ms` }}
     >
-      <div className="group bg-card relative flex h-full flex-col overflow-hidden rounded-2xl border shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
-        <div
-          className="h-16"
-          style={{
-            backgroundImage: `linear-gradient(120deg, color-mix(in oklch, ${colour} 50%, white), color-mix(in oklch, ${colour} 15%, white))`,
-          }}
-          aria-hidden="true"
-        />
-        <div className="flex flex-1 flex-col px-5 pb-5">
+      <div className="group bg-card hover:bg-muted/30 hover:border-foreground/20 relative flex h-full flex-col rounded-lg border transition-colors">
+        <div className="flex flex-1 flex-col p-4">
           <span
-            className="bg-card -mt-7 flex h-12 w-12 items-center justify-center rounded-xl p-0.5 text-xl shadow-md"
+            className="bg-background flex h-9 w-9 items-center justify-center rounded-md border text-base"
             aria-hidden="true"
           >
-            <span
-              className="flex h-full w-full items-center justify-center rounded-[10px]"
-              style={{ backgroundColor: `color-mix(in oklch, ${colour} 16%, transparent)` }}
-            >
-              {room.icon || (
-                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: colour }} />
-              )}
-            </span>
+            {room.icon || (
+              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colour }} />
+            )}
           </span>
           <Link
             href={roomHref(workspaceId, room.id)}
-            className="mt-3 text-lg font-semibold tracking-tight after:absolute after:inset-0 focus-visible:outline-none"
+            className="mt-3 font-semibold tracking-tight after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none"
           >
             {room.name}
           </Link>
           <p className="text-muted-foreground mt-1 line-clamp-2 flex-1 text-sm">
             {room.description || "Chat, files, flashcards, quizzes and progress in one place."}
           </p>
-          <div className="text-muted-foreground mt-4 flex items-center justify-between text-xs">
+          <div className="text-muted-foreground mt-3 flex items-center justify-between text-xs">
             <span>Updated {timeAgo(room.updated_at)}</span>
             <span className="text-primary inline-flex items-center gap-1 font-medium opacity-0 transition-opacity group-hover:opacity-100">
               Open <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -247,7 +237,7 @@ function RoomCard({
             <DropdownMenuTrigger
               aria-label={`${room.name} options`}
               className={cn(
-                "bg-card/80 hover:bg-card focus-visible:ring-ring rounded-lg p-1.5 shadow-xs backdrop-blur transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                "text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded-md p-1.5 transition-colors focus-visible:ring-2 focus-visible:outline-none",
               )}
             >
               <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -282,7 +272,7 @@ function RoomSkeletons() {
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading study rooms">
       {[0, 1, 2].map((i) => (
-        <li key={i} className="bg-card h-44 animate-pulse rounded-2xl border" />
+        <li key={i} className="bg-muted/60 h-36 animate-pulse rounded-lg" />
       ))}
     </ul>
   );

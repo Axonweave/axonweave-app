@@ -6,7 +6,7 @@
  * only a subject and chapter, so at folder scope they are narrowed to the folder's chapters here.
  */
 import Link from "next/link";
-import { FileText, Sparkles } from "lucide-react";
+import { FileText, Layers } from "lucide-react";
 import { AsyncSection } from "@/components/ui/async-section";
 import { useAsync } from "@/hooks/use-async";
 import { documentsApi } from "@/lib/api/documents";
@@ -137,7 +137,7 @@ export function ScopedMaterials() {
             {materials.data?.data.map((m) => (
               <li key={m.id}>
                 <Link href={`/study/${m.id}`} className={ROW}>
-                  <Sparkles className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden="true" />
+                  <Layers className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden="true" />
                   <span className="min-w-0 flex-1 truncate">{m.title}</span>
                   <span className="text-muted-foreground shrink-0 text-xs">
                     {resourceLabel(m.resource_type)} · {formatDate(m.updated_at)}

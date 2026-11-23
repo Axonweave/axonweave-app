@@ -17,7 +17,7 @@ import {
   Plus,
   RotateCcw,
   ScrollText,
-  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -197,7 +197,7 @@ export function RoomChat({
   const plusMenu = (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button type="button" variant="outline" size="icon" className="rounded-full" />}
+        render={<Button type="button" variant="outline" size="icon" />}
         aria-label="Add files or use a study tool"
         disabled={uploading}
       >
@@ -296,9 +296,9 @@ export function RoomChat({
               {events.map((e) => (
                 <li
                   key={e.key}
-                  className="animate-in fade-in-0 slide-in-from-bottom-2 bg-card flex items-start gap-3 rounded-2xl border p-3 text-sm shadow-xs duration-300"
+                  className="animate-in fade-in-0 slide-in-from-bottom-2 bg-card flex items-start gap-3 rounded-lg border p-3 text-sm shadow-xs duration-300"
                 >
-                  <span className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+                  <span className="bg-muted text-muted-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
                     <e.icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <span className="min-w-0 flex-1 pt-1">{e.text}</span>
@@ -408,7 +408,7 @@ export function RoomChat({
             const label = TOOLS.find((t) => t.type === generate)?.label ?? "Study material";
             setGenerate(null);
             addEvent({
-              icon: Sparkles,
+              icon: Layers,
               text: `${label} for ${focusName} is being made. It appears under Materials when ready.`,
               action: { label: "Open materials", panel: "materials" },
             });
@@ -447,38 +447,35 @@ function RoomWelcome({
   ];
   const actions: { label: string; icon: React.ElementType; run: () => void }[] = [
     { label: "Upload files", icon: FileUp, run: onUpload },
-    { label: "Make flashcards", icon: Layers, run: () => onGenerate("flashcards") },
-    { label: "Take a quiz", icon: ListChecks, run: () => onGenerate("quiz") },
+    { label: "Flashcards", icon: Layers, run: () => onGenerate("flashcards") },
+    { label: "Quiz", icon: ListChecks, run: () => onGenerate("quiz") },
     { label: "Revise", icon: RotateCcw, run: () => onOpenPanel("revision") },
   ];
   return (
-    <div className="animate-in fade-in-0 slide-in-from-bottom-2 mx-auto flex max-w-2xl flex-col items-center px-2 py-8 text-center duration-500">
-      <span
-        className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm"
-        style={{ backgroundColor: `color-mix(in oklch, ${c} 18%, transparent)` }}
-        aria-hidden="true"
-      >
-        <Sparkles className="h-6 w-6" style={{ color: c }} />
-      </span>
-      <h2 className="mt-4 text-2xl font-bold tracking-tight">What are we studying today?</h2>
+    <div className="animate-in fade-in-0 mx-auto flex max-w-2xl flex-col px-2 pt-10 pb-6 duration-300">
+      <p className="text-muted-foreground flex items-center gap-2 text-xs font-medium">
+        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c }} aria-hidden="true" />
+        {name}
+      </p>
+      <h2 className="mt-2 text-xl font-semibold tracking-tight">Start studying</h2>
       <p className="text-muted-foreground mt-1 text-sm">
-        Everything here is about <span className="text-foreground font-medium">{name}</span>. Ask a
-        question, add files with <span className="font-medium">+</span>, or pick a tool.
+        Ask a question about this room&apos;s material, add files with{" "}
+        <span className="text-foreground font-medium">+</span>, or start with one of these.
       </p>
 
-      <ul className="mt-6 grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+      <ul className="mt-5 grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
         {actions.map((a, i) => (
           <li
             key={a.label}
-            className="animate-in fade-in-0 slide-in-from-bottom-1 fill-mode-both duration-300"
-            style={{ animationDelay: `${120 + i * 50}ms` }}
+            className="animate-in fade-in-0 fill-mode-both duration-300"
+            style={{ animationDelay: `${60 + i * 40}ms` }}
           >
             <button
               type="button"
               onClick={a.run}
-              className="bg-card hover:border-primary/40 focus-visible:ring-ring flex h-full w-full flex-col items-center gap-2 rounded-2xl border p-4 text-sm font-medium transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:outline-none"
+              className="bg-card hover:bg-muted/50 focus-visible:ring-ring hover:border-foreground/20 flex h-full w-full items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
-              <a.icon className="text-primary h-5 w-5" aria-hidden="true" />
+              <a.icon className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden="true" />
               {a.label}
             </button>
           </li>
@@ -486,16 +483,17 @@ function RoomWelcome({
       </ul>
 
       {!notConfigured ? (
-        <ul className="mt-6 flex flex-wrap justify-center gap-2">
+        <ul className="mt-6 divide-y rounded-lg border" aria-label="Suggested questions">
           {prompts.map((p) => (
             <li key={p}>
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => onAsk(p)}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full border px-3 py-1.5 text-xs transition-colors disabled:opacity-50"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm transition-colors disabled:opacity-50"
               >
                 {p}
+                <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               </button>
             </li>
           ))}

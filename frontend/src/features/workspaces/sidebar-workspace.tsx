@@ -29,7 +29,7 @@ import {
   workspaceHref,
 } from "./current-workspace";
 
-const DEFAULT_COLOUR = "#6366f1";
+const DEFAULT_COLOUR = "#7c8495";
 
 export function SidebarWorkspace({
   pathname,
@@ -54,12 +54,12 @@ export function SidebarWorkspace({
         <DropdownMenuTrigger
           aria-label={`Workspace: ${current.name}. Switch workspace`}
           className={cn(
-            "hover:bg-sidebar-accent/70 focus-visible:ring-ring flex w-full items-center gap-2 rounded-xl p-1.5 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none",
+            "hover:bg-sidebar-accent/70 focus-visible:ring-ring flex w-full items-center gap-2 rounded-md p-1.5 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none",
             collapsed && "justify-center",
           )}
         >
           <span
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-semibold text-white"
             style={{ backgroundColor: colour }}
             aria-hidden="true"
           >
@@ -135,15 +135,12 @@ export function SidebarWorkspace({
                     className={cn(
                       "focus-visible:ring-ring flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
                       active
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                         : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60",
                     )}
                   >
                     <span
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs"
-                      style={{
-                        backgroundColor: `color-mix(in oklch, ${r.colour ?? DEFAULT_COLOUR} 18%, transparent)`,
-                      }}
+                      className="flex h-5 w-5 shrink-0 items-center justify-center text-xs"
                       aria-hidden="true"
                     >
                       {r.icon || (
