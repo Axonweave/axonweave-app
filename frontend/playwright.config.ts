@@ -15,7 +15,7 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "Mobile Chrome", use: { ...devices["Pixel 5"] } },
   ],
-  // In CI the full stack (backend, database, Mailpit, frontend) is started with docker compose
+  // In CI the full stack (backend, database, frontend) is started with docker compose
   // beforehand, so Playwright must not start its own dev server.
   webServer: process.env.PW_EXTERNAL_STACK
     ? undefined

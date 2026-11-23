@@ -77,17 +77,9 @@ export default function HelpPage() {
           Verification and password emails
         </h2>
         <p className="text-sm">
-          In a local development setup, no real email is sent. Verification and password-reset
-          emails are caught by Mailpit. Open{" "}
-          <a
-            href="http://localhost:8025"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClass}
-          >
-            http://localhost:8025
-          </a>{" "}
-          to read them. This address only works on the machine running the development stack.
+          We email you a link to verify your address when you sign up, and a link to choose a new
+          password if you forget it. If an email does not arrive, check your spam folder or ask for
+          a new link from the verification banner.
         </p>
         <p className="text-muted-foreground text-sm">
           Until your email is verified you can use the app, but you cannot change your email or
