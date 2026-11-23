@@ -23,9 +23,17 @@ interface SubjectDialogProps {
   /** Present = edit, absent = create. */
   subject?: Subject | null;
   onSaved: (subject: Subject) => void;
+  /** What the UI calls this thing; defaults to "subject". */
+  noun?: string;
 }
 
-function Form({ onOpenChange, workspaceId, subject, onSaved }: Omit<SubjectDialogProps, "open">) {
+function Form({
+  onOpenChange,
+  workspaceId,
+  subject,
+  onSaved,
+  noun = "subject",
+}: Omit<SubjectDialogProps, "open">) {
   const editing = !!subject;
   const [name, setName] = useState(subject?.name ?? "");
   const [description, setDescription] = useState(subject?.description ?? "");
@@ -63,7 +71,7 @@ function Form({ onOpenChange, workspaceId, subject, onSaved }: Omit<SubjectDialo
     <DialogContent showCloseButton={false}>
       <form onSubmit={submit} className="space-y-4">
         <DialogHeader>
-          <DialogTitle>{editing ? "Edit subject" : "New subject"}</DialogTitle>
+          <DialogTitle>{editing ? `Edit ${noun}` : `New ${noun}`}</DialogTitle>
         </DialogHeader>
         <div className="space-y-2">
           <Label htmlFor="subject-name">Name *</Label>
@@ -111,7 +119,7 @@ function Form({ onOpenChange, workspaceId, subject, onSaved }: Omit<SubjectDialo
             Cancel
           </Button>
           <Button type="submit" disabled={busy || !name.trim()}>
-            {busy ? "Saving…" : editing ? "Save changes" : "Create subject"}
+            {busy ? "Saving…" : editing ? "Save changes" : `Create ${noun}`}
           </Button>
         </DialogFooter>
       </form>

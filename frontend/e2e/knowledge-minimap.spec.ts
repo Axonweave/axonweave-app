@@ -244,14 +244,29 @@ test.describe("Knowledge graph minimap", () => {
     await expectSynced(page);
     const pane = page.locator(".react-flow__pane");
     const box = (await pane.boundingBox())!;
-    const cx = box.x + box.width / 2;
-    const cy = box.y + box.height / 2;
+    // Each drag must start on empty canvas: grabbing a node or an edge does not pan the view, and
+    // which spot is empty changes after every pan.
+    const emptySpot = () =>
+      page.evaluate(
+        ({ x, y, w, h }) => {
+          for (const fy of [0.5, 0.4, 0.6, 0.3, 0.7])
+            for (const fx of [0.5, 0.4, 0.6, 0.3, 0.7]) {
+              const px = x + w * fx;
+              const py = y + h * fy;
+              if (document.elementFromPoint(px, py)?.classList.contains("react-flow__pane"))
+                return { cx: px, cy: py };
+            }
+          return { cx: x + w / 2, cy: y + h / 2 };
+        },
+        { x: box.x, y: box.y, w: box.width, h: box.height },
+      );
     for (const [dx, dy] of [
       [120, 0],
       [-240, 0],
       [0, 100],
       [0, -200],
     ]) {
+      const { cx, cy } = await emptySpot();
       const before = center((await state(page)).frame!);
       await page.mouse.move(cx, cy);
       await page.mouse.down();

@@ -15,6 +15,9 @@ interface Props {
   /** Backend input limit in characters (from /ai/status). */
   maxChars: number;
   disabled?: boolean;
+  /** Shown before the text box (e.g. a study room's "+" menu for uploads and tools). */
+  leading?: React.ReactNode;
+  placeholder?: string;
 }
 
 /** Enter sends, Shift+Enter inserts a newline. Sending is blocked over the limit and while generating. */
@@ -26,6 +29,8 @@ export function ChatInput({
   generating,
   maxChars,
   disabled,
+  leading,
+  placeholder = "Ask anything about your studies…",
 }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const wasGenerating = useRef(false);
@@ -62,6 +67,7 @@ export function ChatInput({
       }}
     >
       <div className="mx-auto flex max-w-3xl items-end gap-2">
+        {leading ? <div className="mb-6 shrink-0">{leading}</div> : null}
         <div className="min-w-0 flex-1">
           <label htmlFor="chat-input" className="sr-only">
             Message the AI Tutor
@@ -72,7 +78,7 @@ export function ChatInput({
             rows={1}
             value={value}
             disabled={disabled}
-            placeholder="Ask anything about your studies…"
+            placeholder={placeholder}
             aria-describedby="chat-input-hint chat-input-count"
             aria-invalid={over}
             onChange={(e) => onChange(e.target.value)}

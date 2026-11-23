@@ -26,14 +26,10 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   return (
     <div className="fixed inset-0 z-50 md:hidden">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
       {/* Drawer */}
-      <div className="absolute inset-y-0 left-0 flex w-60 flex-col bg-background shadow-xl">
-        <div className="flex h-14 items-center justify-between border-b border-border px-4">
+      <div className="bg-background absolute inset-y-0 left-0 flex w-60 flex-col shadow-xl">
+        <div className="border-border flex h-14 items-center justify-between border-b px-4">
           <span className="text-sm font-semibold">Axonweave</span>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -41,7 +37,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           </Button>
         </div>
         <div className="flex-1 overflow-y-auto">
-          <AppSidebar collapsed={false} onToggle={onClose} className="border-r-0 w-full" />
+          <AppSidebar collapsed={false} onToggle={onClose} className="w-full border-r-0" />
         </div>
       </div>
     </div>

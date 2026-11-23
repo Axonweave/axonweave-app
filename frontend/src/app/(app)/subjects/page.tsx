@@ -21,6 +21,7 @@ import { DestructiveDialog } from "@/features/academic/destructive-dialog";
 import { SELECT_CLASS } from "@/features/academic/form-bits";
 import { RowActions } from "@/features/academic/row-actions";
 import { SubjectDialog } from "@/features/academic/subject-dialog";
+import { roomHref } from "@/features/workspaces/current-workspace";
 import type { Subject } from "@/types/api";
 
 const PAGE_SIZE = 12;
@@ -294,7 +295,7 @@ function SubjectsView() {
                 />
                 <div className="min-w-0 flex-1">
                   <Link
-                    href={`/workspaces/${workspaceId}/subjects/${s.id}`}
+                    href={roomHref(workspaceId, s.id)}
                     className="focus-visible:ring-ring block truncate rounded-sm font-medium underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
                   >
                     {s.icon ? `${s.icon} ` : ""}

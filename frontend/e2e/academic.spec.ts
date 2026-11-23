@@ -166,18 +166,20 @@ test.describe("Subjects, folders and chapters", () => {
     await expect(names.first()).toHaveText(SUBJECT);
   });
 
-  test("the sidebar highlights Subjects, not My Workspace, on a subject page", async () => {
+  test("the sidebar highlights the open room in the room list on a subject page", async () => {
     await page.goto(`/workspaces/${workspaceId}/subjects/${subjectId}`);
     await expect(page.getByRole("heading", { name: SUBJECT })).toBeVisible();
     // On a phone the sidebar lives in a drawer behind the menu button.
     const menu = page.getByRole("button", { name: "Open menu" });
     if (await menu.isVisible()) await menu.click();
-    const nav = page.getByRole("navigation").filter({ hasText: "Overview" }).first();
-    await expect(nav.getByRole("link", { name: "Subjects" })).toHaveAttribute(
+    // the open room is highlighted in the sidebar's room list, not in the main navigation
+    const rooms = page.getByRole("list", { name: "Study rooms" });
+    await expect(rooms.getByRole("link", { name: SUBJECT })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    await expect(nav.getByRole("link", { name: "My Workspace" })).not.toHaveAttribute(
+    const nav = page.getByRole("navigation", { name: "Main" });
+    await expect(nav.getByRole("link", { name: "Subjects" })).not.toHaveAttribute(
       "aria-current",
       "page",
     );

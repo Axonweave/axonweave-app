@@ -6,6 +6,9 @@ import { MobileNav } from "./mobile-nav";
 
 let pathname = "/dashboard";
 vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
+// The workspace switcher and room list load from the API; they have their own behaviour and are
+// not part of the static navigation under test here.
+vi.mock("@/features/workspaces/sidebar-workspace", () => ({ SidebarWorkspace: () => null }));
 
 beforeEach(() => {
   pathname = "/dashboard";
@@ -63,8 +66,6 @@ describe("AppSidebar", () => {
 
   it.each([
     ["/subjects", "Subjects", "My Workspace"],
-    ["/workspaces/w1/subjects/s1", "Subjects", "My Workspace"],
-    ["/workspaces/w1/subjects/s1/chapters/c1", "Subjects", "My Workspace"],
     ["/workspaces", "My Workspace", "Subjects"],
   ])("on %s highlights %s and not %s", (path, on, off) => {
     pathname = path;
@@ -72,6 +73,23 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("link", { name: on })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: off })).not.toHaveAttribute("aria-current");
   });
+
+  it.each([
+    "/workspaces/w1",
+    "/workspaces/w1/rooms/s1",
+    "/workspaces/w1/subjects/s1",
+    "/workspaces/w1/subjects/s1/chapters/c1",
+  ])(
+    "inside a workspace or room (%s) the room list carries the highlight, not the main nav",
+    (path) => {
+      pathname = path;
+      render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
+      expect(screen.getByRole("link", { name: "Subjects" })).not.toHaveAttribute("aria-current");
+      expect(screen.getByRole("link", { name: "My Workspace" })).not.toHaveAttribute(
+        "aria-current",
+      );
+    },
+  );
 
   it("does not treat look-alike prefixes as active", () => {
     pathname = "/subjects-archive";

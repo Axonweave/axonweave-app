@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   Network,
   RotateCcw,
+  MessagesSquare,
   Plus,
   Search,
   Sparkles,
@@ -51,6 +52,7 @@ import { StatusBadge } from "@/features/academic/status";
 import { openCommandPalette } from "./command-palette-events";
 import { useLearningSpace, useSpaceState, type LearningSpace } from "./space-provider";
 import { TONES } from "./tones";
+import { roomHref } from "@/features/workspaces/current-workspace";
 
 export const TAB_ICONS: Record<EnvironmentTab, React.ElementType> = {
   overview: LayoutDashboard,
@@ -159,12 +161,15 @@ function EnvironmentHeader({ space, tab }: { space: LearningSpace; tab: Environm
             </span>
           </span>
           <div className="flex items-center gap-2 pb-1">
-            {tab !== "tutor" ? (
-              <Link href={environmentHref(ctx, "tutor")} className={buttonVariants({ size: "lg" })}>
-                <BrainCircuit aria-hidden="true" />
-                Ask the AI Tutor
-              </Link>
-            ) : null}
+            <Link
+              href={
+                roomHref(ctx.workspaceId, subject.id) + (chapter ? `?chapter=${chapter.id}` : "")
+              }
+              className={buttonVariants({ size: "lg" })}
+            >
+              <MessagesSquare aria-hidden="true" />
+              {chapter ? "Study this chapter" : "Open study room"}
+            </Link>
             <AddMenu space={space} />
           </div>
         </div>
