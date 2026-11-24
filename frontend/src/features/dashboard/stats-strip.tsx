@@ -9,9 +9,8 @@ export function StatsStrip() {
   const entries: Array<[string, number]> = data
     ? [
         ["Workspaces", data.workspace_count],
-        ["Subjects", data.subject_count],
-        ["Folders", data.folder_count],
-        ["Chapters", data.chapter_count],
+        ["Folders", data.subject_count],
+        ["Sub-folders", data.folder_count],
       ]
     : [];
 
@@ -24,7 +23,7 @@ export function StatsStrip() {
       isEmpty={false}
       empty={null}
     >
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {entries.map(([label, value]) => (
           <div key={label} className="border-border rounded-lg border p-4">
             <dt className="text-muted-foreground text-xs">{label}</dt>

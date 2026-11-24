@@ -20,7 +20,7 @@ export function WelcomeHeader() {
         </h1>
       )}
       <p className="text-muted-foreground text-sm">
-        Your workspaces, subjects and recent work in one place.
+        Your workspaces, folders and recent work in one place.
       </p>
     </header>
   );

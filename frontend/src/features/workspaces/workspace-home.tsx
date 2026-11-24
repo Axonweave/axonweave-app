@@ -100,31 +100,31 @@ export function WorkspaceHome() {
             ) : null}
             <p className="text-muted-foreground mt-2 text-sm">
               {rooms.data
-                ? `${list.length} study ${list.length === 1 ? "room" : "rooms"}`
-                : "Loading rooms…"}
+                ? `${list.length} ${list.length === 1 ? "folder" : "folders"}`
+                : "Loading folders…"}
             </p>
           </div>
           <Button onClick={() => setCreating(true)}>
             <Plus aria-hidden="true" />
-            New study room
+            New folder
           </Button>
         </div>
       </header>
 
       {rooms.error ? (
-        <ErrorDisplay message="Could not load the study rooms." onRetry={rooms.reload} />
+        <ErrorDisplay message="Could not load the folders." onRetry={rooms.reload} />
       ) : !rooms.data ? (
         <RoomSkeletons />
       ) : list.length === 0 ? (
         <EmptyState
-          title="No study rooms yet"
-          description="A study room holds everything for one topic: your files, chats with the AI Tutor, flashcards, quizzes and progress."
-          action={<Button onClick={() => setCreating(true)}>Create a study room</Button>}
+          title="No folders yet"
+          description="A folder holds everything for one subject or chapter: your files, chats with the AI Tutor, flashcards, quizzes and progress."
+          action={<Button onClick={() => setCreating(true)}>Create a folder</Button>}
         />
       ) : (
         <section aria-labelledby="rooms-grid">
           <h2 id="rooms-grid" className="mb-3 text-base font-semibold tracking-tight">
-            Study rooms
+            Folders
           </h2>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {list.map((r, i) => (
@@ -143,17 +143,17 @@ export function WorkspaceHome() {
                 className="text-muted-foreground hover:text-foreground hover:bg-muted/40 focus-visible:ring-ring flex h-full min-h-36 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed transition-colors focus-visible:ring-2 focus-visible:outline-none"
               >
                 <Plus className="h-6 w-6" aria-hidden="true" />
-                <span className="text-sm font-medium">New study room</span>
+                <span className="text-sm font-medium">New folder</span>
               </button>
             </li>
           </ul>
           <p className="text-muted-foreground mt-4 text-sm">
-            Looking for an archived room?{" "}
+            Looking for an archived folder?{" "}
             <Link
               href={`/subjects?workspace=${workspaceId}`}
               className="text-primary font-medium hover:underline"
             >
-              Manage all rooms
+              Manage all folders
             </Link>
           </p>
         </section>
@@ -164,7 +164,7 @@ export function WorkspaceHome() {
           open={creating}
           onOpenChange={setCreating}
           workspaceId={workspaceId}
-          noun="study room"
+          noun="folder"
           onSaved={(s) => {
             setCreating(false);
             notifyRoomsChanged();
@@ -178,7 +178,7 @@ export function WorkspaceHome() {
           onOpenChange={(o) => !o && setEditing(null)}
           workspaceId={workspaceId}
           subject={editing}
-          noun="study room"
+          noun="folder"
           onSaved={() => {
             setEditing(null);
             notifyRoomsChanged();
@@ -270,7 +270,7 @@ function RoomCard({
 
 function RoomSkeletons() {
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading study rooms">
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading folders">
       {[0, 1, 2].map((i) => (
         <li key={i} className="bg-muted/60 h-36 animate-pulse rounded-lg" />
       ))}

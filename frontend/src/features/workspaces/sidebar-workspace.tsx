@@ -2,7 +2,7 @@
 
 /**
  * Top of the sidebar: your workspaces. Each one opens (like a folder) to show the study rooms
- * inside it, with "New study room" at the end of that list. The + beside the heading creates a
+ * inside it, with "New folder" at the end of that list. The + beside the heading creates a
  * workspace; the heading itself opens the page for managing workspaces.
  */
 import { useState } from "react";
@@ -25,7 +25,7 @@ import {
 
 const DEFAULT_COLOUR = "#7c8495";
 
-/** Quiet "add" row used for both "New workspace" and "New study room". */
+/** Quiet "add" row used for both "New workspace" and "New folder". */
 function AddRow({
   label,
   onClick,
@@ -232,7 +232,7 @@ function WorkspaceRooms({ ws, pathname }: { ws: Workspace; pathname: string }) {
 
   return (
     <div className="border-border mt-0.5 mb-1 ml-[15px] border-l pl-2">
-      <ul className="space-y-0.5" aria-label={`Study rooms in ${ws.name}`}>
+      <ul className="space-y-0.5" aria-label={`Folders in ${ws.name}`}>
         {(rooms.data ?? []).map((r, i) => {
           const active = r.id === openRoom;
           return (
@@ -271,14 +271,14 @@ function WorkspaceRooms({ ws, pathname }: { ws: Workspace; pathname: string }) {
           );
         })}
         <li>
-          <AddRow label="New study room" onClick={() => setCreating(true)} />
+          <AddRow label="New folder" onClick={() => setCreating(true)} />
         </li>
       </ul>
       {creating ? (
         <SubjectDialog
           open={creating}
           onOpenChange={setCreating}
-          noun="study room"
+          noun="folder"
           workspaceId={ws.id}
           onSaved={(s) => {
             setCreating(false);

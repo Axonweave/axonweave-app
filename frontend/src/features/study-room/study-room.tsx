@@ -61,7 +61,7 @@ const PANEL_META: Record<Panel, { label: string; icon: React.ElementType; tone: 
   graph: { label: "Knowledge Graph", icon: Network, tone: TONES.graph },
   progress: { label: "Progress", icon: ClipboardCheck, tone: TONES.progress },
   research: { label: "Research", icon: FlaskConical, tone: TONES.research },
-  chapters: { label: "Chapters", icon: FolderTree, tone: TONES.overview },
+  chapters: { label: "Contents", icon: FolderTree, tone: TONES.overview },
 };
 /** Always visible in the room's top bar; the rest sit under "More tools". */
 const MAIN_PANELS: Panel[] = ["files", "materials", "revision", "intelligence"];
@@ -78,14 +78,14 @@ export function StudyRoom() {
   if (state.status === "error")
     return (
       <div className="p-6">
-        <ErrorDisplay message="Could not open this study room." onRetry={state.retry} />
+        <ErrorDisplay message="Could not open this folder." onRetry={state.retry} />
       </div>
     );
   if (state.status === "not-found")
     return (
       <div className="p-6">
         <EmptyState
-          title="Study room not found"
+          title="Folder not found"
           description="It may have been deleted, or it isn't in your account."
           action={
             <Link href="/workspaces" className={buttonVariants()}>
@@ -228,7 +228,7 @@ function ReadyRoom() {
                 <DropdownMenuLabel>Go to</DropdownMenuLabel>
                 <DropdownMenuItem render={<Link href={environmentHref(space.ctx)} />}>
                   <Settings2 aria-hidden="true" />
-                  Room settings
+                  Folder settings
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<Link href="/ai-tutor" />}>
                   <BookOpenCheck aria-hidden="true" />
@@ -322,7 +322,7 @@ function ChapterPicker({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Focus: ${current ? current.title : "whole room"}. Change focus`}
+        aria-label={`Focus: ${current ? current.title : "whole folder"}. Change focus`}
         className={cn(
           "focus-visible:ring-ring inline-flex h-7 max-w-56 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
           current
@@ -331,14 +331,14 @@ function ChapterPicker({
         )}
       >
         <Crosshair className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span className="truncate">{current ? current.title : "All chapters"}</span>
+        <span className="truncate">{current ? current.title : "Whole folder"}</span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-80 min-w-60 overflow-y-auto">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Focus the chat and tools on</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => onPick(null)}>
-            <span className="flex-1">All chapters (whole room)</span>
+            <span className="flex-1">Whole folder</span>
             {!current ? <span className="text-primary text-xs">●</span> : null}
           </DropdownMenuItem>
           {chapters.map((c) => (

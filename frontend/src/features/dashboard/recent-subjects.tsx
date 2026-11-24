@@ -13,15 +13,15 @@ export function RecentSubjects() {
 
   return (
     <AsyncSection
-      title="Recent subjects"
+      title="Recent folders"
       loading={loading}
       error={error}
       onRetry={reload}
       isEmpty={items.length === 0}
       empty={
         <EmptyState
-          title="No subjects yet"
-          description="Subjects you create or update will appear here."
+          title="No folders yet"
+          description="Folders you create or update will appear here."
         />
       }
       action={
@@ -29,7 +29,7 @@ export function RecentSubjects() {
           href="/subjects"
           className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded-sm text-sm underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
         >
-          All subjects
+          All folders
         </Link>
       }
     >

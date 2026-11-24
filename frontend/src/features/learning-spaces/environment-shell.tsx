@@ -183,7 +183,7 @@ function EnvironmentHeader({ space, tab }: { space: LearningSpace; tab: Environm
             className={buttonVariants()}
           >
             <MessagesSquare aria-hidden="true" />
-            {chapter ? "Study this chapter" : "Open study room"}
+            {chapter ? "Study this chapter" : "Open room"}
           </Link>
         </div>
       </div>
