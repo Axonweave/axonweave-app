@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.ai.orchestration.runtime import AiRuntime, Runtime, SessionFactory
 from app.ai.orchestration.service import AiService, GenerationResult, Prepared
-from app.ai.orchestration.streaming import SSE_HEADERS, StreamRunner
+from app.ai.orchestration.streaming import SSE_HEADERS, StreamRunner, doubt_events
 from app.core.dependencies import ActiveUser, DbSession
 from app.models.user import User
 from app.modules.ai.schemas import (
@@ -25,6 +25,7 @@ from app.modules.ai.schemas import (
     ConversationOut,
     ConversationResponse,
     CreateConversationRequest,
+    DoubtRequest,
     FeedbackOut,
     FeedbackRequest,
     FeedbackResponse,
@@ -279,6 +280,39 @@ async def regenerate_message(
         model_id=data.model_id,
     )
     return JSONResponse(status_code=201, content=jsonable_encoder(_result_response(result)))
+
+
+@router.post(
+    "/conversations/{conversation_id}/doubt",
+    response_model=None,
+    responses=_SSE_RESPONSES,
+)
+async def clear_doubt(
+    conversation_id: uuid.UUID,
+    data: DoubtRequest,
+    current_user: ActiveUser,
+    db: DbSession,
+    runtime: Runtime,
+    factory: SessionFactory,
+) -> StreamingResponse:
+    """Explain a selected part of an assistant answer in a different way. Streams the reply and
+    stores nothing except a usage row: the conversation and its context are untouched."""
+    started = time.monotonic()
+    service = AiService(db, runtime)
+    prepared = await service.prepare_doubt(
+        user=current_user,
+        conversation_id=conversation_id,
+        message_id=data.message_id,
+        selected_text=data.selected_text,
+        question=data.question,
+        quick_action=data.quick_action,
+        history=[(t.role, t.content) for t in data.history],
+    )
+    return StreamingResponse(
+        doubt_events(runtime, factory, prepared, started),
+        media_type="text/event-stream",
+        headers=SSE_HEADERS,
+    )
 
 
 @router.post(

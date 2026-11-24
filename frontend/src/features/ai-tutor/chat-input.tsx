@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { SendHorizontal, Square } from "lucide-react";
+import { Quote, SendHorizontal, Square, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { buildQuoted } from "./quote";
 
 interface Props {
   value: string;
@@ -15,6 +16,9 @@ interface Props {
   /** Backend input limit in characters (from /ai/status). */
   maxChars: number;
   disabled?: boolean;
+  /** Text quoted from an answer; sent as a blockquote above the question. */
+  quote?: string | null;
+  onClearQuote?: () => void;
   /** Shown before the text box (e.g. a study room's "+" menu for uploads and tools). */
   leading?: React.ReactNode;
   placeholder?: string;
@@ -29,12 +33,14 @@ export function ChatInput({
   generating,
   maxChars,
   disabled,
+  quote = null,
+  onClearQuote,
   leading,
   placeholder = "Ask anything about your studies…",
 }: Props) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const wasGenerating = useRef(false);
-  const over = value.length > maxChars;
+  const over = value.length + (quote ? buildQuoted(quote, "").length : 0) > maxChars;
   const empty = value.trim().length === 0;
   const near = value.length >= maxChars * 0.9;
 
@@ -69,6 +75,23 @@ export function ChatInput({
       <div className="mx-auto flex max-w-3xl items-end gap-2">
         {leading ? <div className="mb-6 shrink-0">{leading}</div> : null}
         <div className="min-w-0 flex-1">
+          {quote && (
+            <div
+              className="border-primary bg-primary/10 mb-2 flex items-start gap-2 rounded-md border-l-4 px-3 py-2 text-xs"
+              data-testid="quote-card"
+            >
+              <Quote className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+              <p className="line-clamp-3 min-w-0 flex-1 break-words whitespace-pre-wrap">{quote}</p>
+              <button
+                type="button"
+                aria-label="Remove quote"
+                onClick={onClearQuote}
+                className="hover:bg-muted rounded p-0.5"
+              >
+                <X className="size-3.5" aria-hidden="true" />
+              </button>
+            </div>
+          )}
           <label htmlFor="chat-input" className="sr-only">
             Message the AI Tutor
           </label>

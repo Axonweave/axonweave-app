@@ -807,6 +807,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ai/conversations/{conversation_id}/doubt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Clear Doubt
+         * @description Explain a selected part of an assistant answer in a different way. Streams the reply and
+         *     stores nothing except a usage row: the conversation and its context are untouched.
+         */
+        post: operations["clear_doubt_api_v1_ai_conversations__conversation_id__doubt_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ai/conversations/{conversation_id}/messages/{message_id}/cancel": {
         parameters: {
             query?: never;
@@ -5223,6 +5244,35 @@ export interface components {
              */
             success: boolean;
             data: components["schemas"]["DocumentOut"];
+        };
+        /**
+         * DoubtRequest
+         * @description Clear a doubt about part of an answer. Nothing is stored; the reply is streamed.
+         */
+        DoubtRequest: {
+            /**
+             * Message Id
+             * Format: uuid
+             */
+            message_id: string;
+            /** Selected Text */
+            selected_text: string;
+            /** Question */
+            question?: string | null;
+            /** Quick Action */
+            quick_action?: ("simpler" | "analogy" | "example" | "step_by_step") | null;
+            /** History */
+            history?: components["schemas"]["DoubtTurn"][];
+        };
+        /** DoubtTurn */
+        DoubtTurn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
         };
         /** DueCardOut */
         DueCardOut: {
@@ -13123,6 +13173,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SendMessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clear_doubt_api_v1_ai_conversations__conversation_id__doubt_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: string;
+            };
+            cookie?: {
+                aw_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DoubtRequest"];
+            };
+        };
+        responses: {
+            /** @description Returned instead of the JSON envelope when `stream` is true: a server-sent event stream with the events message.started, message.delta, usage.updated, message.completed, message.failed and message.cancelled, plus `: ping` heartbeats. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "text/event-stream": string;
                 };
             };
             /** @description Validation Error */
