@@ -1,11 +1,15 @@
 "use client";
 
-import { GenerateButton } from "@/features/study/generate-button";
+/**
+ * Content tab of a subject or folder environment: the folder and chapter structure with every
+ * organising action (create, edit, move, reorder, archive, delete, search). This is the former
+ * subject page body; at folder scope the same tree is rooted at that folder.
+ */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { Archive, FolderPlus, Pencil, Plus, Search, Sparkles, Trash2 } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { Archive, FolderInput, FolderPlus, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { Input } from "@/components/ui/input";
@@ -16,14 +20,13 @@ import { ApiRequestError } from "@/lib/api/client";
 import { chaptersApi, REORDER_LIMIT } from "@/lib/api/chapters";
 import { foldersApi } from "@/lib/api/folders";
 import { subjectsApi } from "@/lib/api/subjects";
-import { workspacesApi } from "@/lib/api/workspaces";
+import { environmentHref, makeContext } from "@/lib/learning-context";
 import { ChapterDialog } from "@/features/academic/chapter-dialog";
 import { DeleteFolderDialog } from "@/features/academic/delete-folder-dialog";
 import { DestructiveDialog } from "@/features/academic/destructive-dialog";
 import { FolderDialog } from "@/features/academic/folder-dialog";
 import { HierarchyTree } from "@/features/academic/hierarchy-tree";
 import { MoveDialog } from "@/features/academic/move-dialog";
-import { PageBreadcrumbs } from "@/features/academic/page-breadcrumbs";
 import { RowActions } from "@/features/academic/row-actions";
 import { StatusBadge } from "@/features/academic/status";
 import { SubjectDialog } from "@/features/academic/subject-dialog";
@@ -35,18 +38,8 @@ import {
   folderPath,
   reorderedIds,
 } from "@/features/academic/tree";
-import type { Chapter, Folder, Subject, Workspace } from "@/types/api";
-
-type Loaded =
-  | { notFound: true }
-  | {
-      notFound: false;
-      workspace: Workspace;
-      subject: Subject;
-      folders: Folder[];
-      chapters: Chapter[];
-      chapterTotal: number;
-    };
+import { useLearningSpace } from "./space-provider";
+import type { Chapter, Folder } from "@/types/api";
 
 type DialogState =
   | { kind: "subject-edit" }
@@ -61,8 +54,11 @@ type DialogState =
   | { kind: "chapter-delete"; chapter: Chapter }
   | null;
 
-export default function SubjectDetailPage() {
-  const { workspaceId, subjectId } = useParams<{ workspaceId: string; subjectId: string }>();
+export function ContentTab() {
+  const space = useLearningSpace();
+  const { workspace, subject, folders, chapters, chapterTotal, folder: root, reload } = space;
+  const workspaceId = workspace.id;
+  const subjectId = subject.id;
   const router = useRouter();
   const { toast } = useToast();
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -70,28 +66,6 @@ export default function SubjectDetailPage() {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const pendingFocus = useRef<{ id: string; direction: "up" | "down" } | null>(null);
-
-  const state = useAsync<Loaded>(async () => {
-    try {
-      const [workspace, subject, folders, chapters] = await Promise.all([
-        workspacesApi.get(workspaceId).then((r) => r.data),
-        subjectsApi.get(workspaceId, subjectId),
-        foldersApi.listAll(workspaceId, subjectId),
-        chaptersApi.listAll(workspaceId, subjectId),
-      ]);
-      return {
-        notFound: false,
-        workspace,
-        subject,
-        folders,
-        chapters: chapters.data,
-        chapterTotal: chapters.total,
-      };
-    } catch (err) {
-      if (err instanceof ApiRequestError && err.status === 404) return { notFound: true };
-      throw err;
-    }
-  }, [workspaceId, subjectId]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query.trim()), 300);
@@ -103,13 +77,13 @@ export default function SubjectDetailPage() {
       debouncedQuery
         ? chaptersApi.list(workspaceId, subjectId, { q: debouncedQuery, limit: 50 })
         : null,
-    [workspaceId, subjectId, debouncedQuery, state.data],
+    [workspaceId, subjectId, debouncedQuery, chapters],
   );
 
   // After a reorder the list re-renders; put keyboard focus back on the button that was used.
   useEffect(() => {
     const pending = pendingFocus.current;
-    if (!pending || state.loading) return;
+    if (!pending || space.refreshing) return;
     pendingFocus.current = null;
     const other = pending.direction === "up" ? "down" : "up";
     for (const dir of [pending.direction, other]) {
@@ -119,39 +93,15 @@ export default function SubjectDetailPage() {
         return;
       }
     }
-  }, [state.data, state.loading]);
+  }, [chapters, space.refreshing]);
 
-  const data = state.data;
-
-  if (!data) {
-    if (state.error) return <ErrorDisplay message={state.error} onRetry={state.reload} />;
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center" aria-busy="true">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (data.notFound) {
-    return (
-      <EmptyState
-        title="Subject not found"
-        description="It may have been deleted, or it is not in your account."
-        action={
-          <Link href="/subjects" className="text-primary underline underline-offset-4">
-            Back to subjects
-          </Link>
-        }
-      />
-    );
-  }
-
-  const { workspace, subject, folders, chapters, chapterTotal } = data;
-  const hierarchy = buildHierarchy(folders, chapters);
+  const hierarchy = buildHierarchy(space.scopedFolders, space.scopedChapters);
   const truncated = chapterTotal > chapters.length;
   const close = () => setDialog(null);
-  const reload = () => state.reload();
   const subjectsHref = `/subjects?workspace=${workspace.id}`;
+  const subjectHref = environmentHref(makeContext({ workspaceId, subjectId }), "content");
+  const rootDepth = root ? folderPath(folders, root.id).length : 0;
+  const scopeName = root ? `folder ${root.name}` : `subject ${subject.name}`;
 
   const archiveFolder = async (folder: Folder) => {
     try {
@@ -160,7 +110,8 @@ export default function SubjectDetailPage() {
         title: `Folder “${folder.name}” archived`,
         description: "Restore it from Archived items.",
       });
-      reload();
+      if (root?.id === folder.id) router.push(subjectHref);
+      else reload();
     } catch (err) {
       toast({
         title: "Could not archive folder",
@@ -219,99 +170,93 @@ export default function SubjectDetailPage() {
   };
 
   const searching = debouncedQuery.length > 0;
+  const newFolderParent = root ?? null;
+  const newChapterFolder = root?.id ?? null;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <PageBreadcrumbs
-        crumbs={[
-          { label: workspace.name, href: subjectsHref },
-          { label: "Subjects", href: subjectsHref },
-          { label: subject.name },
-        ]}
-      />
-
-      <header className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <span
-            className="mt-1.5 h-4 w-4 shrink-0 rounded-full"
-            style={{ backgroundColor: subject.colour ?? "#6b7280" }}
-            aria-hidden="true"
-          />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold break-words">
-              {subject.icon ? `${subject.icon} ` : ""}
-              {subject.name}
-            </h1>
-            {subject.description && (
-              <p className="text-muted-foreground mt-1 text-sm break-words">
-                {subject.description}
-              </p>
-            )}
-            <p className="text-muted-foreground mt-2 text-sm">
-              Workspace: <span className="text-foreground">{workspace.name}</span>
-              {" · "}
-              {hierarchy.folderCount} {hierarchy.folderCount === 1 ? "folder" : "folders"}
-              {" · "}
-              {chapterTotal} {chapterTotal === 1 ? "chapter" : "chapters"}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/library?workspace=${workspaceId}&subject=${subjectId}`}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Upload documents
-          </Link>
-          <GenerateButton preset={{ type: "subject", id: subjectId, label: subject.name }} />
-          <Button variant="outline" onClick={() => setDialog({ kind: "folder-new", parent: null })}>
-            <FolderPlus className="mr-2 h-4 w-4" aria-hidden="true" />
-            New folder
-          </Button>
-          <Button onClick={() => setDialog({ kind: "chapter-new", folderId: null })}>
-            <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-            New chapter
-          </Button>
-          <RowActions
-            name={`subject ${subject.name}`}
-            actions={[
-              {
-                label: "Edit subject",
-                icon: <Pencil />,
-                onSelect: () => setDialog({ kind: "subject-edit" }),
-              },
-              { label: "Archive subject", icon: <Archive />, onSelect: archiveSubject },
-              {
-                label: "Delete subject",
-                icon: <Trash2 />,
-                destructive: true,
-                separated: true,
-                onSelect: () => setDialog({ kind: "subject-delete" }),
-              },
-            ]}
-          />
-        </div>
-      </header>
-
+    <div className="space-y-6">
       <section aria-labelledby="structure-heading" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="structure-heading" className="text-lg font-semibold">
-            Folders and chapters
+            {root ? "Subfolders and chapters" : "Folders and chapters"}
           </h2>
-          <div className="relative w-full sm:w-64">
-            <Search
-              className="text-muted-foreground pointer-events-none absolute top-2.5 left-2.5 h-4 w-4"
-              aria-hidden="true"
-            />
-            <Input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search chapter titles"
-              aria-label="Search chapters by title"
-              className="pl-8"
-              maxLength={255}
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full sm:w-56">
+              <Search
+                className="text-muted-foreground pointer-events-none absolute top-2 left-2.5 h-4 w-4"
+                aria-hidden="true"
+              />
+              <Input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search chapter titles"
+                aria-label="Search chapters by title"
+                className="pl-8"
+                maxLength={255}
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setDialog({ kind: "folder-new", parent: newFolderParent })}
+              disabled={rootDepth >= 3}
+              title={rootDepth >= 3 ? "Folders can be nested up to 3 levels deep" : undefined}
+            >
+              <FolderPlus className="mr-1 h-4 w-4" aria-hidden="true" />
+              New folder
+            </Button>
+            <Button onClick={() => setDialog({ kind: "chapter-new", folderId: newChapterFolder })}>
+              <Plus className="mr-1 h-4 w-4" aria-hidden="true" />
+              New chapter
+            </Button>
+            {root ? (
+              <RowActions
+                name={scopeName}
+                actions={[
+                  {
+                    label: "Edit folder",
+                    icon: <Pencil />,
+                    onSelect: () => setDialog({ kind: "folder-edit", folder: root }),
+                  },
+                  {
+                    label: "Move folder…",
+                    icon: <FolderInput />,
+                    onSelect: () => setDialog({ kind: "folder-move", folder: root }),
+                  },
+                  {
+                    label: "Archive folder",
+                    icon: <Archive />,
+                    onSelect: () => archiveFolder(root),
+                  },
+                  {
+                    label: "Delete folder",
+                    icon: <Trash2 />,
+                    destructive: true,
+                    separated: true,
+                    onSelect: () => setDialog({ kind: "folder-delete", folder: root }),
+                  },
+                ]}
+              />
+            ) : (
+              <RowActions
+                name={scopeName}
+                actions={[
+                  {
+                    label: "Edit subject",
+                    icon: <Pencil />,
+                    onSelect: () => setDialog({ kind: "subject-edit" }),
+                  },
+                  { label: "Archive subject", icon: <Archive />, onSelect: archiveSubject },
+                  {
+                    label: "Delete subject",
+                    icon: <Trash2 />,
+                    destructive: true,
+                    separated: true,
+                    onSelect: () => setDialog({ kind: "subject-delete" }),
+                  },
+                ]}
+              />
+            )}
           </div>
         </div>
 
@@ -333,16 +278,23 @@ export default function SubjectDetailPage() {
         ) : hierarchy.folderCount === 0 && hierarchy.chapterCount === 0 ? (
           <EmptyState
             title="Nothing here yet"
-            description="Create a folder to group your material, or add a chapter straight away."
+            description={
+              root
+                ? "Add a chapter to this folder, or a subfolder to group your material further."
+                : "Create a folder to group your material, or add a chapter straight away."
+            }
             action={
               <div className="flex flex-wrap justify-center gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setDialog({ kind: "folder-new", parent: null })}
+                  onClick={() => setDialog({ kind: "folder-new", parent: newFolderParent })}
+                  disabled={rootDepth >= 3}
                 >
                   New folder
                 </Button>
-                <Button onClick={() => setDialog({ kind: "chapter-new", folderId: null })}>
+                <Button
+                  onClick={() => setDialog({ kind: "chapter-new", folderId: newChapterFolder })}
+                >
                   New chapter
                 </Button>
               </div>
@@ -355,6 +307,7 @@ export default function SubjectDetailPage() {
               subjectId={subjectId}
               hierarchy={hierarchy}
               chapters={chapters}
+              baseDepth={rootDepth}
               actions={{
                 onAddSubfolder: (folder) => setDialog({ kind: "folder-new", parent: folder }),
                 onAddChapter: (folderId) => setDialog({ kind: "chapter-new", folderId }),
@@ -386,23 +339,6 @@ export default function SubjectDetailPage() {
         </p>
       </section>
 
-      <section
-        aria-labelledby="soon-heading"
-        className="border-border bg-muted/30 rounded-lg border border-dashed p-4"
-      >
-        <h2 id="soon-heading" className="flex items-center gap-2 text-base font-semibold">
-          <Sparkles className="h-4 w-4" aria-hidden="true" />
-          AI summaries and progress
-          <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium">
-            Coming soon
-          </span>
-        </h2>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Summaries of this subject and progress overviews will appear here in a later phase.
-          Nothing is calculated or shown yet.
-        </p>
-      </section>
-
       {/* ── Dialogs ─────────────────────────────────────────────────────────── */}
       <SubjectDialog
         open={dialog?.kind === "subject-edit"}
@@ -424,8 +360,8 @@ export default function SubjectDetailPage() {
           <p>
             This permanently deletes the subject and everything in it:{" "}
             <strong>
-              {hierarchy.folderCount} {hierarchy.folderCount === 1 ? "folder" : "folders"} and{" "}
-              {chapterTotal} {chapterTotal === 1 ? "chapter" : "chapters"}
+              {folders.length} {folders.length === 1 ? "folder" : "folders"} and {chapterTotal}{" "}
+              {chapterTotal === 1 ? "chapter" : "chapters"}
             </strong>
             . It cannot be undone. To keep it but hide it, archive it instead.
           </p>
@@ -483,7 +419,8 @@ export default function SubjectDetailPage() {
           onDeleted={() => {
             toast({ title: `Folder “${dialog.folder.name}” deleted` });
             close();
-            reload();
+            if (root?.id === dialog.folder.id) router.push(subjectHref);
+            else reload();
           }}
         />
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Archive, ArchiveRestore, Edit2, MoreHorizontal, Plus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -16,7 +17,12 @@ import {
   WorkspaceFormFields,
   type WorkspaceFormData,
 } from "@/features/workspaces/workspace-form";
-import type { CreateWorkspaceRequest, UpdateWorkspaceRequest, Workspace, WorkspaceType } from "@/types/api";
+import type {
+  CreateWorkspaceRequest,
+  UpdateWorkspaceRequest,
+  Workspace,
+  WorkspaceType,
+} from "@/types/api";
 
 function WorkspaceCard({
   ws,
@@ -50,29 +56,38 @@ function WorkspaceCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium">{ws.name}</span>
+          {isArchived ? (
+            <span className="font-medium">{ws.name}</span>
+          ) : (
+            <Link
+              href={`/workspaces/${ws.id}`}
+              className="font-medium after:absolute after:inset-0 after:rounded-lg hover:underline"
+            >
+              {ws.name}
+            </Link>
+          )}
           {ws.is_default && (
-            <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+            <span className="bg-primary/10 text-primary flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium">
               <Star className="h-3 w-3" />
               Default
             </span>
           )}
           {isArchived && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+            <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
               Archived
             </span>
           )}
         </div>
         {ws.description && (
-          <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">{ws.description}</p>
+          <p className="text-muted-foreground mt-0.5 line-clamp-1 text-sm">{ws.description}</p>
         )}
-        <p className="mt-0.5 text-xs text-muted-foreground capitalize">
+        <p className="text-muted-foreground mt-0.5 text-xs capitalize">
           {ws.workspace_type.replace(/_/g, " ")}
         </p>
       </div>
 
       {/* Action menu */}
-      <div className="relative">
+      <div className="relative z-10">
         <Button
           variant="ghost"
           size="icon"
@@ -84,14 +99,17 @@ function WorkspaceCard({
         </Button>
         {menuOpen && (
           <div
-            className="absolute right-0 top-8 z-10 min-w-[160px] rounded-md border border-border bg-popover shadow-md"
+            className="border-border bg-popover absolute top-8 right-0 z-10 min-w-[160px] rounded-md border shadow-md"
             onBlur={() => setMenuOpen(false)}
           >
             {!isArchived && (
               <button
                 type="button"
-                onClick={() => { setMenuOpen(false); onEdit(); }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onEdit();
+                }}
+                className="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
               >
                 <Edit2 className="h-4 w-4" /> Edit
               </button>
@@ -99,8 +117,11 @@ function WorkspaceCard({
             {!isArchived && !ws.is_default && (
               <button
                 type="button"
-                onClick={() => { setMenuOpen(false); onSetDefault(); }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onSetDefault();
+                }}
+                className="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
               >
                 <Star className="h-4 w-4" /> Set as default
               </button>
@@ -108,8 +129,11 @@ function WorkspaceCard({
             {!isArchived && (
               <button
                 type="button"
-                onClick={() => { setMenuOpen(false); onArchive(); }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onArchive();
+                }}
+                className="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
               >
                 <Archive className="h-4 w-4" /> Archive
               </button>
@@ -117,8 +141,11 @@ function WorkspaceCard({
             {isArchived && (
               <button
                 type="button"
-                onClick={() => { setMenuOpen(false); onRestore(); }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onRestore();
+                }}
+                className="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
               >
                 <ArchiveRestore className="h-4 w-4" /> Restore
               </button>
@@ -126,8 +153,11 @@ function WorkspaceCard({
             {isArchived && (
               <button
                 type="button"
-                onClick={() => { setMenuOpen(false); onDelete(); }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDelete();
+                }}
+                className="text-destructive hover:bg-destructive/10 flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
               >
                 <Trash2 className="h-4 w-4" /> Delete
               </button>
@@ -167,8 +197,10 @@ export default function WorkspacesPage() {
     }
   }, [showArchived]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
+  }, [load]);
 
   function openCreate() {
     setEditingWs(null);
@@ -269,8 +301,8 @@ export default function WorkspacesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Workspaces</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-foreground text-2xl font-semibold">Workspaces</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             Organise your learning into separate workspaces.
           </p>
         </div>
@@ -285,7 +317,7 @@ export default function WorkspacesPage() {
         <button
           type="button"
           onClick={() => setShowArchived((v) => !v)}
-          className="text-sm text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          className="text-muted-foreground hover:text-foreground text-sm underline-offset-2 hover:underline"
         >
           {showArchived ? "Hide archived" : "Show archived"}
         </button>
@@ -294,7 +326,7 @@ export default function WorkspacesPage() {
       {error && <ErrorDisplay message={error} onRetry={load} />}
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading workspaces…</p>
+        <p className="text-muted-foreground text-sm">Loading workspaces…</p>
       ) : visible.length === 0 ? (
         <EmptyState
           title={showArchived ? "No archived workspaces" : "No workspaces yet"}
@@ -340,7 +372,9 @@ export default function WorkspacesPage() {
       {/* Delete confirm */}
       <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
         title="Delete workspace?"
         description={`This will permanently delete "${deleteTarget?.name}" and all its contents. This cannot be undone.`}
         confirmLabel="Delete"

@@ -7,12 +7,12 @@
 ## What does not exist yet
 
 - **No production Compose file or production images.** `docker-compose.yml` is a development setup
-  (bind mounts, `uvicorn --reload`, dev database passwords, Mailpit). `backend/Dockerfile` is a dev
+  (bind mounts, `uvicorn --reload`, dev database passwords, the `dev-user` login). `backend/Dockerfile` is a dev
   image that includes test and lint tools. A production image should install `requirements.txt`
   only, run without `--reload` and as a non-root user.
 - **No TLS / reverse proxy configuration.** HTTPS must be terminated in front of the app.
 - **No production email.** The SMTP sender (`backend/app/core/email.py`) speaks plain SMTP with no
-  STARTTLS and no authentication, so it works with Mailpit but not with typical hosted providers
+  STARTTLS and no authentication, so it works with a local relay but not with typical hosted providers
   (port 587 or 465 with credentials). A provider-capable sender must be added before real users can
   receive verification or reset emails.
 - **No scheduled backups, monitoring or log shipping.** See `docs/BACKUP_RESTORE.md` for the

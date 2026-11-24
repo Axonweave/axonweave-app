@@ -213,18 +213,6 @@ services:
     profiles: ["scan"]   # optional: docker compose --profile scan up, then SCANNER_BACKEND=clamav CLAMAV_HOST=clamav
     restart: unless-stopped
 
-  mailpit:
-    image: axllent/mailpit:latest
-    restart: unless-stopped
-    ports:
-      - "1025:1025"   # SMTP
-      - "8025:8025"   # Web UI
-    environment:
-      MP_MAX_MESSAGES: 500
-      MP_DATABASE: /data/mailpit.db
-    volumes:
-      - mailpit_data:/data
-
   backend:
     build:
       context: ./backend
@@ -243,9 +231,10 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
       TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-false}
-      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-mailpit}
-      SMTP_HOST: mailpit  # service name; a host-side .env value (localhost) is unreachable from the container
-      SMTP_PORT: 1025
+      # Emails (verification, password reset) are printed to the backend log unless EMAIL_PROVIDER=smtp.
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-1025}
       # AI (Phase 2). Everything is optional; with LLM_PROVIDER empty the app runs and AI answers 503.
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       FAKE_LLM_CHUNK_DELAY_SECONDS: ${FAKE_LLM_CHUNK_DELAY_SECONDS:-0}
@@ -281,6 +270,23 @@ services:
       timeout: 5s
       retries: 5
 
+  dev-user:
+    # One-shot, development only: creates the login dev@example.com / DevPassword2026! (idempotent).
+    # scripts/seed_dev_user.py refuses to run when APP_ENV is not development.
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: api
+    restart: "no"
+    environment:
+      <<: [*phase3-env, *core-env]
+    command: ["python", "scripts/seed_dev_user.py"]
+    volumes:
+      - ./backend:/app:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+
   frontend:
     build:
       context: ./frontend
@@ -303,4 +309,3 @@ networks:
 volumes:
   pgvector_data:
   objectstore_data:
-  mailpit_data:

@@ -94,8 +94,19 @@ export function SubjectTable({ rows }: { rows: SubjectPerformance["items"] }) {
   );
 }
 
-export function ProgressView() {
-  const [scope, setScope] = useState<ScopeValue>({});
+/**
+ * Without `locked`: progress across everything, with subject/chapter pickers. Inside a learning
+ * environment the context fixes the subject (and chapter); only the date range stays adjustable.
+ */
+export function ProgressView({
+  locked,
+}: {
+  locked?: { workspace_id: string; subject_id?: string; chapter_id?: string };
+} = {}) {
+  const [scope, setScope] = useState<ScopeValue>({
+    subject_id: locked?.subject_id,
+    chapter_id: locked?.chapter_id,
+  });
   const scopeKey = JSON.stringify(scope);
   const overview = useAsync(() => analyticsApi.overview(scope), [scopeKey]);
   const topics = useAsync(() => analyticsApi.topics(scope), [scopeKey]);
@@ -106,7 +117,7 @@ export function ProgressView() {
 
   return (
     <div className="min-w-0 space-y-8">
-      <ScopeFilter value={scope} onChange={setScope} />
+      <ScopeFilter value={scope} onChange={setScope} locked={locked} />
       <AsyncSection
         title="Overview"
         loading={overview.loading}

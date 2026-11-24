@@ -10,11 +10,14 @@ const mocks = vi.hoisted(() => ({
   acknowledgeNotice: vi.fn(),
   listConversations: vi.fn(),
   pathname: { current: "/ai-tutor" },
+  // one stable instance: a new object per render would look like a new hand-over every time
+  search: new URLSearchParams(),
 }));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => mocks.pathname.current,
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useSearchParams: () => mocks.search,
 }));
 vi.mock("next/link", () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (

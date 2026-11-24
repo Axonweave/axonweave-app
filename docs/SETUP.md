@@ -21,7 +21,7 @@ cp .env.example .env
 # Edit .env and set at least:
 #   APP_SECRET_KEY — random string, 32+ characters
 # The database URLs have working local defaults in docker-compose.yml.
-# Leave the email settings as they are: mail goes to Mailpit in development.
+# Leave the email settings as they are: emails are printed to the backend log in development.
 
 # 3. Start all services (builds the images the first time)
 docker compose up --build
@@ -30,8 +30,14 @@ docker compose up --build
 docker compose exec backend alembic upgrade head
 ```
 
-Then open http://localhost:3000 (app), http://localhost:8025 (Mailpit: verification and
-password-reset emails arrive here) and http://localhost:8000/docs (API docs, development only).
+Then open http://localhost:3000 (app) and http://localhost:8000/docs (API docs, development only).
+
+**Development login:** the one-shot `dev-user` service creates a verified account on start-up:
+`dev@example.com` / `DevPassword2026!` (development only; `backend/scripts/seed_dev_user.py`
+refuses any other `APP_ENV`). To create it by hand: `docker compose exec backend python scripts/seed_dev_user.py`.
+
+Verification and password-reset emails are not sent in development: they are printed to the
+backend log (`docker compose logs backend | grep console_email`), including the one-time link.
 
 The backend image is a development image: it includes pytest, ruff and mypy, so the commands
 below work inside it. After changing `NEXT_PUBLIC_BACKEND_URL` or frontend dependencies rebuild
@@ -44,7 +50,6 @@ the frontend: `docker compose up -d --build frontend`.
 | Frontend | http://localhost:3000 | Next.js app |
 | Backend | http://localhost:8000 | FastAPI app |
 | API docs | http://localhost:8000/docs | OpenAPI UI |
-| Mailpit | http://localhost:8025 | Dev email inbox |
 | PostgreSQL (pgvector) | localhost:5432 | Database, with the `vector` extension (Phase 3) |
 | Redis | internal only | Celery broker and the rate limiter (Phase 3) |
 | Object store (SeaweedFS) | http://127.0.0.1:8333 | S3-compatible storage for uploaded originals (Phase 3, local debugging only) |
@@ -81,8 +86,7 @@ cd frontend && PW_EXTERNAL_STACK=1 npx playwright test
 Registration and login are rate limited per IP (D-18). Repeated e2e runs can hit 429; restart the
 backend (`docker compose restart backend`) to reset the in-process limiter. CI sets
 `TRUST_PROXY_HEADERS=true` so tests can send distinct client IPs; leave it `false` locally and in
-production unless you run behind your own proxy. The e2e specs read verification emails through
-the Mailpit API at `http://localhost:8025/api/v1`.
+production unless you run behind your own proxy.
 
 The AI Tutor e2e tests (`e2e/ai-tutor.spec.ts`) need the **fake provider**, so they are deterministic,
 free and never touch a real key. Start the stack with it, then run Playwright:
@@ -141,11 +145,11 @@ to start on insecure cookie, URL or placeholder-secret settings.
 **Migration fails with "already exists"**  
 The DB has a newer migration than your code. Run `git pull` to get the latest migrations.
 
-**Email not arriving in tests**  
-Check Mailpit at http://localhost:8025 — all outgoing email goes there in dev mode.
+**Where are the emails?**  
+In development they are printed to the backend log: `docker compose logs backend | grep console_email`.
 
 **Port conflict**  
-Ports are fixed in `docker-compose.yml` (3000, 8000, 8025, 1025, 5432). Stop whatever uses them or
+Ports are fixed in `docker-compose.yml` (3000, 8000, 5432). Stop whatever uses them or
 edit the `ports:` mappings there.
 
 **`pytest: executable file not found` in the backend container**  

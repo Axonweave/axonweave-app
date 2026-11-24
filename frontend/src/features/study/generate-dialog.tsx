@@ -33,7 +33,7 @@ import { Field, NativeSelect, Textarea } from "./ui-bits";
 export const MAX_PASTED_CHARS = 200_000;
 
 export interface PresetSource {
-  type: "document" | "chapter" | "subject";
+  type: "document" | "chapter" | "subject" | "folder";
   id: string;
   label: string;
 }
@@ -191,7 +191,7 @@ export const GENERATORS: {
   },
 ];
 
-type SourceKind = "document" | "subject" | "chapter" | "text";
+type SourceKind = "document" | "subject" | "chapter" | "folder" | "text";
 
 /** Builds the request. Only settings the user touched are sent, so saved preferences still apply. */
 export function buildSettings(
