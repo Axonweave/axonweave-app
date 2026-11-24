@@ -9,7 +9,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
-import { ChevronRight, Plus } from "lucide-react";
+import { ChevronRight, MessagesSquare, Plus } from "lucide-react";
+import { environmentHref, makeContext } from "@/lib/learning-context";
 import { cn } from "@/lib/utils";
 import { SubjectDialog } from "@/features/academic/subject-dialog";
 import type { Workspace } from "@/types/api";
@@ -24,6 +25,10 @@ import {
 } from "./current-workspace";
 
 const DEFAULT_COLOUR = "#7c8495";
+
+/** A folder (subject) opens to what is inside it; its study room is a separate action. */
+const folderHref = (workspaceId: string, subjectId: string) =>
+  environmentHref(makeContext({ workspaceId, subjectId }));
 
 /** Quiet "add" row used for both "New workspace" and "New folder". */
 function AddRow({
@@ -238,12 +243,13 @@ function WorkspaceRooms({ ws, pathname }: { ws: Workspace; pathname: string }) {
           return (
             <motion.li
               key={r.id}
+              className="group/row relative"
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.03, duration: 0.2 }}
             >
               <Link
-                href={roomHref(ws.id, r.id)}
+                href={folderHref(ws.id, r.id)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "group focus-visible:ring-ring flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150 focus-visible:ring-2 focus-visible:outline-none",
@@ -263,9 +269,17 @@ function WorkspaceRooms({ ws, pathname }: { ws: Workspace; pathname: string }) {
                     />
                   )}
                 </span>
-                <span className="truncate transition-transform duration-200 ease-out group-hover:translate-x-0.5">
+                <span className="truncate pr-6 transition-transform duration-200 ease-out group-hover:translate-x-0.5">
                   {r.name}
                 </span>
+              </Link>
+              <Link
+                href={roomHref(ws.id, r.id)}
+                aria-label={`Open study room for ${r.name}`}
+                title="Open study room"
+                className="text-muted-foreground hover:bg-background hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-1 -translate-y-1/2 rounded-md p-1 opacity-0 transition-opacity group-focus-within/row:opacity-100 group-hover/row:opacity-100 focus-visible:ring-2 focus-visible:outline-none"
+              >
+                <MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </motion.li>
           );
@@ -283,7 +297,7 @@ function WorkspaceRooms({ ws, pathname }: { ws: Workspace; pathname: string }) {
           onSaved={(s) => {
             setCreating(false);
             notifyRoomsChanged();
-            router.push(roomHref(ws.id, s.id));
+            router.push(folderHref(ws.id, s.id));
           }}
         />
       ) : null}

@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * A workspace's home: its study rooms as cards. Each room (a subject in the API) is where the
- * learner chats, uploads and uses every tool; this page is just the way in.
+ * A workspace home: its folders (subjects in the API) as cards. A card opens the folder; each
+ * also offers "Open study room" for chat, files and revision.
  */
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight, FolderTree, MoreHorizontal, Pencil, Plus } from "lucide-react";
+import { ArrowRight, FolderTree, MessagesSquare, MoreHorizontal, Pencil, Plus } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -168,7 +168,7 @@ export function WorkspaceHome() {
           onSaved={(s) => {
             setCreating(false);
             notifyRoomsChanged();
-            router.push(roomHref(workspaceId, s.id));
+            router.push(environmentHref(makeContext({ workspaceId, subjectId: s.id })));
           }}
         />
       ) : null}
@@ -201,6 +201,7 @@ function RoomCard({
   onEdit: () => void;
 }) {
   const colour = room.colour ?? DEFAULT_COLOUR;
+  const folderHref = environmentHref(makeContext({ workspaceId, subjectId: room.id }));
   return (
     <li
       className="animate-in fade-in-0 fill-mode-both duration-300"
@@ -217,7 +218,7 @@ function RoomCard({
             )}
           </span>
           <Link
-            href={roomHref(workspaceId, room.id)}
+            href={folderHref}
             className="mt-3 font-semibold tracking-tight after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none"
           >
             {room.name}
@@ -231,6 +232,15 @@ function RoomCard({
               Open <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           </div>
+          <div className="relative z-10 mt-3">
+            <Link
+              href={roomHref(workspaceId, room.id)}
+              className="text-primary inline-flex items-center gap-1.5 text-xs font-medium hover:underline"
+            >
+              <MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" />
+              Open study room
+            </Link>
+          </div>
         </div>
         <div className="absolute top-2 right-2 z-10">
           <DropdownMenu>
@@ -243,6 +253,10 @@ function RoomCard({
               <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-52">
+              <DropdownMenuItem render={<Link href={roomHref(workspaceId, room.id)} />}>
+                <MessagesSquare aria-hidden="true" />
+                Open study room
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={onEdit}>
                 <Pencil aria-hidden="true" />
                 Rename or recolour
