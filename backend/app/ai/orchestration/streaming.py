@@ -26,7 +26,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.ai.errors import AiError, LLMBadResponseError, LLMError
 from app.ai.orchestration.context import ContextResult
 from app.ai.orchestration.runtime import AiRuntime
-from app.ai.orchestration.service import AiService, Prepared
+from app.ai.orchestration.service import AiService, DoubtPrepared, Prepared
+from app.ai.rag import validate_citations
 from app.ai.types import LLMResponse, StreamDelta, StreamEnd, Usage
 from app.core.logging import get_logger
 from app.repositories.retrieval_repository import ChunkHit
@@ -354,3 +355,126 @@ class StreamRunner:
             partial_content="".join(parts),
             record_usage=record_usage,
         )
+
+
+async def doubt_events(
+    runtime: AiRuntime,
+    factory: async_sessionmaker[AsyncSession],
+    prepared: DoubtPrepared,
+    started: float,
+) -> AsyncIterator[bytes]:
+    """Stream a doubt reply. Nothing is stored but one usage row, written when the stream ends
+    (also when the client disconnects, which closes this generator and the provider call)."""
+    tag = str(prepared.message.id)
+    sources = prepared.sources
+    if prepared.canned_reply is not None:
+        yield sse_event("message.started", {"message_id": tag})
+        yield sse_event("message.delta", {"delta": prepared.canned_reply})
+        yield sse_event(
+            "message.completed",
+            {
+                "message_id": tag,
+                "finish_reason": "insufficient_evidence",
+                "content": prepared.canned_reply,
+                "citations": [],
+            },
+        )
+        return
+
+    status, error_code = "success", None
+    usage: Usage | None = None
+    end: StreamEnd | None = None
+    parts: list[str] = []
+    request_id: str | None = None
+    failure: AiError | None = None
+    db = factory()  # lazy: no connection is taken until the usage row is written
+    service = AiService(db, runtime)
+    try:
+        service_request = service.make_doubt_request(prepared)
+        yield sse_event("message.started", {"message_id": tag})
+        if sources:
+            yield sse_event(
+                "message.citations",
+                {
+                    "message_id": tag,
+                    "citations": [source_payload(n, h) for n, h in enumerate(sources, start=1)],
+                },
+            )
+        async for event in service.stream_with_retries(service_request):
+            if isinstance(event, StreamDelta):
+                parts.append(event.text)
+                if event.usage is not None:
+                    usage = event.usage
+                yield sse_event("message.delta", {"delta": event.text})
+            elif isinstance(event, StreamEnd):
+                end = event
+        if end is None or not "".join(parts).strip():
+            raise LLMBadResponseError()
+        usage = end.usage
+        request_id = end.provider_request_id
+    except asyncio.CancelledError:
+        status = "cancelled"
+        raise
+    except GeneratorExit:
+        status = "cancelled"
+        raise
+    except AiError as exc:
+        failure = exc
+        status, error_code = "failed", exc.code
+    except Exception:
+        failure = LLMBadResponseError()
+        status, error_code = "failed", failure.code
+    finally:
+        await asyncio.shield(
+            _record_doubt_usage(
+                service, db, prepared, usage, status, error_code, started, request_id
+            )
+        )
+
+    if failure is not None:
+        yield StreamRunner._failed(prepared.message.id, failure)
+        return
+    assert end is not None
+    content = "".join(parts)
+    citations: list[dict[str, Any]] = []
+    if sources:  # the model's [n] markers are never trusted (D-75)
+        content, used = validate_citations(content, len(sources))
+        citations = [source_payload(n, sources[n - 1]) for n in used]
+    final = usage or Usage()
+    yield sse_event(
+        "usage.updated",
+        {
+            "input_tokens": final.input_tokens,
+            "output_tokens": final.output_tokens,
+            "usage_source": final.source.value,
+        },
+    )
+    yield sse_event(
+        "message.completed",
+        {
+            "message_id": tag,
+            "finish_reason": end.finish_reason.value,
+            "content": content,
+            "citations": citations,
+        },
+    )
+
+
+async def _record_doubt_usage(
+    service: AiService,
+    db: AsyncSession,
+    prepared: DoubtPrepared,
+    usage: Usage | None,
+    status: str,
+    error_code: str | None,
+    started: float,
+    request_id: str | None,
+) -> None:
+    try:
+        await service.record_doubt_usage(
+            prepared, usage or Usage(), status, error_code, started, request_id
+        )
+    except Exception:
+        logger.exception("ai_doubt_usage_failed", message_id=str(prepared.message.id))
+    finally:
+        await db.close()

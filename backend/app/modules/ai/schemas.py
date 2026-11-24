@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 # Hard ceiling at the schema edge. The configurable LLM_MAX_INPUT_CHARS is enforced in the service.
 _CONTENT_HARD_CAP = 100_000
@@ -248,6 +248,39 @@ class CapabilitiesResponse(BaseModel):
 class RegenerateRequest(BaseModel):
     model_id: str | None = Field(default=None, max_length=128)
     stream: bool = False
+
+
+class DoubtTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=4000)
+
+
+class DoubtRequest(BaseModel):
+    """Clear a doubt about part of an answer. Nothing is stored; the reply is streamed."""
+
+    message_id: uuid.UUID
+    selected_text: str = Field(min_length=1, max_length=2000)
+    question: str | None = Field(default=None, max_length=2000)
+    quick_action: Literal["simpler", "analogy", "example", "step_by_step"] | None = None
+    history: list[DoubtTurn] = Field(default_factory=list, max_length=12)
+
+    @field_validator("selected_text")
+    @classmethod
+    def selection_not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Selected text cannot be blank.")
+        return v
+
+    @field_validator("question")
+    @classmethod
+    def blank_question_is_none(cls, v: str | None) -> str | None:
+        return v if v is not None and v.strip() else None
+
+    @model_validator(mode="after")
+    def needs_a_request(self) -> "DoubtRequest":
+        if self.question is None and self.quick_action is None:
+            raise ValueError("Provide a question or a quick action.")
+        return self
 
 
 class MessageResponse(BaseModel):

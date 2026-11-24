@@ -20,7 +20,11 @@ import { useToast } from "@/hooks/use-toast";
 import { aiApi, type AnswerMode, type Conversation, type ConversationScope } from "@/lib/api/ai";
 import { RowActions } from "@/features/academic/row-actions";
 import { ChatInput } from "./chat-input";
+import { DoubtDialog } from "./doubt-dialog";
 import { MessageView, type Rating } from "./message-view";
+import { buildQuoted } from "./quote";
+import { SelectionToolbar } from "./selection-toolbar";
+import { useDoubts } from "./use-doubts";
 import { useTutor } from "./tutor-context";
 import { useChat } from "./use-chat";
 import { ModePicker, ScopePicker } from "./scope-bar";
@@ -52,6 +56,8 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
   });
 
   const [draft, setDraft] = useState("");
+  const [quote, setQuote] = useState<string | null>(null);
+  const doubts = useDoubts(conversationId);
   const [ratings, setRatings] = useState<Record<string, Rating>>({});
   const [lookup, setLookup] = useState<Conversation | null>(null);
 
@@ -105,9 +111,14 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
   const submit = async (text: string) => {
     stick.current = true;
     setShowJump(false);
+    const quoted = quote;
     setDraft("");
-    const accepted = await chat.send(text);
-    if (!accepted) setDraft((current) => current || text); // refused: give the text back
+    setQuote(null);
+    const accepted = await chat.send(quoted ? buildQuoted(quoted, text) : text);
+    if (!accepted) {
+      setDraft((current) => current || text); // refused: give the text back
+      if (quoted) setQuote(quoted);
+    }
   };
 
   const rate = async (messageId: string, rating: Rating) => {
@@ -254,6 +265,8 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
                   rating={item.id ? (ratings[item.id] ?? null) : null}
                   onRegenerate={(id) => void chat.regenerate(id)}
                   onRate={(id, r) => void rate(id, r)}
+                  doubts={item.id ? doubts.doubts.filter((d) => d.messageId === item.id) : []}
+                  onOpenDoubt={doubts.reopen}
                 />
               ))}
             </ol>
@@ -308,6 +321,25 @@ export function ChatPanel({ conversationId }: { conversationId: string | null })
         generating={chat.busy}
         maxChars={status.max_input_chars}
         disabled={chat.phase === "loading" || chat.phase === "notfound"}
+        quote={quote}
+        onClearQuote={() => setQuote(null)}
+      />
+
+      <SelectionToolbar
+        onCopy={(text) => {
+          navigator.clipboard
+            ?.writeText(text)
+            .then(() => toast({ title: "Copied" }))
+            .catch(() => toast({ title: "Could not copy", variant: "destructive" }));
+        }}
+        onQuote={setQuote}
+        onClear={doubts.open}
+      />
+      <DoubtDialog
+        doubt={doubts.active}
+        streaming={doubts.streaming}
+        onAsk={(r) => void doubts.ask(r)}
+        onClose={doubts.close}
       />
     </section>
   );

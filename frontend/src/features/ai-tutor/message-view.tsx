@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Bot, Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Citations } from "./citations";
+import { useDoubtMarks } from "./doubt-marks";
 import { Markdown } from "./markdown";
+import { splitQuote } from "./quote";
+import type { Doubt } from "./use-doubts";
 import type { ChatError, ChatItem } from "./use-chat";
 
 export type Rating = "positive" | "negative";
@@ -19,7 +22,12 @@ interface Props {
   rating: Rating | null;
   onRegenerate: (messageId: string) => void;
   onRate: (messageId: string, rating: Rating) => void;
+  /** Doubts already cleared for this answer: their text is marked and reopens the popup. */
+  doubts?: Doubt[];
+  onOpenDoubt?: (id: string) => void;
 }
+
+const noop = () => undefined;
 
 function CopyAction({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -53,13 +61,25 @@ export function MessageView({
   rating,
   onRegenerate,
   onRate,
+  doubts = [],
+  onOpenDoubt,
 }: Props) {
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const canAct = item.role === "assistant" && item.status === "completed" && item.id !== null;
+  useDoubtMarks(bodyRef, canAct ? doubts : [], item.content, onOpenDoubt ?? noop);
+
   if (item.role === "user") {
+    const { quote, body } = splitQuote(item.content);
     return (
       <li className="flex justify-end gap-2" data-role="user">
         <div className="bg-primary text-primary-foreground max-w-[85%] rounded-2xl rounded-br-sm px-4 py-2 text-sm break-words whitespace-pre-wrap">
           <span className="sr-only">You said: </span>
-          {item.content}
+          {quote !== null && (
+            <blockquote className="border-primary-foreground/60 bg-primary-foreground/10 mb-2 line-clamp-6 rounded-sm border-l-4 px-2 py-1 text-xs opacity-90">
+              {quote}
+            </blockquote>
+          )}
+          {body}
         </div>
         <span
           className="bg-muted text-muted-foreground mt-1 hidden size-7 shrink-0 items-center justify-center rounded-full sm:flex"
@@ -73,7 +93,6 @@ export function MessageView({
 
   const live = item.status === "pending" || item.status === "streaming";
   const incomplete = item.status === "failed" || item.status === "cancelled";
-  const canAct = item.status === "completed" && item.id !== null;
 
   return (
     <li className="flex gap-2" data-role="assistant" data-status={item.status}>
@@ -99,6 +118,10 @@ export function MessageView({
           </p>
         ) : (
           <div
+            ref={bodyRef}
+            data-doubt-body=""
+            data-message-id={item.id ?? undefined}
+            data-ready={canAct ? "true" : "false"}
             className={cn(
               item.status === "streaming" && "after:ml-0.5 after:animate-pulse after:content-['▍']",
             )}

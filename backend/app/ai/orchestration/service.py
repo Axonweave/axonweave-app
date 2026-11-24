@@ -124,6 +124,20 @@ class Prepared:
 
 
 @dataclass
+class DoubtPrepared:
+    """A doubt reply ready to stream. Nothing about it is stored except one usage row."""
+
+    conversation: Conversation
+    message: Message
+    model: ModelConfig
+    catalog_model: LLMModel
+    system_prompt: str
+    messages: list[LLMMessage]
+    sources: tuple[ChunkHit, ...]
+    canned_reply: str | None = None
+
+
+@dataclass
 class GenerationResult:
     conversation: Conversation
     user_message: Message
