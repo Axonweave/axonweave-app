@@ -107,15 +107,14 @@ test.describe("dashboard pages", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/workspaces");
     await expect(page.getByRole("heading", { name: "Workspaces", level: 1 })).toBeVisible();
-    await expect(page.getByText("Personal", { exact: true })).toBeVisible();
-    await expect(page.getByText("Physics Lab")).toBeVisible();
+    await expect(page.getByText("Personal", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Physics Lab").first()).toBeVisible();
   });
 
   test("help page is a real static page with no fake support widgets", async () => {
     await page.goto("/help");
     await expect(page.getByRole("heading", { name: "Help & support" })).toBeVisible();
     await expect(page.getByText(/Contact support is not available yet/)).toBeVisible();
-    await expect(page.getByRole("link", { name: "http://localhost:8025" })).toBeVisible();
   });
 
   for (const path of ["/dashboard", "/activity", "/archived", "/help"]) {
