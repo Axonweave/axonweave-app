@@ -17,15 +17,16 @@ beforeEach(() => {
 const COMING_SOON = ["Favourites"];
 
 describe("AppSidebar", () => {
-  it("offers the real Phase 1 destinations with correct links", () => {
+  it("offers the real destinations with correct links", () => {
     render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
     const expected: Record<string, string> = {
       Overview: "/dashboard",
-      "My Workspace": "/workspaces",
-      Subjects: "/subjects",
-      "Recent Activity": "/activity",
-      "Archived Items": "/archived",
       "AI Tutor": "/ai-tutor",
+      Revision: "/revision",
+      Progress: "/progress",
+      "Knowledge Graph": "/knowledge",
+      "Learner Intelligence": "/insights",
+      "Research Lab": "/research",
       Settings: "/settings",
       "Help & Support": "/help",
     };
@@ -34,44 +35,29 @@ describe("AppSidebar", () => {
     }
   });
 
-  it.each(COMING_SOON)("%s is disabled and cannot be focused or followed", (label) => {
+  it("no longer lists Library, Study materials or placeholder entries", () => {
     render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
-    const link = screen.getByRole("link", { name: new RegExp(`^${label}`) });
-    expect(link).toHaveAttribute("aria-disabled", "true");
-    expect(link).toHaveAttribute("href", "#");
-    expect(link).toHaveAttribute("tabindex", "-1");
-    expect(link.className).toContain("pointer-events-none");
-    expect(link).toHaveTextContent("(soon)");
-  });
-
-  it("labels the group as coming soon", () => {
-    render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
-    expect(screen.getByText("Coming soon")).toBeInTheDocument();
+    for (const label of ["Library", "Study materials", "Subjects", "My Workspace", "Favourites"]) {
+      expect(screen.queryByRole("link", { name: label })).not.toBeInTheDocument();
+    }
+    expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
   });
 
   it("marks only the current section as active", () => {
-    pathname = "/archived";
+    pathname = "/revision";
     render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
-    expect(screen.getByRole("link", { name: "Archived Items" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Revision" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Overview" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Progress" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("highlights Research Lab, which sits under More, on the research pages", () => {
+    pathname = "/research/p1";
+    render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
+    expect(screen.getByRole("link", { name: "Research Lab" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("link", { name: "Overview" })).not.toHaveAttribute("aria-current");
-    for (const label of COMING_SOON) {
-      expect(screen.getByRole("link", { name: new RegExp(`^${label}`) })).not.toHaveAttribute(
-        "aria-current",
-      );
-    }
-  });
-
-  it.each([
-    ["/subjects", "Subjects", "My Workspace"],
-    ["/workspaces", "My Workspace", "Subjects"],
-  ])("on %s highlights %s and not %s", (path, on, off) => {
-    pathname = path;
-    render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
-    expect(screen.getByRole("link", { name: on })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: off })).not.toHaveAttribute("aria-current");
   });
 
   it.each([
@@ -79,22 +65,18 @@ describe("AppSidebar", () => {
     "/workspaces/w1/rooms/s1",
     "/workspaces/w1/subjects/s1",
     "/workspaces/w1/subjects/s1/chapters/c1",
-  ])(
-    "inside a workspace or room (%s) the room list carries the highlight, not the main nav",
-    (path) => {
-      pathname = path;
-      render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
-      expect(screen.getByRole("link", { name: "Subjects" })).not.toHaveAttribute("aria-current");
-      expect(screen.getByRole("link", { name: "My Workspace" })).not.toHaveAttribute(
-        "aria-current",
-      );
-    },
-  );
+  ])("inside a workspace or folder (%s) the workspace list carries the highlight", (path) => {
+    pathname = path;
+    render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
+    for (const label of ["Overview", "AI Tutor", "Revision", "Research Lab"]) {
+      expect(screen.getByRole("link", { name: label })).not.toHaveAttribute("aria-current");
+    }
+  });
 
   it("does not treat look-alike prefixes as active", () => {
-    pathname = "/subjects-archive";
+    pathname = "/revision-archive";
     render(<AppSidebar collapsed={false} onToggle={vi.fn()} />);
-    expect(screen.getByRole("link", { name: "Subjects" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Revision" })).not.toHaveAttribute("aria-current");
   });
 
   it("collapses to icons only and the toggle announces its state", async () => {
@@ -127,16 +109,11 @@ describe("MobileNav drawer", () => {
     expect(screen.queryByRole("link", { name: "Overview" })).not.toBeInTheDocument();
   });
 
-  it("shows the full navigation when open, including disabled future modules", () => {
+  it("shows the full navigation when open", () => {
     render(<MobileNav open onClose={vi.fn()} />);
     expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "AI Tutor" })).toHaveAttribute("href", "/ai-tutor");
-    expect(screen.getByRole("link", { name: "Research Lab" })).toHaveAttribute(
-      "href",
-      "/research",
-    );
-    const soon = screen.getByRole("link", { name: /^Favourites/ });
-    expect(soon).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("link", { name: "Research Lab" })).toHaveAttribute("href", "/research");
   });
 
   it("closes with the close button, Escape and the backdrop", async () => {

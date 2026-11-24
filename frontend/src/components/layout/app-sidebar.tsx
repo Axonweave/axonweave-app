@@ -6,10 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  FolderOpen,
-  BookOpen,
-  Clock,
-  Archive,
   Settings,
   HelpCircle,
   BrainCircuit,
@@ -18,7 +14,6 @@ import {
   RotateCcw,
   Network,
   Gauge,
-  Star,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -48,9 +43,10 @@ const homeNav: NavItem[] = [
  * already know the room, so these are for looking at everything at once.
  */
 const toolsNav: NavItem[] = [
+  { label: "Revision", href: "/revision", icon: RotateCcw },
+  { label: "Progress", href: "/progress", icon: ClipboardCheck },
   { label: "Knowledge Graph", href: "/knowledge", icon: Network },
   { label: "Learner Intelligence", href: "/insights", icon: Gauge },
-  { label: "Revision", href: "/revision", icon: RotateCcw },
 ];
 
 /** Managing workspaces and rooms, history and the bin. */
@@ -61,16 +57,9 @@ const moreNav: NavItem[] = [
     icon: FlaskConical,
     tone: "text-violet-600 dark:text-violet-400",
   },
-  { label: "Progress", href: "/progress", icon: ClipboardCheck },
-  { label: "My Workspace", href: "/workspaces", icon: FolderOpen },
-  { label: "Subjects", href: "/subjects", icon: BookOpen },
-  { label: "Recent Activity", href: "/activity", icon: Clock },
-  { label: "Archived Items", href: "/archived", icon: Archive },
 ];
 
 export const primaryNav: NavItem[] = [...homeNav, ...toolsNav, ...moreNav];
-
-const comingSoonNav: NavItem[] = [{ label: "Favourites", href: "#", icon: Star, disabled: true }];
 
 const bottomNav: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings },
@@ -94,8 +83,8 @@ export function isNavActive(pathname: string, href: string): boolean {
 
 const GROUPS_KEY = "axonweave.sidebar-groups.v1";
 const GROUPS_EVENT = "axonweave:sidebar-groups";
-type GroupId = "tools" | "more";
-const DEFAULT_OPEN: Record<GroupId, boolean> = { tools: true, more: false };
+type GroupId = "more";
+const DEFAULT_OPEN: Record<GroupId, boolean> = { more: false };
 
 function readGroups(): string {
   try {
@@ -184,7 +173,7 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-2 pb-3">
-        {/* Where you are: the workspace and its study rooms */}
+        {/* Where you are: your workspaces and the folders inside them */}
         <SidebarWorkspace pathname={pathname} collapsed={collapsed} />
 
         <button
@@ -207,20 +196,19 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
 
         <nav className="space-y-3" aria-label="Main">
           <NavSection items={homeNav} collapsed={collapsed} pathname={pathname} />
-          {group("tools", "Tools across all rooms", toolsNav)}
-          {group(
-            "more",
-            "More",
-            moreNav,
-            <>
-              {!collapsed && (
-                <p className="text-muted-foreground mt-2 px-3 text-[10px] font-semibold tracking-widest uppercase">
-                  Coming soon
-                </p>
-              )}
-              <NavSection items={comingSoonNav} collapsed={collapsed} pathname={pathname} />
-            </>,
+          {collapsed ? (
+            <div className="border-border border-t pt-3">
+              <NavSection items={toolsNav} collapsed pathname={pathname} />
+            </div>
+          ) : (
+            <div>
+              <p className="text-muted-foreground/80 px-3 pb-1 text-[10px] font-semibold tracking-widest uppercase">
+                Study tools
+              </p>
+              <NavSection items={toolsNav} collapsed={false} pathname={pathname} />
+            </div>
           )}
+          {group("more", "More", moreNav)}
         </nav>
       </div>
 
