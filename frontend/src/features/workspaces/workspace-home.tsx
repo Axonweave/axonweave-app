@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * A workspace's home: its study rooms as cards. Each room (a subject in the API) is where the
- * learner chats, uploads and uses every tool; this page is just the way in.
+ * A workspace home: its folders (subjects in the API) as cards. A card opens the folder; each
+ * also offers "Open study room" for chat, files and revision.
  */
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight, FolderTree, MoreHorizontal, Pencil, Plus } from "lucide-react";
+import { ArrowRight, FolderTree, MessagesSquare, MoreHorizontal, Pencil, Plus } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -100,31 +100,31 @@ export function WorkspaceHome() {
             ) : null}
             <p className="text-muted-foreground mt-2 text-sm">
               {rooms.data
-                ? `${list.length} study ${list.length === 1 ? "room" : "rooms"}`
-                : "Loading rooms…"}
+                ? `${list.length} ${list.length === 1 ? "folder" : "folders"}`
+                : "Loading folders…"}
             </p>
           </div>
           <Button onClick={() => setCreating(true)}>
             <Plus aria-hidden="true" />
-            New study room
+            New folder
           </Button>
         </div>
       </header>
 
       {rooms.error ? (
-        <ErrorDisplay message="Could not load the study rooms." onRetry={rooms.reload} />
+        <ErrorDisplay message="Could not load the folders." onRetry={rooms.reload} />
       ) : !rooms.data ? (
         <RoomSkeletons />
       ) : list.length === 0 ? (
         <EmptyState
-          title="No study rooms yet"
-          description="A study room holds everything for one topic: your files, chats with the AI Tutor, flashcards, quizzes and progress."
-          action={<Button onClick={() => setCreating(true)}>Create a study room</Button>}
+          title="No folders yet"
+          description="A folder holds everything for one subject or chapter: your files, chats with the AI Tutor, flashcards, quizzes and progress."
+          action={<Button onClick={() => setCreating(true)}>Create a folder</Button>}
         />
       ) : (
         <section aria-labelledby="rooms-grid">
           <h2 id="rooms-grid" className="mb-3 text-base font-semibold tracking-tight">
-            Study rooms
+            Folders
           </h2>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {list.map((r, i) => (
@@ -143,17 +143,17 @@ export function WorkspaceHome() {
                 className="text-muted-foreground hover:text-foreground hover:bg-muted/40 focus-visible:ring-ring flex h-full min-h-36 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed transition-colors focus-visible:ring-2 focus-visible:outline-none"
               >
                 <Plus className="h-6 w-6" aria-hidden="true" />
-                <span className="text-sm font-medium">New study room</span>
+                <span className="text-sm font-medium">New folder</span>
               </button>
             </li>
           </ul>
           <p className="text-muted-foreground mt-4 text-sm">
-            Looking for an archived room?{" "}
+            Looking for an archived folder?{" "}
             <Link
               href={`/subjects?workspace=${workspaceId}`}
               className="text-primary font-medium hover:underline"
             >
-              Manage all rooms
+              Manage all folders
             </Link>
           </p>
         </section>
@@ -164,11 +164,11 @@ export function WorkspaceHome() {
           open={creating}
           onOpenChange={setCreating}
           workspaceId={workspaceId}
-          noun="study room"
+          noun="folder"
           onSaved={(s) => {
             setCreating(false);
             notifyRoomsChanged();
-            router.push(roomHref(workspaceId, s.id));
+            router.push(environmentHref(makeContext({ workspaceId, subjectId: s.id })));
           }}
         />
       ) : null}
@@ -178,7 +178,7 @@ export function WorkspaceHome() {
           onOpenChange={(o) => !o && setEditing(null)}
           workspaceId={workspaceId}
           subject={editing}
-          noun="study room"
+          noun="folder"
           onSaved={() => {
             setEditing(null);
             notifyRoomsChanged();
@@ -201,6 +201,7 @@ function RoomCard({
   onEdit: () => void;
 }) {
   const colour = room.colour ?? DEFAULT_COLOUR;
+  const folderHref = environmentHref(makeContext({ workspaceId, subjectId: room.id }));
   return (
     <li
       className="animate-in fade-in-0 fill-mode-both duration-300"
@@ -217,7 +218,7 @@ function RoomCard({
             )}
           </span>
           <Link
-            href={roomHref(workspaceId, room.id)}
+            href={folderHref}
             className="mt-3 font-semibold tracking-tight after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none"
           >
             {room.name}
@@ -231,6 +232,15 @@ function RoomCard({
               Open <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </span>
           </div>
+          <div className="relative z-10 mt-3">
+            <Link
+              href={roomHref(workspaceId, room.id)}
+              className="text-primary inline-flex items-center gap-1.5 text-xs font-medium hover:underline"
+            >
+              <MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" />
+              Open study room
+            </Link>
+          </div>
         </div>
         <div className="absolute top-2 right-2 z-10">
           <DropdownMenu>
@@ -243,6 +253,10 @@ function RoomCard({
               <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-52">
+              <DropdownMenuItem render={<Link href={roomHref(workspaceId, room.id)} />}>
+                <MessagesSquare aria-hidden="true" />
+                Open study room
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={onEdit}>
                 <Pencil aria-hidden="true" />
                 Rename or recolour
@@ -270,7 +284,7 @@ function RoomCard({
 
 function RoomSkeletons() {
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading study rooms">
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading folders">
       {[0, 1, 2].map((i) => (
         <li key={i} className="bg-muted/60 h-36 animate-pulse rounded-lg" />
       ))}

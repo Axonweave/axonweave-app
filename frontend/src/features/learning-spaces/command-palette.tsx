@@ -21,7 +21,6 @@ import { foldersApi } from "@/lib/api/folders";
 import { subjectsApi } from "@/lib/api/subjects";
 import { workspacesApi } from "@/lib/api/workspaces";
 import { environmentHref, makeContext } from "@/lib/learning-context";
-import { roomHref } from "@/features/workspaces/current-workspace";
 import { cn } from "@/lib/utils";
 import { primaryNav } from "@/components/layout/app-sidebar";
 import { onOpenCommandPalette } from "./command-palette-events";
@@ -192,12 +191,12 @@ export function CommandPalette() {
       .slice(0, MAX_PER_GROUP)
       .map((s) => ({
         id: `s-${s.id}`,
-        group: "Subjects",
+        group: "Folders",
         label: s.name,
         hint: wsName.get(s.workspace_id),
         icon: BookOpen,
         colour: s.colour,
-        href: roomHref(s.workspace_id, s.id),
+        href: environmentHref(makeContext({ workspaceId: s.workspace_id, subjectId: s.id })),
       }));
 
     const byGroup = (g: string) => deep.filter((d) => d.group === g).slice(0, MAX_PER_GROUP);

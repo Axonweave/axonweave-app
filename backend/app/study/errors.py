@@ -295,3 +295,21 @@ class DuplicateNotSupportedError(StudyError):
 
 
 EXPORT_RENDER_FAILED = "EXPORT_RENDER_FAILED"
+
+
+class PresetNotFoundError(StudyError):
+    code = "PRESET_NOT_FOUND"
+    http_status = 404
+    user_message = "Preset not found."
+
+
+class PresetNameTakenError(StudyError):
+    code = "PRESET_NAME_TAKEN"
+    http_status = 409
+    user_message = "You already have a preset with that name."
+
+
+class PresetLimitError(StudyError):
+    code = "PRESET_LIMIT_REACHED"
+    http_status = 409
+    user_message = "You have reached the limit of saved presets. Delete one to add another."

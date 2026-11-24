@@ -67,7 +67,7 @@ test.describe("dashboard pages", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/dashboard");
     await expect(page.getByRole("heading", { name: "Welcome back, Dash Tester" })).toBeVisible();
-    await expect(page.getByText("No subjects yet")).toBeVisible();
+    await expect(page.getByText("No folders yet")).toBeVisible();
     // Subject / folder / chapter quick actions must not exist until their dialogs do.
     await expect(
       page.getByRole("button", { name: /create (subject|folder|chapter)/i }),

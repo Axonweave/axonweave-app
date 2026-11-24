@@ -22,6 +22,7 @@ import {
 } from "@/lib/learning-context";
 import { ChapterContent } from "./chapter-content";
 import { ContentTab } from "./content-tab";
+import { FolderContents } from "./folder-contents";
 import { OverviewTab } from "./overview-tab";
 import { ScopedMaterials } from "./scoped-materials";
 import { useLearningSpace, type LearningSpace } from "./space-provider";
@@ -44,7 +45,7 @@ export function EnvironmentTab({ tab }: { tab: Tab }) {
   const space = useLearningSpace();
   switch (tab) {
     case "overview":
-      return <OverviewTab />;
+      return space.chapter ? <OverviewTab /> : <FolderContents />;
     case "content":
       return space.chapter ? (
         <ChapterContent />

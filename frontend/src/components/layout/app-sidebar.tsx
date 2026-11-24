@@ -6,21 +6,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  FolderOpen,
-  BookOpen,
-  Clock,
-  Archive,
   Settings,
   HelpCircle,
   BrainCircuit,
   FlaskConical,
+  WandSparkles,
   ClipboardCheck,
   RotateCcw,
-  Library,
   Network,
   Gauge,
-  Sparkles,
-  Star,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -36,6 +30,8 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   disabled?: boolean;
+  /** Colour of the icon while the item is not the current page. */
+  tone?: string;
 }
 
 const homeNav: NavItem[] = [
@@ -43,35 +39,34 @@ const homeNav: NavItem[] = [
   { label: "AI Tutor", href: "/ai-tutor", icon: BrainCircuit },
 ];
 
-/** Everything uploaded or generated, across all rooms. */
-const libraryNav: NavItem[] = [
-  { label: "Library", href: "/library", icon: Library },
-  { label: "Study materials", href: "/study", icon: Sparkles },
-];
-
 /**
  * Learning tools across every room. Inside a study room the same tools sit beside the chat and
  * already know the room, so these are for looking at everything at once.
  */
 const toolsNav: NavItem[] = [
-  { label: "Knowledge Graph", href: "/knowledge", icon: Network },
-  { label: "Learner Intelligence", href: "/insights", icon: Gauge },
-  { label: "Research Studio", href: "/research", icon: FlaskConical },
+  {
+    label: "Study Studio",
+    href: "/studio",
+    icon: WandSparkles,
+    tone: "text-amber-600 dark:text-amber-400",
+  },
   { label: "Revision", href: "/revision", icon: RotateCcw },
   { label: "Progress", href: "/progress", icon: ClipboardCheck },
+  { label: "Knowledge Graph", href: "/knowledge", icon: Network },
+  { label: "Learner Intelligence", href: "/insights", icon: Gauge },
 ];
 
 /** Managing workspaces and rooms, history and the bin. */
 const moreNav: NavItem[] = [
-  { label: "My Workspace", href: "/workspaces", icon: FolderOpen },
-  { label: "Subjects", href: "/subjects", icon: BookOpen },
-  { label: "Recent Activity", href: "/activity", icon: Clock },
-  { label: "Archived Items", href: "/archived", icon: Archive },
+  {
+    label: "Research Lab",
+    href: "/research",
+    icon: FlaskConical,
+    tone: "text-violet-600 dark:text-violet-400",
+  },
 ];
 
-export const primaryNav: NavItem[] = [...homeNav, ...libraryNav, ...toolsNav, ...moreNav];
-
-const comingSoonNav: NavItem[] = [{ label: "Favourites", href: "#", icon: Star, disabled: true }];
+export const primaryNav: NavItem[] = [...homeNav, ...toolsNav, ...moreNav];
 
 const bottomNav: NavItem[] = [
   { label: "Settings", href: "/settings", icon: Settings },
@@ -88,7 +83,6 @@ const underPath = (pathname: string, base: string) =>
 export function isNavActive(pathname: string, href: string): boolean {
   if (href === "#") return false;
   if (href === "/workspaces") return pathname === "/workspaces";
-  if (href === "/library") return underPath(pathname, href) || underPath(pathname, "/documents");
   return underPath(pathname, href);
 }
 
@@ -96,8 +90,8 @@ export function isNavActive(pathname: string, href: string): boolean {
 
 const GROUPS_KEY = "axonweave.sidebar-groups.v1";
 const GROUPS_EVENT = "axonweave:sidebar-groups";
-type GroupId = "library" | "tools" | "more";
-const DEFAULT_OPEN: Record<GroupId, boolean> = { library: true, tools: false, more: false };
+type GroupId = "more";
+const DEFAULT_OPEN: Record<GroupId, boolean> = { more: false };
 
 function readGroups(): string {
   try {
@@ -185,8 +179,8 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
         </Button>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-2 pb-3">
-        {/* Where you are: the workspace and its study rooms */}
+      <div className="flex-1 space-y-5 overflow-y-auto px-3 pb-3">
+        {/* Where you are: your workspaces and the folders inside them */}
         <SidebarWorkspace pathname={pathname} collapsed={collapsed} />
 
         <button
@@ -209,26 +203,24 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
 
         <nav className="space-y-3" aria-label="Main">
           <NavSection items={homeNav} collapsed={collapsed} pathname={pathname} />
-          {group("library", "Library", libraryNav)}
-          {group("tools", "Tools across all rooms", toolsNav)}
-          {group(
-            "more",
-            "More",
-            moreNav,
-            <>
-              {!collapsed && (
-                <p className="text-muted-foreground mt-2 px-3 text-[10px] font-semibold tracking-widest uppercase">
-                  Coming soon
-                </p>
-              )}
-              <NavSection items={comingSoonNav} collapsed={collapsed} pathname={pathname} />
-            </>,
+          {collapsed ? (
+            <div className="border-border border-t pt-3">
+              <NavSection items={toolsNav} collapsed pathname={pathname} />
+            </div>
+          ) : (
+            <div>
+              <p className="text-muted-foreground/70 px-2 pb-1.5 text-[10px] font-semibold tracking-[0.14em] uppercase">
+                Study tools
+              </p>
+              <NavSection items={toolsNav} collapsed={false} pathname={pathname} />
+            </div>
           )}
+          {group("more", "More", moreNav)}
         </nav>
       </div>
 
       {/* Bottom nav */}
-      <div className="border-border border-t px-2 py-3">
+      <div className="border-border border-t px-3 py-3">
         <NavSection items={bottomNav} collapsed={collapsed} pathname={pathname} />
       </div>
     </aside>
@@ -262,7 +254,7 @@ function NavGroup({
         disabled={!canToggle}
         aria-expanded={open}
         aria-controls={regionId}
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex w-full items-center justify-between rounded-md px-3 py-1 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-default disabled:hover:text-current"
+        className="text-muted-foreground/70 hover:text-foreground focus-visible:ring-ring flex w-full items-center justify-between rounded-md px-2 pb-1.5 text-[10px] font-semibold tracking-[0.14em] uppercase transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-default disabled:hover:text-current"
       >
         {label}
         {canToggle ? (
@@ -307,20 +299,37 @@ function NavSection({
               aria-disabled={item.disabled}
               aria-current={active ? "page" : undefined}
               tabIndex={item.disabled ? -1 : undefined}
+              title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors",
+                "group/nav focus-visible:ring-sidebar-ring relative flex items-center gap-3 rounded-xl px-2 py-1.5 text-sm transition-all duration-150 focus-visible:ring-2 focus-visible:outline-none",
+                collapsed && "justify-center",
                 active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-foreground",
+                  ? "bg-sidebar-primary/10 text-foreground font-medium"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-foreground",
                 item.disabled && "pointer-events-none opacity-40",
               )}
             >
-              <Icon
+              {active ? (
+                <span
+                  className="bg-sidebar-primary absolute top-1/2 -left-2 h-5 w-1 -translate-y-1/2 rounded-full"
+                  aria-hidden="true"
+                />
+              ) : null}
+              <span
                 className={cn(
-                  "h-4 w-4 shrink-0",
-                  active ? "text-foreground" : "text-muted-foreground",
+                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-150",
+                  active
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    : "bg-background/70 ring-border/60 group-hover/nav:bg-background ring-1",
                 )}
-              />
+              >
+                <Icon
+                  className={cn(
+                    "h-4 w-4 transition-transform duration-150 group-hover/nav:scale-110",
+                    !active && (item.tone ?? "text-muted-foreground"),
+                  )}
+                />
+              </span>
               {!collapsed && (
                 <span className="truncate">
                   {item.label}

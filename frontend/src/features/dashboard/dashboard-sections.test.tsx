@@ -70,11 +70,11 @@ describe("QuickActions", () => {
     render(<QuickActions onCreateWorkspace={onCreate} />);
     await userEvent.click(screen.getByRole("button", { name: /create workspace/i }));
     expect(onCreate).toHaveBeenCalledOnce();
-    expect(screen.getByRole("link", { name: "New subject" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "New folder" })).toHaveAttribute(
       "href",
       "/subjects?create=1",
     );
-    expect(screen.getByRole("link", { name: "Browse subjects" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Browse folders" })).toHaveAttribute(
       "href",
       "/subjects",
     );
@@ -171,7 +171,7 @@ describe("RecentSubjects", () => {
   it("shows empty and error states", async () => {
     api.recentSubjects.mockResolvedValueOnce([]);
     const { unmount } = render(<RecentSubjects />);
-    expect(await screen.findByText("No subjects yet")).toBeInTheDocument();
+    expect(await screen.findByText("No folders yet")).toBeInTheDocument();
     unmount();
     api.recentSubjects.mockRejectedValueOnce(new Error("x"));
     render(<RecentSubjects />);

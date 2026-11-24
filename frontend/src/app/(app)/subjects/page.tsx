@@ -22,6 +22,7 @@ import { SELECT_CLASS } from "@/features/academic/form-bits";
 import { RowActions } from "@/features/academic/row-actions";
 import { SubjectDialog } from "@/features/academic/subject-dialog";
 import { roomHref } from "@/features/workspaces/current-workspace";
+import { environmentHref, makeContext } from "@/lib/learning-context";
 import type { Subject } from "@/types/api";
 
 const PAGE_SIZE = 12;
@@ -112,10 +113,10 @@ function SubjectsView() {
     if (!workspaceId) return;
     try {
       await subjectsApi.archive(workspaceId, s.id);
-      toast({ title: `Subject “${s.name}” archived` });
+      toast({ title: `Folder “${s.name}” archived` });
       subjects.reload();
     } catch (err) {
-      failure("Could not archive subject", err);
+      failure("Could not archive folder", err);
     }
   };
 
@@ -123,10 +124,10 @@ function SubjectsView() {
     if (!workspaceId) return;
     try {
       await subjectsApi.restore(workspaceId, s.id);
-      toast({ title: `Subject “${s.name}” restored` });
+      toast({ title: `Folder “${s.name}” restored` });
       subjects.reload();
     } catch (err) {
-      failure("Could not restore subject", err);
+      failure("Could not restore folder", err);
     }
   };
 
@@ -139,7 +140,7 @@ function SubjectsView() {
       ]);
       setDeleting({ subject: s, folders: folders.length, chapters: chapters.total });
     } catch (err) {
-      failure("Could not load what this subject contains", err);
+      failure("Could not load what this folder contains", err);
     }
   };
 
@@ -157,7 +158,7 @@ function SubjectsView() {
     return (
       <EmptyState
         title="Create a workspace first"
-        description="Subjects live inside a workspace."
+        description="Folders live inside a workspace."
         action={
           <Link href="/workspaces" className="text-primary underline underline-offset-4">
             Go to workspaces
@@ -174,14 +175,14 @@ function SubjectsView() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Subjects</h1>
+          <h1 className="text-2xl font-semibold">Folders</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            The topics you study. Each holds folders and chapters.
+            Your subjects. Open one to add chapter folders and upload documents.
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-          New subject
+          New folder
         </Button>
       </div>
 
@@ -267,24 +268,24 @@ function SubjectsView() {
       ) : rows.length === 0 ? (
         debouncedQ ? (
           <EmptyState
-            title="No subjects match"
+            title="No folders match"
             description={`Nothing in this workspace is named like “${debouncedQ}”.`}
           />
         ) : (
           <EmptyState
-            title={showArchived ? "No subjects yet" : "No subjects yet"}
-            description="Create your first subject to start organising folders and chapters."
-            action={<Button onClick={() => setCreateOpen(true)}>Create subject</Button>}
+            title={showArchived ? "No folders yet" : "No folders yet"}
+            description="Create your first folder, then add chapter folders and documents inside it."
+            action={<Button onClick={() => setCreateOpen(true)}>Create folder</Button>}
           />
         )
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Subjects">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Folders">
           {rows.map((s) => {
             const archived = !!s.archived_at;
             return (
               <li
                 key={s.id}
-                className={`border-border flex items-start gap-3 rounded-lg border p-4 ${
+                className={`bg-card border-border hover:bg-muted/30 hover:border-foreground/20 relative flex items-start gap-3 rounded-lg border p-4 transition-colors ${
                   archived ? "opacity-70" : ""
                 }`}
               >
@@ -295,8 +296,8 @@ function SubjectsView() {
                 />
                 <div className="min-w-0 flex-1">
                   <Link
-                    href={roomHref(workspaceId, s.id)}
-                    className="focus-visible:ring-ring block truncate rounded-sm font-medium underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                    href={environmentHref(makeContext({ workspaceId, subjectId: s.id }))}
+                    className="focus-visible:ring-ring block truncate rounded-sm font-medium after:absolute after:inset-0 after:rounded-lg focus-visible:ring-2 focus-visible:outline-none"
                   >
                     {s.icon ? `${s.icon} ` : ""}
                     {s.name}
@@ -306,43 +307,52 @@ function SubjectsView() {
                       {s.description}
                     </p>
                   )}
-                  {archived && (
+                  {archived ? (
                     <span className="bg-muted text-muted-foreground mt-1 inline-block rounded-full px-2 py-0.5 text-xs">
                       Archived
                     </span>
+                  ) : (
+                    <Link
+                      href={roomHref(workspaceId, s.id)}
+                      className="text-primary relative z-10 mt-2 inline-block text-xs font-medium hover:underline"
+                    >
+                      Open study room
+                    </Link>
                   )}
                 </div>
-                <RowActions
-                  name={`subject ${s.name}`}
-                  actions={
-                    archived
-                      ? [
-                          {
-                            label: "Restore",
-                            icon: <ArchiveRestore />,
-                            onSelect: () => restore(s),
-                          },
-                          {
-                            label: "Delete",
-                            icon: <Trash2 />,
-                            destructive: true,
-                            separated: true,
-                            onSelect: () => askDelete(s),
-                          },
-                        ]
-                      : [
-                          { label: "Edit", icon: <Pencil />, onSelect: () => setEditing(s) },
-                          { label: "Archive", icon: <Archive />, onSelect: () => archive(s) },
-                          {
-                            label: "Delete",
-                            icon: <Trash2 />,
-                            destructive: true,
-                            separated: true,
-                            onSelect: () => askDelete(s),
-                          },
-                        ]
-                  }
-                />
+                <div className="relative z-10">
+                  <RowActions
+                    name={`folder ${s.name}`}
+                    actions={
+                      archived
+                        ? [
+                            {
+                              label: "Restore",
+                              icon: <ArchiveRestore />,
+                              onSelect: () => restore(s),
+                            },
+                            {
+                              label: "Delete",
+                              icon: <Trash2 />,
+                              destructive: true,
+                              separated: true,
+                              onSelect: () => askDelete(s),
+                            },
+                          ]
+                        : [
+                            { label: "Edit", icon: <Pencil />, onSelect: () => setEditing(s) },
+                            { label: "Archive", icon: <Archive />, onSelect: () => archive(s) },
+                            {
+                              label: "Delete",
+                              icon: <Trash2 />,
+                              destructive: true,
+                              separated: true,
+                              onSelect: () => askDelete(s),
+                            },
+                          ]
+                    }
+                  />
+                </div>
               </li>
             );
           })}
@@ -359,7 +369,7 @@ function SubjectsView() {
         workspaceId={workspaceId}
         onSaved={(s) => {
           closeCreate();
-          toast({ title: `Subject “${s.name}” created` });
+          toast({ title: `Folder “${s.name}” created` });
           subjects.reload();
         }}
       />
@@ -372,7 +382,7 @@ function SubjectsView() {
           subject={editing}
           onSaved={() => {
             setEditing(null);
-            toast({ title: "Subject updated" });
+            toast({ title: "Folder updated" });
             subjects.reload();
           }}
         />
@@ -382,10 +392,10 @@ function SubjectsView() {
         <DestructiveDialog
           open
           onOpenChange={(o) => !o && setDeleting(null)}
-          title={`Delete subject “${deleting.subject.name}”?`}
+          title={`Delete folder “${deleting.subject.name}”?`}
           description={
             <p>
-              This permanently deletes the subject and everything in it:{" "}
+              This permanently deletes the folder and everything in it:{" "}
               <strong>
                 {plural(deleting.folders, "folder", "folders")} and{" "}
                 {plural(deleting.chapters, "chapter", "chapters")}
@@ -393,11 +403,11 @@ function SubjectsView() {
               . It cannot be undone. To keep it but hide it, archive it instead.
             </p>
           }
-          confirmLabel="Delete subject"
+          confirmLabel="Delete folder"
           requireText={deleting.subject.name}
           onConfirm={async () => {
             await subjectsApi.remove(workspaceId, deleting.subject.id);
-            toast({ title: `Subject “${deleting.subject.name}” deleted` });
+            toast({ title: `Folder “${deleting.subject.name}” deleted` });
             setDeleting(null);
             subjects.reload();
           }}

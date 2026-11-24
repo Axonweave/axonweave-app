@@ -32,7 +32,7 @@ function Form({
   workspaceId,
   subject,
   onSaved,
-  noun = "subject",
+  noun = "folder",
 }: Omit<SubjectDialogProps, "open">) {
   const editing = !!subject;
   const [name, setName] = useState(subject?.name ?? "");

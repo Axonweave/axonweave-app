@@ -61,6 +61,7 @@ from app.models.storage_cleanup import StorageCleanup
 from app.models.study_export import StudyExport
 from app.models.study_material import StudyMaterial, StudyMaterialVersion
 from app.models.study_preferences import StudyGenerationPreferences
+from app.models.study_preset import StudyPreset
 from app.models.subject import Subject
 from app.models.user import User
 from app.models.user_preferences import UserPreferences
@@ -131,6 +132,7 @@ __all__ = [
     "ResearchProject",
     "StudyExport",
     "StudyGenerationPreferences",
+    "StudyPreset",
     "StudyMaterial",
     "StudyMaterialVersion",
     "Subject",

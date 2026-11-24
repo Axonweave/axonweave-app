@@ -25,6 +25,13 @@ from app.modules.study.preferences_service import (
     PreferencesResponse,
     StudyPreferencesService,
 )
+from app.modules.study.preset_service import (
+    PresetIn,
+    PresetListResponse,
+    PresetOut,
+    PresetResponse,
+    StudyPresetService,
+)
 from app.modules.study.schemas import StudyMaterialResponse
 from app.repositories.study_material_repository import StudyMaterialRepository
 from app.storage.base import StorageBackend, StorageNotConfiguredError
@@ -172,6 +179,42 @@ async def put_preferences(
     body: PreferencesIn, current_user: ActiveUser, db: DbSession
 ) -> PreferencesResponse:
     return PreferencesResponse(data=await StudyPreferencesService(db).put(current_user, body))
+
+
+# presets (Study Studio)
+
+
+@router.get("/presets", response_model=PresetListResponse)
+async def list_presets(current_user: ActiveUser, db: DbSession) -> PresetListResponse:
+    rows = await StudyPresetService(db).list(current_user)
+    return PresetListResponse(data=[PresetOut.model_validate(r) for r in rows], total=len(rows))
+
+
+@router.post("/presets", response_model=PresetResponse, status_code=201)
+async def create_preset(body: PresetIn, current_user: ActiveUser, db: DbSession) -> PresetResponse:
+    row = await StudyPresetService(db).create(current_user, body)
+    return PresetResponse(data=PresetOut.model_validate(row))
+
+
+@router.put("/presets/{preset_id}", response_model=PresetResponse)
+async def replace_preset(
+    preset_id: uuid.UUID, body: PresetIn, current_user: ActiveUser, db: DbSession
+) -> PresetResponse:
+    row = await StudyPresetService(db).replace(current_user, preset_id, body)
+    return PresetResponse(data=PresetOut.model_validate(row))
+
+
+@router.post("/presets/{preset_id}/default", response_model=PresetResponse)
+async def make_default_preset(
+    preset_id: uuid.UUID, current_user: ActiveUser, db: DbSession
+) -> PresetResponse:
+    row = await StudyPresetService(db).set_default(current_user, preset_id, True)
+    return PresetResponse(data=PresetOut.model_validate(row))
+
+
+@router.delete("/presets/{preset_id}", status_code=204)
+async def delete_preset(preset_id: uuid.UUID, current_user: ActiveUser, db: DbSession) -> None:
+    await StudyPresetService(db).delete(current_user, preset_id)
 
 
 # exports

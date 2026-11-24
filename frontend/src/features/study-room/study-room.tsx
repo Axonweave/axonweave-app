@@ -61,7 +61,7 @@ const PANEL_META: Record<Panel, { label: string; icon: React.ElementType; tone: 
   graph: { label: "Knowledge Graph", icon: Network, tone: TONES.graph },
   progress: { label: "Progress", icon: ClipboardCheck, tone: TONES.progress },
   research: { label: "Research", icon: FlaskConical, tone: TONES.research },
-  chapters: { label: "Chapters", icon: FolderTree, tone: TONES.overview },
+  chapters: { label: "Contents", icon: FolderTree, tone: TONES.overview },
 };
 /** Always visible in the room's top bar; the rest sit under "More tools". */
 const MAIN_PANELS: Panel[] = ["files", "materials", "revision", "intelligence"];
@@ -78,14 +78,14 @@ export function StudyRoom() {
   if (state.status === "error")
     return (
       <div className="p-6">
-        <ErrorDisplay message="Could not open this study room." onRetry={state.retry} />
+        <ErrorDisplay message="Could not open this folder." onRetry={state.retry} />
       </div>
     );
   if (state.status === "not-found")
     return (
       <div className="p-6">
         <EmptyState
-          title="Study room not found"
+          title="Folder not found"
           description="It may have been deleted, or it isn't in your account."
           action={
             <Link href="/workspaces" className={buttonVariants()}>
@@ -120,14 +120,22 @@ function useAiBoot() {
 
 function ReadyRoom() {
   const space = useLearningSpace();
-  const { subject, workspace, chapters } = space;
+  const { subject, workspace, chapters, folders } = space;
   const room = useRoomState();
   const chats = useRoomChats(space);
   const [boot, setBoot] = useAiBoot();
   const [chatsOpen, setChatsOpen] = useState(false);
   const colour = subject.colour ?? DEFAULT_SUBJECT_COLOUR;
 
-  const chapter = room.chapterId ? (chapters.find((c) => c.id === room.chapterId) ?? null) : null;
+  const focusChapter = room.chapterId
+    ? (chapters.find((c) => c.id === room.chapterId) ?? null)
+    : null;
+  const focusFolder = room.folderId ? (folders.find((f) => f.id === room.folderId) ?? null) : null;
+  const chapter = focusChapter
+    ? { id: focusChapter.id, title: focusChapter.title, kind: "chapter" as const }
+    : focusFolder
+      ? { id: focusFolder.id, title: focusFolder.name, kind: "folder" as const }
+      : null;
   const sortedChapters = [...chapters].sort((a, b) => a.display_order - b.display_order);
 
   const chapterName = useCallback(
@@ -188,10 +196,15 @@ function ReadyRoom() {
         </div>
 
         <ChapterPicker
-          chapters={sortedChapters}
+          items={[
+            ...folders.map((f) => ({ id: f.id, title: f.name, kind: "folder" as const })),
+            ...sortedChapters.map((c) => ({ id: c.id, title: c.title, kind: "chapter" as const })),
+          ]}
           current={chapter}
-          onPick={(id) => {
-            room.setChapter(id);
+          onPick={(item) => {
+            if (!item) room.setChapter(null);
+            else if (item.kind === "folder") room.setFolder(item.id);
+            else room.setChapter(item.id);
             newChat();
           }}
         />
@@ -228,7 +241,7 @@ function ReadyRoom() {
                 <DropdownMenuLabel>Go to</DropdownMenuLabel>
                 <DropdownMenuItem render={<Link href={environmentHref(space.ctx)} />}>
                   <Settings2 aria-hidden="true" />
-                  Room settings
+                  Folder settings
                 </DropdownMenuItem>
                 <DropdownMenuItem render={<Link href="/ai-tutor" />}>
                   <BookOpenCheck aria-hidden="true" />
@@ -282,11 +295,11 @@ function ReadyRoom() {
         ) : null}
 
         <RoomChat
-          key={room.chatId ?? `new-${chatKey}-${room.chapterId ?? ""}`}
+          key={room.chatId ?? `new-${chatKey}-${room.chapterId ?? room.folderId ?? ""}`}
           space={space}
           ai={boot}
           conversationId={room.chatId}
-          chapter={chapter ? { id: chapter.id, title: chapter.title } : null}
+          chapter={chapter}
           onConversationCreated={(c) => {
             room.openChat(c.id);
             chats.reload();
@@ -309,20 +322,22 @@ function ReadyRoom() {
   );
 }
 
+type FocusItem = { id: string; title: string; kind: "folder" | "chapter" };
+
 function ChapterPicker({
-  chapters,
+  items,
   current,
   onPick,
 }: {
-  chapters: { id: string; title: string }[];
+  items: FocusItem[];
   current: { id: string; title: string } | null;
-  onPick: (id: string | null) => void;
+  onPick: (item: FocusItem | null) => void;
 }) {
-  if (chapters.length === 0) return null;
+  if (items.length === 0) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Focus: ${current ? current.title : "whole room"}. Change focus`}
+        aria-label={`Focus: ${current ? current.title : "whole folder"}. Change focus`}
         className={cn(
           "focus-visible:ring-ring inline-flex h-7 max-w-56 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
           current
@@ -331,19 +346,22 @@ function ChapterPicker({
         )}
       >
         <Crosshair className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span className="truncate">{current ? current.title : "All chapters"}</span>
+        <span className="truncate">{current ? current.title : "Whole folder"}</span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-80 min-w-60 overflow-y-auto">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Focus the chat and tools on</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => onPick(null)}>
-            <span className="flex-1">All chapters (whole room)</span>
+            <span className="flex-1">Whole folder</span>
             {!current ? <span className="text-primary text-xs">●</span> : null}
           </DropdownMenuItem>
-          {chapters.map((c) => (
-            <DropdownMenuItem key={c.id} onClick={() => onPick(c.id)}>
+          {items.map((c) => (
+            <DropdownMenuItem key={c.id} onClick={() => onPick(c)}>
               <span className="flex-1 truncate">{c.title}</span>
+              <span className="text-muted-foreground text-xs">
+                {c.kind === "folder" ? "Folder" : "Chapter"}
+              </span>
               {current?.id === c.id ? <span className="text-primary text-xs">●</span> : null}
             </DropdownMenuItem>
           ))}

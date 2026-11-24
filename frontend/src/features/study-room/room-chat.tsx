@@ -85,7 +85,8 @@ export function RoomChat({
   space: LearningSpace;
   ai: { status: AiStatus; models: AiModel[] } | null;
   conversationId: string | null;
-  chapter: { id: string; title: string } | null;
+  /** What the chat is focused on: a chapter or a folder inside the room, or null for all of it. */
+  chapter: { id: string; title: string; kind?: "chapter" | "folder" } | null;
   onConversationCreated: (c: Conversation) => void;
   onSettled: () => void;
   onOpenPanel: (p: Panel) => void;
@@ -101,7 +102,7 @@ export function RoomChat({
     scope: conversationId
       ? null
       : chapter
-        ? { kind: "chapter", id: chapter.id }
+        ? { kind: chapter.kind ?? "chapter", id: chapter.id }
         : { kind: "subject", id: subject.id },
     answerMode: mode,
     onConversationCreated,
@@ -160,7 +161,8 @@ export function RoomChat({
       const result = await documentsApi.upload(files, {
         workspace_id: ctx.workspaceId,
         subject_id: subject.id,
-        chapter_id: chapter?.id ?? null,
+        folder_id: chapter?.kind === "folder" ? chapter.id : null,
+        chapter_id: chapter && chapter.kind !== "folder" ? chapter.id : null,
       });
       if (result.documents.length > 0) {
         addEvent({
@@ -354,7 +356,13 @@ export function RoomChat({
             <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span className="truncate">
               Answers from <span className="text-foreground font-medium">{focusName}</span>
-              {conversationId ? "" : chapter ? " (this chapter)" : " (whole room)"}
+              {conversationId
+                ? ""
+                : chapter
+                  ? chapter.kind === "folder"
+                    ? " (this folder)"
+                    : " (this chapter)"
+                  : " (whole folder)"}
             </span>
           </p>
           {notConfigured ? null : (
@@ -401,7 +409,7 @@ export function RoomChat({
           defaultType={generate}
           preset={
             chapter
-              ? { type: "chapter", id: chapter.id, label: chapter.title }
+              ? { type: chapter.kind ?? "chapter", id: chapter.id, label: chapter.title }
               : { type: "subject", id: subject.id, label: subject.name }
           }
           onStarted={() => {

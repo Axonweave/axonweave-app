@@ -22,11 +22,11 @@ export function QuickActions({ onCreateWorkspace }: QuickActionsProps) {
       </Button>
       <Link href="/subjects?create=1" className={linkClass}>
         <BookPlus className="h-4 w-4" aria-hidden="true" />
-        New subject
+        New folder
       </Link>
       <Link href="/subjects" className={linkClass}>
         <BookOpen className="h-4 w-4" aria-hidden="true" />
-        Browse subjects
+        Browse folders
       </Link>
       <Link href="/workspaces" className={linkClass}>
         <FolderKanban className="h-4 w-4" aria-hidden="true" />
