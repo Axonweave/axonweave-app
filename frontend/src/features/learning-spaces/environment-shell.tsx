@@ -245,7 +245,7 @@ function AddMenu({ space }: { space: LearningSpace }) {
 function ScopeTrail({ space, tab }: { space: LearningSpace; tab: EnvironmentTab }) {
   const { ctx, workspace, subject, path, folder, chapter } = space;
   const crumbs: { label: string; href?: string }[] = [
-    { label: workspace.name, href: `/subjects?workspace=${workspace.id}` },
+    { label: workspace.name, href: `/workspaces/${workspace.id}` },
     {
       label: subject.name,
       href: environmentHref(

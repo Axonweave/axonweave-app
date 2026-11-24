@@ -98,7 +98,7 @@ export function ContentTab() {
   const hierarchy = buildHierarchy(space.scopedFolders, space.scopedChapters);
   const truncated = chapterTotal > chapters.length;
   const close = () => setDialog(null);
-  const subjectsHref = `/subjects?workspace=${workspace.id}`;
+  const subjectsHref = `/workspaces/${workspace.id}`;
   const subjectHref = environmentHref(makeContext({ workspaceId, subjectId }), "content");
   const rootDepth = root ? folderPath(folders, root.id).length : 0;
   const scopeName = root ? `folder ${root.name}` : `subject ${subject.name}`;

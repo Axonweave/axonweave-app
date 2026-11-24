@@ -22,6 +22,7 @@ import { SELECT_CLASS } from "@/features/academic/form-bits";
 import { RowActions } from "@/features/academic/row-actions";
 import { SubjectDialog } from "@/features/academic/subject-dialog";
 import { roomHref } from "@/features/workspaces/current-workspace";
+import { environmentHref, makeContext } from "@/lib/learning-context";
 import type { Subject } from "@/types/api";
 
 const PAGE_SIZE = 12;
@@ -176,7 +177,7 @@ function SubjectsView() {
         <div>
           <h1 className="text-2xl font-semibold">Folders</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            The topics you study. Each holds folders and chapters.
+            Your subjects. Open one to add chapter folders and upload documents.
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)}>
@@ -274,7 +275,7 @@ function SubjectsView() {
           <EmptyState
             title={showArchived ? "No folders yet" : "No folders yet"}
             description="Create your first folder, then add chapter folders and documents inside it."
-            action={<Button onClick={() => setCreateOpen(true)}>Create subject</Button>}
+            action={<Button onClick={() => setCreateOpen(true)}>Create folder</Button>}
           />
         )
       ) : (
@@ -284,7 +285,7 @@ function SubjectsView() {
             return (
               <li
                 key={s.id}
-                className={`border-border flex items-start gap-3 rounded-lg border p-4 ${
+                className={`bg-card border-border hover:bg-muted/30 hover:border-foreground/20 relative flex items-start gap-3 rounded-lg border p-4 transition-colors ${
                   archived ? "opacity-70" : ""
                 }`}
               >
@@ -295,8 +296,8 @@ function SubjectsView() {
                 />
                 <div className="min-w-0 flex-1">
                   <Link
-                    href={roomHref(workspaceId, s.id)}
-                    className="focus-visible:ring-ring block truncate rounded-sm font-medium underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                    href={environmentHref(makeContext({ workspaceId, subjectId: s.id }))}
+                    className="focus-visible:ring-ring block truncate rounded-sm font-medium after:absolute after:inset-0 after:rounded-lg focus-visible:ring-2 focus-visible:outline-none"
                   >
                     {s.icon ? `${s.icon} ` : ""}
                     {s.name}
@@ -306,43 +307,52 @@ function SubjectsView() {
                       {s.description}
                     </p>
                   )}
-                  {archived && (
+                  {archived ? (
                     <span className="bg-muted text-muted-foreground mt-1 inline-block rounded-full px-2 py-0.5 text-xs">
                       Archived
                     </span>
+                  ) : (
+                    <Link
+                      href={roomHref(workspaceId, s.id)}
+                      className="text-primary relative z-10 mt-2 inline-block text-xs font-medium hover:underline"
+                    >
+                      Open study room
+                    </Link>
                   )}
                 </div>
-                <RowActions
-                  name={`folder ${s.name}`}
-                  actions={
-                    archived
-                      ? [
-                          {
-                            label: "Restore",
-                            icon: <ArchiveRestore />,
-                            onSelect: () => restore(s),
-                          },
-                          {
-                            label: "Delete",
-                            icon: <Trash2 />,
-                            destructive: true,
-                            separated: true,
-                            onSelect: () => askDelete(s),
-                          },
-                        ]
-                      : [
-                          { label: "Edit", icon: <Pencil />, onSelect: () => setEditing(s) },
-                          { label: "Archive", icon: <Archive />, onSelect: () => archive(s) },
-                          {
-                            label: "Delete",
-                            icon: <Trash2 />,
-                            destructive: true,
-                            separated: true,
-                            onSelect: () => askDelete(s),
-                          },
-                        ]
-                  }
-                />
+                <div className="relative z-10">
+                  <RowActions
+                    name={`folder ${s.name}`}
+                    actions={
+                      archived
+                        ? [
+                            {
+                              label: "Restore",
+                              icon: <ArchiveRestore />,
+                              onSelect: () => restore(s),
+                            },
+                            {
+                              label: "Delete",
+                              icon: <Trash2 />,
+                              destructive: true,
+                              separated: true,
+                              onSelect: () => askDelete(s),
+                            },
+                          ]
+                        : [
+                            { label: "Edit", icon: <Pencil />, onSelect: () => setEditing(s) },
+                            { label: "Archive", icon: <Archive />, onSelect: () => archive(s) },
+                            {
+                              label: "Delete",
+                              icon: <Trash2 />,
+                              destructive: true,
+                              separated: true,
+                              onSelect: () => askDelete(s),
+                            },
+                          ]
+                    }
+                  />
+                </div>
               </li>
             );
           })}
