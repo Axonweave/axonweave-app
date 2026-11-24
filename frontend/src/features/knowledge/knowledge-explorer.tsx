@@ -41,11 +41,28 @@ const MAX_CANVAS_NODES = 300;
 
 type View = "graph" | "list" | "duplicates";
 
-export function KnowledgeExplorer({ initialNodeId }: { initialNodeId?: string }) {
+/**
+ * Without `scope` the explorer works across subjects (workspace level) with its own pickers.
+ * With a scope from a learning environment, the workspace and subject are fixed and the pickers
+ * are hidden: the learner already chose the context.
+ */
+export interface FixedScope {
+  workspaceId: string;
+  subjectId?: string;
+}
+
+export function KnowledgeExplorer({
+  initialNodeId,
+  scope,
+}: {
+  initialNodeId?: string;
+  scope?: FixedScope;
+}) {
   const { toast } = useToast();
   const [view, setView] = useState<View>("graph");
-  const [workspaceId, setWorkspaceId] = useState("");
-  const [subjectId, setSubjectId] = useState("");
+  const [workspaceId, setWorkspaceId] = useState(scope?.workspaceId ?? "");
+  const [subjectId, setSubjectId] = useState(scope?.subjectId ?? "");
+  const lockedSubject = !!scope?.subjectId;
   const [nodeType, setNodeType] = useState("");
   const [relTypes, setRelTypes] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState("");
@@ -139,7 +156,7 @@ export function KnowledgeExplorer({ initialNodeId }: { initialNodeId?: string })
     setRelTypes((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
   };
 
-  const hasFilter = !!(subjectId || nodeType || q || relTypes.length);
+  const hasFilter = !!((!lockedSubject && subjectId) || nodeType || q || relTypes.length);
 
   return (
     <div className="space-y-4">
@@ -148,7 +165,7 @@ export function KnowledgeExplorer({ initialNodeId }: { initialNodeId?: string })
         aria-label="Filter concepts"
         onSubmit={(e) => e.preventDefault()}
       >
-        {(workspaces.data?.length ?? 0) > 1 ? (
+        {!scope && (workspaces.data?.length ?? 0) > 1 ? (
           <label className="text-sm">
             <span className="text-muted-foreground mb-1 block text-xs">Workspace</span>
             <select
@@ -168,24 +185,26 @@ export function KnowledgeExplorer({ initialNodeId }: { initialNodeId?: string })
             </select>
           </label>
         ) : null}
-        <label className="text-sm">
-          <span className="text-muted-foreground mb-1 block text-xs">Subject</span>
-          <select
-            className={SELECT}
-            value={subjectId}
-            onChange={(e) => {
-              setSubjectId(e.target.value);
-              setOffset(0);
-            }}
-          >
-            <option value="">All subjects</option>
-            {subjects.data?.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {lockedSubject ? null : (
+          <label className="text-sm">
+            <span className="text-muted-foreground mb-1 block text-xs">Subject</span>
+            <select
+              className={SELECT}
+              value={subjectId}
+              onChange={(e) => {
+                setSubjectId(e.target.value);
+                setOffset(0);
+              }}
+            >
+              <option value="">All subjects</option>
+              {subjects.data?.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="text-sm">
           <span className="text-muted-foreground mb-1 block text-xs">Type</span>
           <select
@@ -238,7 +257,7 @@ export function KnowledgeExplorer({ initialNodeId }: { initialNodeId?: string })
             type="button"
             className="text-primary h-9 text-sm underline"
             onClick={() => {
-              setSubjectId("");
+              if (!lockedSubject) setSubjectId("");
               setNodeType("");
               setSearchInput("");
               setRelTypes([]);

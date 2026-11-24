@@ -38,10 +38,10 @@ export function AppHeader({ onMenuClick, breadcrumbs }: AppHeaderProps) {
         .map((n) => n[0])
         .join("")
         .toUpperCase()
-    : user?.email?.[0]?.toUpperCase() ?? "?";
+    : (user?.email?.[0]?.toUpperCase() ?? "?");
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
+    <header className="border-border bg-background flex h-14 shrink-0 items-center gap-3 border-b px-4">
       {/* Mobile menu toggle */}
       <Button variant="ghost" size="icon" className="h-8 w-8 md:hidden" onClick={onMenuClick}>
         <Menu className="h-4 w-4" />
@@ -49,7 +49,10 @@ export function AppHeader({ onMenuClick, breadcrumbs }: AppHeaderProps) {
       </Button>
 
       {/* Breadcrumbs */}
-      <nav className="flex flex-1 items-center gap-1 text-sm text-muted-foreground" aria-label="Breadcrumb">
+      <nav
+        className="text-muted-foreground flex flex-1 items-center gap-1 text-sm"
+        aria-label="Breadcrumb"
+      >
         {breadcrumbs?.map((crumb, i) => (
           <span key={i} className="flex items-center gap-1">
             {i > 0 && <span>/</span>}
@@ -71,13 +74,21 @@ export function AppHeader({ onMenuClick, breadcrumbs }: AppHeaderProps) {
 
       {/* Profile menu */}
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" className="h-8 w-8 rounded-full bg-accent p-0 text-xs font-semibold" aria-label="Open profile menu" />}>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              className="bg-accent h-8 w-8 rounded-full p-0 text-xs font-semibold"
+              aria-label="Open profile menu"
+            />
+          }
+        >
           {initials}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <div className="px-2 py-1.5">
-            <p className="text-sm font-medium truncate">{user?.profile?.full_name ?? "—"}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            <p className="truncate text-sm font-medium">{user?.profile?.full_name ?? "—"}</p>
+            <p className="text-muted-foreground truncate text-xs">{user?.email}</p>
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem render={<a href="/settings/profile" />}>
@@ -89,7 +100,10 @@ export function AppHeader({ onMenuClick, breadcrumbs }: AppHeaderProps) {
             Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className="text-destructive focus:text-destructive"
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Log out
           </DropdownMenuItem>

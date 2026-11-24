@@ -1,11 +1,11 @@
 """
 EmailSender interface and implementations (D-17).
 
-Provider-agnostic interface so we can swap from Mailpit → SES/SendGrid later
-purely via EMAIL_PROVIDER env var.
+Provider-agnostic interface so a real provider (SMTP, SES, SendGrid) can be plugged in later
+purely via the EMAIL_PROVIDER env var.
 
-Dev:     SMTP to Mailpit container (smtp_host=mailpit, smtp_port=1025)
-Console: Logs the email body — useful when docker-compose is not running
+Console: the default. Logs the email (in development, including the one-time link)
+SMTP:    EMAIL_PROVIDER=smtp sends through SMTP_HOST:SMTP_PORT
 Test:    InMemoryEmailSender — captured for test assertions
 """
 
@@ -33,7 +33,7 @@ class EmailSender(Protocol):
 
 
 class SmtpEmailSender:
-    """Sends via SMTP — works with Mailpit in dev and real providers in prod."""
+    """Sends via SMTP (EMAIL_PROVIDER=smtp)."""
 
     async def send(self, to: str, subject: str, html_body: str, text_body: str) -> None:
         msg = MIMEMultipart("alternative")
@@ -52,7 +52,7 @@ class SmtpEmailSender:
 
 
 class ConsoleEmailSender:
-    """Logs email to console — fallback for local dev without Mailpit."""
+    """Logs email to the console — the default sender."""
 
     async def send(self, to: str, subject: str, html_body: str, text_body: str) -> None:
         # Bodies contain one-time links (verification / reset tokens), so they are only
@@ -75,6 +75,7 @@ class InMemoryEmailSender:
 
 def get_email_sender() -> EmailSender:
     provider = settings.email_provider.lower()
-    if provider in ("mailpit", "smtp"):
+    if provider == "smtp":
         return SmtpEmailSender()
+    # Anything else (including the retired "mailpit" value) prints to the log.
     return ConsoleEmailSender()

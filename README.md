@@ -66,7 +66,6 @@ docker compose exec backend alembic upgrade head
 | Backend API | http://localhost:8000/api/v1 |
 | API docs (development only) | http://localhost:8000/docs |
 | Health check | http://localhost:8000/health |
-| Mailpit (development inbox; verification and reset emails land here) | http://localhost:8025 |
 | PostgreSQL | localhost:5432 |
 
 The frontend image bakes in the backend URL at build time (`NEXT_PUBLIC_BACKEND_URL`), so rebuild
@@ -115,8 +114,8 @@ closeout; CI does not run it.
 ## Continuous integration
 
 `.github/workflows/ci.yml` has four jobs: backend (ruff, mypy, migrations, `alembic heads`, pytest),
-frontend (lint, typecheck, Vitest, build), e2e (Playwright against the Compose stack, using
-Mailpit for email verification, with the fake AI provider) and security (gitleaks on history,
+frontend (lint, typecheck, Vitest, build), e2e (Playwright against the Compose stack, with the
+fake AI provider) and security (gitleaks on history,
 `pip-audit`, `npm audit`). The workflow runs on every pull request; the three most recent runs on `main`
 (including the AI Tutor merge, PR #15) were green when checked on 2026-11-06.
 

@@ -40,6 +40,8 @@ interface TreeProps {
   /** Every chapter of the subject, used to know whether a chapter can still move up or down. */
   chapters: Chapter[];
   actions: TreeActions;
+  /** Depth of the folder the tree is rooted at (0 = the subject itself), for the nesting limit. */
+  baseDepth?: number;
 }
 
 function ChapterRow({
@@ -114,14 +116,20 @@ function ChapterRow({
 
 function FolderBlock({ node, ...rest }: { node: FolderNode } & Omit<TreeProps, "hierarchy">) {
   const { folder } = node;
-  const { actions } = rest;
-  const canNest = node.depth < MAX_FOLDER_DEPTH;
+  const { actions, workspaceId, subjectId, baseDepth = 0 } = rest;
+  const canNest = node.depth + baseDepth < MAX_FOLDER_DEPTH;
   return (
     <li className="space-y-2">
       <div className="bg-muted/40 flex flex-wrap items-center gap-2 rounded-md px-3 py-2">
         <FolderIcon className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium">{folder.name}</p>
+          {/* A folder is a learning environment of its own, not just a container. */}
+          <Link
+            href={`/workspaces/${workspaceId}/subjects/${subjectId}/folders/${folder.id}`}
+            className="focus-visible:ring-ring block truncate rounded-sm font-medium underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+          >
+            {folder.name}
+          </Link>
           {folder.description && (
             <p className="text-muted-foreground line-clamp-1 text-xs">{folder.description}</p>
           )}

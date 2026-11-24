@@ -24,11 +24,17 @@ const SELECT = "border-input bg-background h-9 rounded-md border px-2 text-sm";
 export function ScopeFilter({
   value,
   onChange,
+  locked,
 }: {
   value: ScopeValue;
   onChange: (next: ScopeValue) => void;
+  /**
+   * Set inside a learning environment: the subject (and chapter) are fixed by the context and their
+   * pickers are hidden. Dates stay adjustable.
+   */
+  locked?: { workspace_id: string; subject_id?: string; chapter_id?: string };
 }) {
-  const [chosenWorkspace, setWorkspaceId] = useState("");
+  const [chosenWorkspace, setWorkspaceId] = useState(locked?.workspace_id ?? "");
   const workspaces = useAsync(() => workspacesApi.list().then((r) => r.data), []);
   // until the user picks one, browse subjects of the first workspace
   const workspaceId = chosenWorkspace || workspaces.data?.[0]?.id || "";
@@ -49,7 +55,13 @@ export function ScopeFilter({
   );
 
   const set = (patch: Partial<ScopeValue>) => onChange({ ...value, ...patch });
-  const hasFilter = !!(value.subject_id || value.chapter_id || value.start_date || value.end_date);
+  const fixed = { subject_id: locked?.subject_id, chapter_id: locked?.chapter_id };
+  const hasFilter = !!(
+    (!fixed.subject_id && value.subject_id) ||
+    (!fixed.chapter_id && value.chapter_id) ||
+    value.start_date ||
+    value.end_date
+  );
 
   return (
     <form
@@ -57,7 +69,7 @@ export function ScopeFilter({
       aria-label="Filter by subject, chapter and dates"
       onSubmit={(e) => e.preventDefault()}
     >
-      {(workspaces.data?.length ?? 0) > 1 ? (
+      {!locked && (workspaces.data?.length ?? 0) > 1 ? (
         <label className="text-sm">
           <span className="text-muted-foreground mb-1 block text-xs">Workspace</span>
           <select
@@ -76,37 +88,43 @@ export function ScopeFilter({
           </select>
         </label>
       ) : null}
-      <label className="text-sm">
-        <span className="text-muted-foreground mb-1 block text-xs">Subject</span>
-        <select
-          className={SELECT}
-          value={value.subject_id ?? ""}
-          onChange={(e) => set({ subject_id: e.target.value || undefined, chapter_id: undefined })}
-        >
-          <option value="">All subjects</option>
-          {subjects.data?.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="text-sm">
-        <span className="text-muted-foreground mb-1 block text-xs">Chapter</span>
-        <select
-          className={SELECT}
-          value={value.chapter_id ?? ""}
-          disabled={!value.subject_id}
-          onChange={(e) => set({ chapter_id: e.target.value || undefined })}
-        >
-          <option value="">All chapters</option>
-          {chapters.data?.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.title}
-            </option>
-          ))}
-        </select>
-      </label>
+      {fixed.subject_id ? null : (
+        <label className="text-sm">
+          <span className="text-muted-foreground mb-1 block text-xs">Subject</span>
+          <select
+            className={SELECT}
+            value={value.subject_id ?? ""}
+            onChange={(e) =>
+              set({ subject_id: e.target.value || undefined, chapter_id: undefined })
+            }
+          >
+            <option value="">All subjects</option>
+            {subjects.data?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {fixed.chapter_id ? null : (
+        <label className="text-sm">
+          <span className="text-muted-foreground mb-1 block text-xs">Chapter</span>
+          <select
+            className={SELECT}
+            value={value.chapter_id ?? ""}
+            disabled={!value.subject_id}
+            onChange={(e) => set({ chapter_id: e.target.value || undefined })}
+          >
+            <option value="">All chapters</option>
+            {chapters.data?.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="text-sm">
         <span className="text-muted-foreground mb-1 block text-xs">From</span>
         <input
@@ -131,7 +149,7 @@ export function ScopeFilter({
         <button
           type="button"
           className="text-primary h-9 text-sm underline"
-          onClick={() => onChange({})}
+          onClick={() => onChange({ ...fixed })}
         >
           Clear filters
         </button>
