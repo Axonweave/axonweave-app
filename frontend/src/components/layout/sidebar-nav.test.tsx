@@ -131,7 +131,7 @@ describe("MobileNav drawer", () => {
     render(<MobileNav open onClose={vi.fn()} />);
     expect(screen.getByRole("link", { name: "Overview" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "AI Tutor" })).toHaveAttribute("href", "/ai-tutor");
-    expect(screen.getByRole("link", { name: "Research Studio" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Research Lab" })).toHaveAttribute(
       "href",
       "/research",
     );

@@ -16,10 +16,8 @@ import {
   FlaskConical,
   ClipboardCheck,
   RotateCcw,
-  Library,
   Network,
   Gauge,
-  Sparkles,
   Star,
   ChevronDown,
   ChevronLeft,
@@ -36,17 +34,13 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   disabled?: boolean;
+  /** Colour of the icon while the item is not the current page. */
+  tone?: string;
 }
 
 const homeNav: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "AI Tutor", href: "/ai-tutor", icon: BrainCircuit },
-];
-
-/** Everything uploaded or generated, across all rooms. */
-const libraryNav: NavItem[] = [
-  { label: "Library", href: "/library", icon: Library },
-  { label: "Study materials", href: "/study", icon: Sparkles },
 ];
 
 /**
@@ -56,20 +50,25 @@ const libraryNav: NavItem[] = [
 const toolsNav: NavItem[] = [
   { label: "Knowledge Graph", href: "/knowledge", icon: Network },
   { label: "Learner Intelligence", href: "/insights", icon: Gauge },
-  { label: "Research Studio", href: "/research", icon: FlaskConical },
   { label: "Revision", href: "/revision", icon: RotateCcw },
-  { label: "Progress", href: "/progress", icon: ClipboardCheck },
 ];
 
 /** Managing workspaces and rooms, history and the bin. */
 const moreNav: NavItem[] = [
+  {
+    label: "Research Lab",
+    href: "/research",
+    icon: FlaskConical,
+    tone: "text-violet-600 dark:text-violet-400",
+  },
+  { label: "Progress", href: "/progress", icon: ClipboardCheck },
   { label: "My Workspace", href: "/workspaces", icon: FolderOpen },
   { label: "Subjects", href: "/subjects", icon: BookOpen },
   { label: "Recent Activity", href: "/activity", icon: Clock },
   { label: "Archived Items", href: "/archived", icon: Archive },
 ];
 
-export const primaryNav: NavItem[] = [...homeNav, ...libraryNav, ...toolsNav, ...moreNav];
+export const primaryNav: NavItem[] = [...homeNav, ...toolsNav, ...moreNav];
 
 const comingSoonNav: NavItem[] = [{ label: "Favourites", href: "#", icon: Star, disabled: true }];
 
@@ -88,7 +87,6 @@ const underPath = (pathname: string, base: string) =>
 export function isNavActive(pathname: string, href: string): boolean {
   if (href === "#") return false;
   if (href === "/workspaces") return pathname === "/workspaces";
-  if (href === "/library") return underPath(pathname, href) || underPath(pathname, "/documents");
   return underPath(pathname, href);
 }
 
@@ -96,8 +94,8 @@ export function isNavActive(pathname: string, href: string): boolean {
 
 const GROUPS_KEY = "axonweave.sidebar-groups.v1";
 const GROUPS_EVENT = "axonweave:sidebar-groups";
-type GroupId = "library" | "tools" | "more";
-const DEFAULT_OPEN: Record<GroupId, boolean> = { library: true, tools: false, more: false };
+type GroupId = "tools" | "more";
+const DEFAULT_OPEN: Record<GroupId, boolean> = { tools: true, more: false };
 
 function readGroups(): string {
   try {
@@ -209,7 +207,6 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
 
         <nav className="space-y-3" aria-label="Main">
           <NavSection items={homeNav} collapsed={collapsed} pathname={pathname} />
-          {group("library", "Library", libraryNav)}
           {group("tools", "Tools across all rooms", toolsNav)}
           {group(
             "more",
@@ -318,7 +315,7 @@ function NavSection({
               <Icon
                 className={cn(
                   "h-4 w-4 shrink-0",
-                  active ? "text-foreground" : "text-muted-foreground",
+                  active ? "text-foreground" : (item.tone ?? "text-muted-foreground"),
                 )}
               />
               {!collapsed && (
