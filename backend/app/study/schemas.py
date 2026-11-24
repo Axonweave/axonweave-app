@@ -74,6 +74,8 @@ class GenerationRequest(BaseModel):
     generation_type: str = Field(min_length=1, max_length=32, pattern=r"^[a-z_]+$")
     source: SourceSpec
     settings: dict[str, Any] = Field(default_factory=dict)
+    # A saved preset whose values fill in settings the request left out. Foreign id: 404.
+    preset_id: uuid.UUID | None = None
 
 
 def fingerprint(

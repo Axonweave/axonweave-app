@@ -81,7 +81,7 @@ class StudyGenerationService:
         requested = request.settings
         if regenerate is None:  # a regeneration already carries the material's own settings
             requested = await StudyPreferencesService(self._db).defaults_for(
-                user.id, generator, requested
+                user.id, generator, requested, request.preset_id
             )
         settings = validate_settings(generator, requested)
         normalised = settings.model_dump(mode="json")

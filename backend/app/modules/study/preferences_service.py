@@ -6,6 +6,7 @@ only where the chosen generator has a matching setting (and the value is valid f
 
 from __future__ import annotations
 
+import uuid
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,7 +14,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.study_preferences import StudyGenerationPreferences
+from app.models.study_preset import StudyPreset
 from app.models.user import User
+from app.modules.study.preset_service import StudyPresetService
 from app.study.generators.base import Generator
 
 _LENGTH_TO_DETAIL = {"short": "brief", "medium": "standard", "long": "detailed"}
@@ -85,10 +88,20 @@ class StudyPreferencesService:
         return _out(row)
 
     async def defaults_for(
-        self, user_id: object, generator: Generator, requested: dict[str, Any]
+        self,
+        user_id: uuid.UUID,
+        generator: Generator,
+        requested: dict[str, Any],
+        preset_id: uuid.UUID | None = None,
     ) -> dict[str, Any]:
-        """`requested` with the user's preferences filled in for settings the request left out."""
-        row = await self._row(user_id)
+        """`requested` with defaults filled in for settings the request left out. They come from
+        the chosen preset, else the user's default preset, else their saved preferences."""
+        presets = StudyPresetService(self._db)
+        row: StudyGenerationPreferences | StudyPreset | None
+        if preset_id is not None:
+            row = await presets.get_owned(user_id, preset_id)  # 404 for a foreign id
+        else:
+            row = await presets.default_for(user_id) or await self._row(user_id)
         if row is None:
             return requested
         fields = generator.settings_model.model_fields
