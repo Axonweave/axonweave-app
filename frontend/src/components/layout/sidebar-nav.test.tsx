@@ -14,7 +14,6 @@ beforeEach(() => {
   pathname = "/dashboard";
 });
 
-const COMING_SOON = ["Favourites"];
 
 describe("AppSidebar", () => {
   it("offers the real destinations with correct links", () => {
