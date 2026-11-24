@@ -10,6 +10,7 @@ import {
   HelpCircle,
   BrainCircuit,
   FlaskConical,
+  WandSparkles,
   ClipboardCheck,
   RotateCcw,
   Network,
@@ -43,6 +44,12 @@ const homeNav: NavItem[] = [
  * already know the room, so these are for looking at everything at once.
  */
 const toolsNav: NavItem[] = [
+  {
+    label: "Study Studio",
+    href: "/studio",
+    icon: WandSparkles,
+    tone: "text-amber-600 dark:text-amber-400",
+  },
   { label: "Revision", href: "/revision", icon: RotateCcw },
   { label: "Progress", href: "/progress", icon: ClipboardCheck },
   { label: "Knowledge Graph", href: "/knowledge", icon: Network },
@@ -172,7 +179,7 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
         </Button>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-2 pb-3">
+      <div className="flex-1 space-y-5 overflow-y-auto px-3 pb-3">
         {/* Where you are: your workspaces and the folders inside them */}
         <SidebarWorkspace pathname={pathname} collapsed={collapsed} />
 
@@ -202,7 +209,7 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
             </div>
           ) : (
             <div>
-              <p className="text-muted-foreground/80 px-3 pb-1 text-[10px] font-semibold tracking-widest uppercase">
+              <p className="text-muted-foreground/70 px-2 pb-1.5 text-[10px] font-semibold tracking-[0.14em] uppercase">
                 Study tools
               </p>
               <NavSection items={toolsNav} collapsed={false} pathname={pathname} />
@@ -213,7 +220,7 @@ export function AppSidebar({ collapsed, onToggle, className }: AppSidebarProps) 
       </div>
 
       {/* Bottom nav */}
-      <div className="border-border border-t px-2 py-3">
+      <div className="border-border border-t px-3 py-3">
         <NavSection items={bottomNav} collapsed={collapsed} pathname={pathname} />
       </div>
     </aside>
@@ -247,7 +254,7 @@ function NavGroup({
         disabled={!canToggle}
         aria-expanded={open}
         aria-controls={regionId}
-        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex w-full items-center justify-between rounded-md px-3 py-1 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-default disabled:hover:text-current"
+        className="text-muted-foreground/70 hover:text-foreground focus-visible:ring-ring flex w-full items-center justify-between rounded-md px-2 pb-1.5 text-[10px] font-semibold tracking-[0.14em] uppercase transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-default disabled:hover:text-current"
       >
         {label}
         {canToggle ? (
@@ -292,20 +299,37 @@ function NavSection({
               aria-disabled={item.disabled}
               aria-current={active ? "page" : undefined}
               tabIndex={item.disabled ? -1 : undefined}
+              title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition-colors",
+                "group/nav focus-visible:ring-sidebar-ring relative flex items-center gap-3 rounded-xl px-2 py-1.5 text-sm transition-all duration-150 focus-visible:ring-2 focus-visible:outline-none",
+                collapsed && "justify-center",
                 active
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-foreground",
+                  ? "bg-sidebar-primary/10 text-foreground font-medium"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-foreground",
                 item.disabled && "pointer-events-none opacity-40",
               )}
             >
-              <Icon
+              {active ? (
+                <span
+                  className="bg-sidebar-primary absolute top-1/2 -left-2 h-5 w-1 -translate-y-1/2 rounded-full"
+                  aria-hidden="true"
+                />
+              ) : null}
+              <span
                 className={cn(
-                  "h-4 w-4 shrink-0",
-                  active ? "text-foreground" : (item.tone ?? "text-muted-foreground"),
+                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-150",
+                  active
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    : "bg-background/70 ring-border/60 group-hover/nav:bg-background ring-1",
                 )}
-              />
+              >
+                <Icon
+                  className={cn(
+                    "h-4 w-4 transition-transform duration-150 group-hover/nav:scale-110",
+                    !active && (item.tone ?? "text-muted-foreground"),
+                  )}
+                />
+              </span>
               {!collapsed && (
                 <span className="truncate">
                   {item.label}
