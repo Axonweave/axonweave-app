@@ -107,7 +107,7 @@ function ReadyShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <EnvironmentHeader space={space} tab={tab} />
-      <TabBar ctx={space.ctx} tab={tab} />
+      {space.chapter ? <TabBar ctx={space.ctx} tab={tab} /> : null}
       <div key={tab} className="animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
         {children}
       </div>
@@ -169,21 +169,26 @@ function EnvironmentHeader({ space, tab }: { space: LearningSpace; tab: Environm
                 </span>
               ) : (
                 <span className="tabular-nums">
-                  {scopedFolders.length} {scopedFolders.length === 1 ? "folder" : "folders"} ·{" "}
-                  {chapterCount} {chapterCount === 1 ? "chapter" : "chapters"}
+                  {scopedFolders.length} {scopedFolders.length === 1 ? "folder" : "folders"} inside
+                  {chapterCount > 0
+                    ? ` · ${chapterCount} ${chapterCount === 1 ? "chapter" : "chapters"}`
+                    : ""}
                 </span>
               )}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <AddMenu space={space} />
+          {chapter ? <AddMenu space={space} /> : null}
           <Link
-            href={roomHref(ctx.workspaceId, subject.id) + (chapter ? `?chapter=${chapter.id}` : "")}
+            href={
+              roomHref(ctx.workspaceId, subject.id) +
+              (chapter ? `?chapter=${chapter.id}` : folder ? `?folder=${folder.id}` : "")
+            }
             className={buttonVariants()}
           >
             <MessagesSquare aria-hidden="true" />
-            {chapter ? "Study this chapter" : "Open room"}
+            Open study room
           </Link>
         </div>
       </div>

@@ -44,8 +44,8 @@ export const ENVIRONMENT_TABS: { id: EnvironmentTab; label: string; segment: str
 
 export const SCOPE_LABELS: Record<LearningScope, string> = {
   workspace: "Workspace",
-  subject: "Subject",
-  folder: "Folder",
+  subject: "Folder",
+  folder: "Sub-folder",
   chapter: "Chapter",
 };
 

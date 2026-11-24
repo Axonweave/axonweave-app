@@ -2,7 +2,7 @@
 
 /**
  * A study room's view state lives in the URL so it survives reloads and can be shared with
- * yourself: ?chat=<conversation>, ?chapter=<focus>, ?panel=<tool>. Ids are re-checked by the API.
+ * yourself: ?chat=<conversation>, ?chapter=<focus> or ?folder=<focus>, ?panel=<tool>. Ids are re-checked by the API.
  */
 import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -29,11 +29,12 @@ export function useRoomState() {
 
   const chatId = id(params.get("chat"));
   const chapterId = id(params.get("chapter"));
+  const folderId = id(params.get("folder"));
   const rawPanel = params.get("panel");
   const panel = (PANELS as readonly string[]).includes(rawPanel ?? "") ? (rawPanel as Panel) : null;
 
   const set = useCallback(
-    (patch: Partial<Record<"chat" | "chapter" | "panel", string | null>>) => {
+    (patch: Partial<Record<"chat" | "chapter" | "folder" | "panel", string | null>>) => {
       const next = new URLSearchParams(params.toString());
       for (const [k, v] of Object.entries(patch)) {
         if (v) next.set(k, v);
@@ -48,9 +49,11 @@ export function useRoomState() {
   return {
     chatId,
     chapterId,
+    folderId,
     panel,
     openChat: (c: string | null) => set({ chat: c }),
-    setChapter: (c: string | null) => set({ chapter: c }),
+    setChapter: (c: string | null) => set({ chapter: c, folder: null }),
+    setFolder: (f: string | null) => set({ folder: f, chapter: null }),
     openPanel: (p: Panel | null) => set({ panel: p }),
   };
 }

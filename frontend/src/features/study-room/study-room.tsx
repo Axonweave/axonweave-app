@@ -120,14 +120,22 @@ function useAiBoot() {
 
 function ReadyRoom() {
   const space = useLearningSpace();
-  const { subject, workspace, chapters } = space;
+  const { subject, workspace, chapters, folders } = space;
   const room = useRoomState();
   const chats = useRoomChats(space);
   const [boot, setBoot] = useAiBoot();
   const [chatsOpen, setChatsOpen] = useState(false);
   const colour = subject.colour ?? DEFAULT_SUBJECT_COLOUR;
 
-  const chapter = room.chapterId ? (chapters.find((c) => c.id === room.chapterId) ?? null) : null;
+  const focusChapter = room.chapterId
+    ? (chapters.find((c) => c.id === room.chapterId) ?? null)
+    : null;
+  const focusFolder = room.folderId ? (folders.find((f) => f.id === room.folderId) ?? null) : null;
+  const chapter = focusChapter
+    ? { id: focusChapter.id, title: focusChapter.title, kind: "chapter" as const }
+    : focusFolder
+      ? { id: focusFolder.id, title: focusFolder.name, kind: "folder" as const }
+      : null;
   const sortedChapters = [...chapters].sort((a, b) => a.display_order - b.display_order);
 
   const chapterName = useCallback(
@@ -188,10 +196,15 @@ function ReadyRoom() {
         </div>
 
         <ChapterPicker
-          chapters={sortedChapters}
+          items={[
+            ...folders.map((f) => ({ id: f.id, title: f.name, kind: "folder" as const })),
+            ...sortedChapters.map((c) => ({ id: c.id, title: c.title, kind: "chapter" as const })),
+          ]}
           current={chapter}
-          onPick={(id) => {
-            room.setChapter(id);
+          onPick={(item) => {
+            if (!item) room.setChapter(null);
+            else if (item.kind === "folder") room.setFolder(item.id);
+            else room.setChapter(item.id);
             newChat();
           }}
         />
@@ -282,11 +295,11 @@ function ReadyRoom() {
         ) : null}
 
         <RoomChat
-          key={room.chatId ?? `new-${chatKey}-${room.chapterId ?? ""}`}
+          key={room.chatId ?? `new-${chatKey}-${room.chapterId ?? room.folderId ?? ""}`}
           space={space}
           ai={boot}
           conversationId={room.chatId}
-          chapter={chapter ? { id: chapter.id, title: chapter.title } : null}
+          chapter={chapter}
           onConversationCreated={(c) => {
             room.openChat(c.id);
             chats.reload();
@@ -309,16 +322,18 @@ function ReadyRoom() {
   );
 }
 
+type FocusItem = { id: string; title: string; kind: "folder" | "chapter" };
+
 function ChapterPicker({
-  chapters,
+  items,
   current,
   onPick,
 }: {
-  chapters: { id: string; title: string }[];
+  items: FocusItem[];
   current: { id: string; title: string } | null;
-  onPick: (id: string | null) => void;
+  onPick: (item: FocusItem | null) => void;
 }) {
-  if (chapters.length === 0) return null;
+  if (items.length === 0) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -341,9 +356,12 @@ function ChapterPicker({
             <span className="flex-1">Whole folder</span>
             {!current ? <span className="text-primary text-xs">●</span> : null}
           </DropdownMenuItem>
-          {chapters.map((c) => (
-            <DropdownMenuItem key={c.id} onClick={() => onPick(c.id)}>
+          {items.map((c) => (
+            <DropdownMenuItem key={c.id} onClick={() => onPick(c)}>
               <span className="flex-1 truncate">{c.title}</span>
+              <span className="text-muted-foreground text-xs">
+                {c.kind === "folder" ? "Folder" : "Chapter"}
+              </span>
               {current?.id === c.id ? <span className="text-primary text-xs">●</span> : null}
             </DropdownMenuItem>
           ))}
